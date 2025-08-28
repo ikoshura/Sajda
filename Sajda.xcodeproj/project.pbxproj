@@ -14,6 +14,16 @@
 		CC969C8A2E60857E00C8630A /* SajdaTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC969C892E60857E00C8630A /* SajdaTests.swift */; };
 		CC969C942E60857E00C8630A /* SajdaUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC969C932E60857E00C8630A /* SajdaUITests.swift */; };
 		CC969C962E60857E00C8630A /* SajdaUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC969C952E60857E00C8630A /* SajdaUITestsLaunchTests.swift */; };
+		CC969CA32E6085F200C8630A /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = CC969CA22E6085F200C8630A /* Info.plist */; };
+		CC969CA72E60989F00C8630A /* PrayerTimeViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC969CA62E60989F00C8630A /* PrayerTimeViewModel.swift */; };
+		CC969CA92E6098C600C8630A /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC969CA82E6098C500C8630A /* SettingsView.swift */; };
+		CCEC0E3F2E60A3A0001E9B1E /* Adhan in Frameworks */ = {isa = PBXBuildFile; productRef = CCEC0E3E2E60A3A0001E9B1E /* Adhan */; };
+		CCEC0E412E60A899001E9B1E /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCEC0E402E60A899001E9B1E /* MainView.swift */; };
+		CCEC0E432E60ABF2001E9B1E /* PermissionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCEC0E422E60ABF2001E9B1E /* PermissionView.swift */; };
+		CCEC0E452E60B08D001E9B1E /* AboutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCEC0E442E60B08D001E9B1E /* AboutView.swift */; };
+		CCEC0E492E60B700001E9B1E /* StartupManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCEC0E482E60B700001E9B1E /* StartupManager.swift */; };
+		CCEC0E4F2E60D2EC001E9B1E /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCEC0E4E2E60D2EC001E9B1E /* NotificationManager.swift */; };
+		CCEC0E512E60EF7B001E9B1E /* CalculationSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCEC0E502E60EF7B001E9B1E /* CalculationSettingsView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -45,6 +55,15 @@
 		CC969C8F2E60857E00C8630A /* SajdaUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SajdaUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		CC969C932E60857E00C8630A /* SajdaUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SajdaUITests.swift; sourceTree = "<group>"; };
 		CC969C952E60857E00C8630A /* SajdaUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SajdaUITestsLaunchTests.swift; sourceTree = "<group>"; };
+		CC969CA22E6085F200C8630A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		CC969CA62E60989F00C8630A /* PrayerTimeViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrayerTimeViewModel.swift; sourceTree = "<group>"; };
+		CC969CA82E6098C500C8630A /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		CCEC0E402E60A899001E9B1E /* MainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
+		CCEC0E422E60ABF2001E9B1E /* PermissionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionView.swift; sourceTree = "<group>"; };
+		CCEC0E442E60B08D001E9B1E /* AboutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutView.swift; sourceTree = "<group>"; };
+		CCEC0E482E60B700001E9B1E /* StartupManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartupManager.swift; sourceTree = "<group>"; };
+		CCEC0E4E2E60D2EC001E9B1E /* NotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationManager.swift; sourceTree = "<group>"; };
+		CCEC0E502E60EF7B001E9B1E /* CalculationSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalculationSettingsView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -52,6 +71,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CCEC0E3F2E60A3A0001E9B1E /* Adhan in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -100,6 +120,15 @@
 				CC969C7B2E60857D00C8630A /* Assets.xcassets */,
 				CC969C802E60857D00C8630A /* Sajda.entitlements */,
 				CC969C7D2E60857D00C8630A /* Preview Content */,
+				CC969CA22E6085F200C8630A /* Info.plist */,
+				CC969CA62E60989F00C8630A /* PrayerTimeViewModel.swift */,
+				CC969CA82E6098C500C8630A /* SettingsView.swift */,
+				CCEC0E402E60A899001E9B1E /* MainView.swift */,
+				CCEC0E422E60ABF2001E9B1E /* PermissionView.swift */,
+				CCEC0E442E60B08D001E9B1E /* AboutView.swift */,
+				CCEC0E482E60B700001E9B1E /* StartupManager.swift */,
+				CCEC0E4E2E60D2EC001E9B1E /* NotificationManager.swift */,
+				CCEC0E502E60EF7B001E9B1E /* CalculationSettingsView.swift */,
 			);
 			path = Sajda;
 			sourceTree = "<group>";
@@ -145,6 +174,9 @@
 			dependencies = (
 			);
 			name = Sajda;
+			packageProductDependencies = (
+				CCEC0E3E2E60A3A0001E9B1E /* Adhan */,
+			);
 			productName = Sajda;
 			productReference = CC969C742E60857A00C8630A /* Sajda.app */;
 			productType = "com.apple.product-type.application";
@@ -217,6 +249,9 @@
 				Base,
 			);
 			mainGroup = CC969C6B2E60857A00C8630A;
+			packageReferences = (
+				CCEC0E3D2E60A3A0001E9B1E /* XCRemoteSwiftPackageReference "adhan-swift" */,
+			);
 			productRefGroup = CC969C752E60857A00C8630A /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -235,6 +270,7 @@
 			files = (
 				CC969C7F2E60857D00C8630A /* Preview Assets.xcassets in Resources */,
 				CC969C7C2E60857D00C8630A /* Assets.xcassets in Resources */,
+				CC969CA32E6085F200C8630A /* Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -259,8 +295,16 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CC969CA72E60989F00C8630A /* PrayerTimeViewModel.swift in Sources */,
+				CCEC0E452E60B08D001E9B1E /* AboutView.swift in Sources */,
+				CC969CA92E6098C600C8630A /* SettingsView.swift in Sources */,
+				CCEC0E4F2E60D2EC001E9B1E /* NotificationManager.swift in Sources */,
 				CC969C7A2E60857A00C8630A /* ContentView.swift in Sources */,
+				CCEC0E492E60B700001E9B1E /* StartupManager.swift in Sources */,
+				CCEC0E432E60ABF2001E9B1E /* PermissionView.swift in Sources */,
+				CCEC0E412E60A899001E9B1E /* MainView.swift in Sources */,
 				CC969C782E60857A00C8630A /* SajdaApp.swift in Sources */,
+				CCEC0E512E60EF7B001E9B1E /* CalculationSettingsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -422,6 +466,7 @@
 				DEVELOPMENT_ASSET_PATHS = "\"Sajda/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LSUIElement = NO;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -447,6 +492,7 @@
 				DEVELOPMENT_ASSET_PATHS = "\"Sajda/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LSUIElement = NO;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -568,6 +614,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		CCEC0E3D2E60A3A0001E9B1E /* XCRemoteSwiftPackageReference "adhan-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/batoulapps/adhan-swift";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		CCEC0E3E2E60A3A0001E9B1E /* Adhan */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CCEC0E3D2E60A3A0001E9B1E /* XCRemoteSwiftPackageReference "adhan-swift" */;
+			productName = Adhan;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = CC969C6C2E60857A00C8630A /* Project object */;
 }
