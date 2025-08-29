@@ -17,6 +17,7 @@
 		CC969CA32E6085F200C8630A /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = CC969CA22E6085F200C8630A /* Info.plist */; };
 		CC969CA72E60989F00C8630A /* PrayerTimeViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC969CA62E60989F00C8630A /* PrayerTimeViewModel.swift */; };
 		CC969CA92E6098C600C8630A /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC969CA82E6098C500C8630A /* SettingsView.swift */; };
+		CC9C2EFC2E6128D800BAE49A /* PopoverController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC9C2EFB2E6128D800BAE49A /* PopoverController.swift */; };
 		CCEC0E3F2E60A3A0001E9B1E /* Adhan in Frameworks */ = {isa = PBXBuildFile; productRef = CCEC0E3E2E60A3A0001E9B1E /* Adhan */; };
 		CCEC0E412E60A899001E9B1E /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCEC0E402E60A899001E9B1E /* MainView.swift */; };
 		CCEC0E432E60ABF2001E9B1E /* PermissionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCEC0E422E60ABF2001E9B1E /* PermissionView.swift */; };
@@ -58,6 +59,7 @@
 		CC969CA22E6085F200C8630A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		CC969CA62E60989F00C8630A /* PrayerTimeViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrayerTimeViewModel.swift; sourceTree = "<group>"; };
 		CC969CA82E6098C500C8630A /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		CC9C2EFB2E6128D800BAE49A /* PopoverController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopoverController.swift; sourceTree = "<group>"; };
 		CCEC0E402E60A899001E9B1E /* MainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
 		CCEC0E422E60ABF2001E9B1E /* PermissionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionView.swift; sourceTree = "<group>"; };
 		CCEC0E442E60B08D001E9B1E /* AboutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutView.swift; sourceTree = "<group>"; };
@@ -129,6 +131,7 @@
 				CCEC0E482E60B700001E9B1E /* StartupManager.swift */,
 				CCEC0E4E2E60D2EC001E9B1E /* NotificationManager.swift */,
 				CCEC0E502E60EF7B001E9B1E /* CalculationSettingsView.swift */,
+				CC9C2EFB2E6128D800BAE49A /* PopoverController.swift */,
 			);
 			path = Sajda;
 			sourceTree = "<group>";
@@ -297,6 +300,7 @@
 			files = (
 				CC969CA72E60989F00C8630A /* PrayerTimeViewModel.swift in Sources */,
 				CCEC0E452E60B08D001E9B1E /* AboutView.swift in Sources */,
+				CC9C2EFC2E6128D800BAE49A /* PopoverController.swift in Sources */,
 				CC969CA92E6098C600C8630A /* SettingsView.swift in Sources */,
 				CCEC0E4F2E60D2EC001E9B1E /* NotificationManager.swift in Sources */,
 				CC969C7A2E60857A00C8630A /* ContentView.swift in Sources */,

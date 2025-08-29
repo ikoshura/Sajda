@@ -1,13 +1,15 @@
-// Ganti seluruh kode di AboutView.swift dengan ini
+// Salin dan tempel seluruh kode ini ke dalam file AboutView.swift
 
 import SwiftUI
 
 struct AboutView: View {
     @Binding var activePage: ActivePage
+    
     @State private var isDoneHovering = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
+            
             Button(action: { activePage = .main }) {
                 HStack {
                     Image(systemName: "chevron.left").font(.body.weight(.semibold))
@@ -34,6 +36,6 @@ struct AboutView: View {
             
             Spacer()
         }
-        .padding(.vertical, 8)
+        .padding(.vertical, 8).frame(width: 280, height: 240)
     }
 }
