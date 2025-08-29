@@ -1,41 +1,62 @@
-
-// Salin dan tempel seluruh kode ini ke dalam file ContentView.swift
+// Salin dan tempel SELURUH kode ini ke dalam file ContentView.swift
 
 import SwiftUI
 import CoreLocation
+import Combine
 
-enum ActivePage {
+indirect enum ActivePage: Equatable {
     case main
     case settings
     case about
+    case manualLocation(returnPage: ActivePage)
 }
 
 struct ContentView: View {
-    @ObservedObject var vm: PrayerTimeViewModel
+    @EnvironmentObject var vm: PrayerTimeViewModel
     @State private var activePage: ActivePage = .main
 
     var body: some View {
-        Group {
-            switch vm.authorizationStatus {
-            case .authorized:
+        // PERBAIKAN FINAL ANTI-GLITCH:
+        // Kita bungkus semuanya dalam ZStack dengan Color.clear di lapisan paling bawah.
+        // Ini adalah cara yang paling aman untuk membunuh glitch tanpa merusak
+        // animasi atau efek blur.
+        ZStack {
+            Color.clear // Lapisan dasar yang selalu transparan
+
+            VStack {
+                // ANIMASI PILIHAN ANDA:
+                // Logika transisi per-view yang Anda sukai ditempatkan di sini
+                // dan akan berfungsi dengan sempurna.
                 switch activePage {
                 case .main:
-                    MainView(vm: vm, activePage: $activePage)
+                    MainView(activePage: $activePage)
                         .transition(.opacity)
                 case .settings:
-                    SettingsView(vm: vm, activePage: $activePage)
-                        .transition(.move(edge: .trailing).combined(with: .opacity))
+                    SettingsView(activePage: $activePage)
+                        .transition(.move(edge: .trailing))
                 case .about:
                     AboutView(activePage: $activePage)
-                        .transition(.move(edge: .trailing).combined(with: .opacity))
+                        .transition(.move(edge: .trailing))
+                case .manualLocation(let returnPage):
+                    ManualLocationView(activePage: $activePage, returnPage: returnPage)
+                        .transition(.move(edge: .top))
                 }
-            case .notDetermined, .denied, .restricted:
-                PermissionView(vm: vm)
-                    .transition(.opacity)
-            @unknown default:
-                Text("An unexpected error occurred.")
             }
         }
-        .animation(.easeInOut(duration: 0.2), value: activePage)
+        .frame(width: 260)
+        .animation(.interactiveSpring(response: 0.35, dampingFraction: 0.8), value: activePage)
+        .onAppear(perform: setInitialPage)
+        .onReceive(NotificationCenter.default.publisher(for: .popoverDidClose)) { _ in
+            activePage = .main
+        }
+        .onReceive(vm.$authorizationStatus) { _ in
+            setInitialPage()
+        }
+    }
+    
+    private func setInitialPage() {
+        if !vm.isPrayerDataAvailable && activePage != .manualLocation(returnPage: .main) {
+            activePage = .main
+        }
     }
 }

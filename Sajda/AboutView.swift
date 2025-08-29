@@ -1,8 +1,9 @@
-// Salin dan tempel seluruh kode ini ke dalam file AboutView.swift
+// Salin dan tempel SELURUH kode ini ke dalam file AboutView.swift
 
 import SwiftUI
 
 struct AboutView: View {
+    @EnvironmentObject var vm: PrayerTimeViewModel
     @Binding var activePage: ActivePage
     
     @State private var isDoneHovering = false
@@ -23,7 +24,12 @@ struct AboutView: View {
             Divider().padding(.horizontal, 12)
             
             VStack(spacing: 12) {
-                Image("sajda-logo").resizable().scaledToFit().frame(width: 50, height: 50)
+                Image(nsImage: NSImage(named: "AppIcon") ?? NSImage())
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 64, height: 64)
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+
                 VStack(spacing: 2) {
                     Text("Sajda").font(.title2).fontWeight(.bold)
                     Text("Version 1.0.0").font(.caption).foregroundColor(.secondary)
@@ -32,10 +38,10 @@ struct AboutView: View {
                 Text("A simple and beautiful prayer times app for your menu bar.")
                     .font(.subheadline).multilineTextAlignment(.center).padding(.horizontal)
             }
-            .frame(maxWidth: .infinity).padding(.vertical, 15)
-            
-            Spacer()
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .padding(.vertical, 8).frame(width: 280, height: 240)
+        .padding(.vertical, 8)
+        // PERBAIKAN: Menambahkan sedikit jarak di bagian bawah
+        .padding(.bottom, 4)
     }
 }
