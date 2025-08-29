@@ -16,40 +16,49 @@ struct ContentView: View {
     @State private var activePage: ActivePage = .main
 
     var body: some View {
-        // PERBAIKAN FINAL ANTI-GLITCH:
-        // Kita bungkus semuanya dalam ZStack dengan Color.clear di lapisan paling bawah.
-        // Ini adalah cara yang paling aman untuk membunuh glitch tanpa merusak
-        // animasi atau efek blur.
         ZStack {
-            Color.clear // Lapisan dasar yang selalu transparan
+            Color.clear
 
             VStack {
-                // ANIMASI PILIHAN ANDA:
-                // Logika transisi per-view yang Anda sukai ditempatkan di sini
-                // dan akan berfungsi dengan sempurna.
                 switch activePage {
                 case .main:
                     MainView(activePage: $activePage)
                         .transition(.opacity)
+                
                 case .settings:
                     SettingsView(activePage: $activePage)
-                        .transition(.move(edge: .trailing))
+                        .transition(.asymmetric(
+                            insertion: .move(edge: .trailing),
+                            removal: .offset(x: 400)
+                        ))
+                
                 case .about:
                     AboutView(activePage: $activePage)
-                        .transition(.move(edge: .trailing))
+                        .transition(.asymmetric(
+                            insertion: .move(edge: .bottom),
+                            removal: .offset(y: 400)
+                        ))
+                        
                 case .manualLocation(let returnPage):
                     ManualLocationView(activePage: $activePage, returnPage: returnPage)
-                        .transition(.move(edge: .top))
+                        .transition(.asymmetric(
+                            insertion: .move(edge: .top),
+                            removal: .offset(y: 400)
+                        ))
                 }
             }
         }
-        .frame(width: 260)
-        .animation(.interactiveSpring(response: 0.35, dampingFraction: 0.8), value: activePage)
+        .animation(.easeInOut(duration: 0.3), value: activePage)
         .onAppear(perform: setInitialPage)
         .onReceive(NotificationCenter.default.publisher(for: .popoverDidClose)) { _ in
             activePage = .main
         }
-        .onReceive(vm.$authorizationStatus) { _ in
+        // PERBAIKAN: Membuat UI reaktif terhadap perubahan izin lokasi
+        .onReceive(vm.$authorizationStatus) { newStatus in
+            // Jika izin ditolak (dan tidak pakai lokasi manual), paksa kembali ke main view
+            if newStatus == .denied && !vm.isUsingManualLocation {
+                activePage = .main
+            }
             setInitialPage()
         }
     }

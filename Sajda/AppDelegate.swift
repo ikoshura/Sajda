@@ -9,13 +9,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     private var cancellables = Set<AnyCancellable>()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        // KODE BARU: Atur visibilitas Dock SEBELUM hal lain
         let showInDock = UserDefaults.standard.bool(forKey: "showInDock")
         if !showInDock {
-            // Sembunyikan dari Dock (perilaku default)
             NSApp.setActivationPolicy(.accessory)
         } else {
-            // Tampilkan di Dock
             NSApp.setActivationPolicy(.regular)
         }
         
@@ -28,23 +25,32 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
             }
             .store(in: &cancellables)
             
-        vm.$menuBarStyle
+        // PERUBAHAN: Publisher sekarang mendengarkan perubahan mode teks
+        vm.$menuBarTextMode
             .dropFirst()
-            .sink { [weak self] _ in
-                self?.setupMenuBar()
+            .sink { [weak self] newMode in
+                self?.updateIconForMode(newMode)
             }
             .store(in: &cancellables)
     }
     
     private func setupMenuBar() {
-        if vm.menuBarStyle.showsIcon {
-            self.menuBarExtra = FluidMenuBarExtra(title: vm.menuTitle, systemImage: "moon.zzz") {
-                ContentView().environmentObject(self.vm)
-            }
+        self.menuBarExtra = FluidMenuBarExtra(title: vm.menuTitle, systemImage: "moon.zzz.fill") {
+            ContentView().environmentObject(self.vm)
+        }
+        // Atur visibilitas ikon awal berdasarkan mode yang tersimpan
+        updateIconForMode(vm.menuBarTextMode)
+    }
+    
+    // PERUBAHAN: Fungsi ini sekarang menentukan visibilitas ikon berdasarkan mode
+    private func updateIconForMode(_ mode: MenuBarTextMode) {
+        // Ikon hanya terlihat jika mode adalah .hidden (yaitu, "Icon Only")
+        let isVisible = (mode == .hidden)
+        
+        if isVisible {
+            menuBarExtra?.statusItem.button?.image = NSImage(systemSymbolName: "moon.zzz.fill", accessibilityDescription: "Sajda")
         } else {
-            self.menuBarExtra = FluidMenuBarExtra(title: vm.menuTitle) {
-                ContentView().environmentObject(self.vm)
-            }
+            menuBarExtra?.statusItem.button?.image = nil
         }
     }
 }

@@ -6,11 +6,15 @@ struct AboutView: View {
     @EnvironmentObject var vm: PrayerTimeViewModel
     @Binding var activePage: ActivePage
     
+    @State private var isHeaderHovering = false
     @State private var isDoneHovering = false
+
+    private var viewWidth: CGFloat {
+        return vm.useCompactLayout ? 220 : 260
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            
             Button(action: { activePage = .main }) {
                 HStack {
                     Image(systemName: "chevron.left").font(.body.weight(.semibold))
@@ -18,8 +22,11 @@ struct AboutView: View {
                     Spacer()
                 }
                 .padding(.vertical, 5).padding(.horizontal, 8)
-                .background(Color.secondary.opacity(isDoneHovering ? 0.25 : 0)).cornerRadius(5)
-            }.buttonStyle(.plain).padding(.horizontal, 5).onHover { hovering in isDoneHovering = hovering }
+                .background(Color.secondary.opacity(isHeaderHovering ? 0.25 : 0)).cornerRadius(5)
+            }
+            .buttonStyle(.plain)
+            .padding(.horizontal, 5)
+            .onHover { hovering in isHeaderHovering = hovering }
             
             Divider().padding(.horizontal, 12)
             
@@ -36,12 +43,29 @@ struct AboutView: View {
                     Text("by abrarzha").font(.caption).foregroundColor(.secondary)
                 }
                 Text("A simple and beautiful prayer times app for your menu bar.")
-                    .font(.subheadline).multilineTextAlignment(.center).padding(.horizontal)
+                    .font(.subheadline)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+            
+            HStack {
+                Spacer()
+                Button(action: { activePage = .main }) {
+                    Text("Done")
+                        .padding(.vertical, 3).padding(.horizontal, 8)
+                        .background(Color.secondary.opacity(isDoneHovering ? 0.25 : 0))
+                        .cornerRadius(5)
+                }
+                .buttonStyle(.plain)
+                .onHover { hovering in
+                    isDoneHovering = hovering
+                }
+                Spacer()
+            }
+            .padding(.bottom, 8)
         }
         .padding(.vertical, 8)
-        // PERBAIKAN: Menambahkan sedikit jarak di bagian bawah
-        .padding(.bottom, 4)
+        .frame(width: viewWidth)
     }
 }

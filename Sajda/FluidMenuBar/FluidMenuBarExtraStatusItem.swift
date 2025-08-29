@@ -2,11 +2,16 @@
 import AppKit
 import SwiftUI
 
-final class FluidMenuBarExtraStatusItem: NSObject, NSWindowDelegate {
+public final class FluidMenuBarExtraStatusItem: NSObject, NSWindowDelegate {
     private let window: NSWindow
     private let statusItem: NSStatusItem
     private var localEventMonitor: EventMonitor?
     private var globalEventMonitor: EventMonitor?
+    
+    public var button: NSStatusBarButton? {
+        return statusItem.button
+    }
+
     private init(window: NSWindow) {
         self.window = window
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
@@ -34,14 +39,17 @@ final class FluidMenuBarExtraStatusItem: NSObject, NSWindowDelegate {
         DistributedNotificationCenter.default().post(name: .beginMenuTracking, object: nil)
         window.makeKeyAndOrderFront(nil)
     }
-    func windowDidBecomeKey(_ notification: Notification) { globalEventMonitor?.start(); setButtonHighlighted(to: true) }
-    func windowDidResignKey(_ notification: Notification) {
-            // TAMBAHKAN BARIS INI UNTUK MENYIARKAN NOTIFIKASI
+    
+    // PERBAIKAN: Menambahkan 'public' agar sesuai dengan requirement dari NSWindowDelegate
+    public func windowDidBecomeKey(_ notification: Notification) { globalEventMonitor?.start(); setButtonHighlighted(to: true) }
+    
+    // PERBAIKAN: Menambahkan 'public' agar sesuai dengan requirement dari NSWindowDelegate
+    public func windowDidResignKey(_ notification: Notification) {
             NotificationCenter.default.post(name: .popoverDidClose, object: nil)
-            
             globalEventMonitor?.stop()
             dismissWindow()
         }
+        
     private func dismissWindow() {
         DistributedNotificationCenter.default().post(name: .endMenuTracking, object: nil)
         NSAnimationContext.runAnimationGroup { context in

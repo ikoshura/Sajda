@@ -2,7 +2,9 @@
 import SwiftUI
 
 public final class FluidMenuBarExtra {
-    private let statusItem: FluidMenuBarExtraStatusItem
+    // PERBAIKAN: Mengubah 'private let' menjadi 'public let' agar bisa diakses dari luar
+    public let statusItem: FluidMenuBarExtraStatusItem
+
     public init(title: String, @ViewBuilder content: @escaping () -> some View) {
         let window = FluidMenuBarExtraWindow(title: title, content: content)
         statusItem = FluidMenuBarExtraStatusItem(title: title, window: window)

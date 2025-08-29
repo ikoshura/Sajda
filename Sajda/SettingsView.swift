@@ -23,43 +23,90 @@ struct SettingsView: View {
             }.buttonStyle(.plain).padding(.horizontal, 5).padding(.top, 2).onHover { hovering in isHeaderHovering = hovering }
             
             Divider().padding(.horizontal, 12)
+            // Text("Display") — DIPINDAHKAN KE DALAM SCROLLVIEW
 
             ScrollView {
-                Form {
-                    Section(header: Text("Display").font(.caption2)) {
-                        Picker("Menu Bar Style", selection: $vm.menuBarStyle) { ForEach(MenuBarStyle.allCases) { style in Text(style.rawValue).tag(style) } }
-                        Picker("Time Format", selection: $vm.timeFormat) { ForEach(TimeFormat.allCases) { format in Text(format.rawValue).tag(format) } }.pickerStyle(SegmentedPickerStyle())
-                        Toggle("Monochrome Highlight", isOn: $vm.isMonochrome)
-                        
-                        // PERBAIKAN: Toggle baru untuk sholat sunnah
-                        Toggle("Show Sunnah Prayers", isOn: $vm.showSunnahPrayers)
-                        Text("Shows Tahajud and Dhuha times.")
-                            .font(.caption2)
+                VStack(alignment: .leading, spacing: 12) {
+                    
+                    // --- Display Section ---
+                    Group {
+                        Text("Display")
+                            .font(.caption)
                             .foregroundColor(.secondary)
+                        HStack {
+                            Text("Menu Bar Style")
+                            Spacer()
+                            Picker("", selection: $vm.menuBarTextMode) {
+                                ForEach(MenuBarTextMode.allCases) { mode in
+                                    Text(mode.rawValue).tag(mode)
+                                }
+                            }
+                            .fixedSize(horizontal: true, vertical: false)
+                        }
+                        VStack(spacing: 10) {
+                            StyledToggle(label: "Compact Main View", isOn: $vm.useCompactLayout)
+                            StyledToggle(label: "24-Hour Time", isOn: $vm.use24HourFormat)
+                            StyledToggle(label: "Use Accent Color", isOn: $vm.useAccentColor)
+                            StyledToggle(label: "Show Sunnah Prayers", isOn: $vm.showSunnahPrayers)
+                        }
                     }
                     
-                    Section(header: Text("Calculation").font(.caption2)) {
-                        Picker("Method", selection: $vm.method) { ForEach(CalculationMethod.allCases, id: \.self) { Text("\($0.rawValue.capitalized)") } }
-                        Picker("Madhhab", selection: $vm.madhhab) { ForEach(Madhab.allCases, id: \.self) { Text("\($0 == .hanafi ? "Hanafi" : "Shafi / Others")") } }.pickerStyle(SegmentedPickerStyle())
-                    }
+                    Divider()
+                    Text("Calculation")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
                     
-                    Section(header: Text("Location").font(.caption2)) {
+                    // --- Calculation Section ---
+                    VStack(spacing: 10) {
+                        HStack {
+                            Text("Method")
+                            Spacer()
+                            Picker("", selection: $vm.method) {
+                                ForEach(CalculationMethod.allCases, id: \.self) { method in Text("\(method.rawValue.capitalized)").tag(method) }
+                            }
+                            .fixedSize(horizontal: true, vertical: false)
+                        }
+                        StyledToggle(label: "Hanafi Madhhab", isOn: $vm.useHanafiMadhhab)
+                    }
+
+                    Divider()
+                    Text("Location").font(.caption).foregroundColor(.secondary)
+
+                    // --- Location Section ---
+                    VStack(alignment: .leading, spacing: 10) {
                         HStack {
                             Image(systemName: vm.isUsingManualLocation ? "pencil.circle.fill" : "location.circle.fill").foregroundColor(.secondary)
                             Text(vm.isUsingManualLocation ? "Manual: \(vm.locationStatusText)" : "Automatic: \(vm.locationStatusText)")
                         }
-                        Button("Change Manual Location") { activePage = .manualLocation(returnPage: .settings) }
-                        if vm.isUsingManualLocation {
-                            Button("Use Automatic Location") { vm.switchToAutomaticLocation() }
+                        .lineLimit(1).truncationMode(.tail)
+                        
+                        HStack {
+                            Button("Change Manual Location") { activePage = .manualLocation(returnPage: .settings) }
+                            Spacer()
+                            if vm.isUsingManualLocation {
+                                Button("Use Automatic") { vm.switchToAutomaticLocation() }
+                            }
+                        }
+                        
+                        if vm.authorizationStatus == .denied && !vm.isUsingManualLocation {
+                            Button("Open System Settings", action: vm.openLocationSettings)
                         }
                     }
-                    
-                    Section(header: Text("System").font(.caption2)) {
-                        Toggle("Run at login", isOn: $launchAtLogin).onChange(of: launchAtLogin) { newValue in StartupManager.toggleLaunchAtLogin(isEnabled: newValue) }
-                        Toggle("Prayer Notifications", isOn: $vm.isNotificationsEnabled)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                    Divider()
+                    Text("System").font(.caption).foregroundColor(.secondary)
+
+                    // --- System Section ---
+                    VStack(spacing: 10) {
+                        StyledToggle(label: "Run at Login", isOn: $launchAtLogin)
+                            .onChange(of: launchAtLogin) { newValue in StartupManager.toggleLaunchAtLogin(isEnabled: newValue) }
+                        StyledToggle(label: "Prayer Notifications", isOn: $vm.isNotificationsEnabled)
                     }
                 }
-                .controlSize(.small).padding(.horizontal, 8)
+                .controlSize(.small)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
             }
             .focusable(false)
         }

@@ -3,9 +3,6 @@
 import SwiftUI
 import Adhan
 
-// =================================================================
-// MAIN VIEW UTAMA (SEKARANG HANYA SEBAGAI "CONTAINER")
-// =================================================================
 struct MainView: View {
     @EnvironmentObject var vm: PrayerTimeViewModel
     @Binding var activePage: ActivePage
@@ -14,9 +11,12 @@ struct MainView: View {
     @State private var isAboutHovering = false
     @State private var isQuitHovering = false
 
+    private var viewWidth: CGFloat {
+        return vm.useCompactLayout ? 220 : 260
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            // Header
             HStack {
                 Text("Sajda").font(.body).fontWeight(.bold)
                 Spacer()
@@ -27,7 +27,6 @@ struct MainView: View {
             
             Divider().padding(.horizontal, 12)
             
-            // Konten Dinamis
             if vm.isPrayerDataAvailable {
                 PrayerListView()
             } else {
@@ -36,7 +35,6 @@ struct MainView: View {
                 Spacer()
             }
             
-            // Footer
             Divider().padding(.horizontal, 12)
             VStack(alignment: .leading, spacing: 0) {
                 Button(action: { activePage = .settings }) {
@@ -64,19 +62,17 @@ struct MainView: View {
             }
         }
         .padding(.vertical, 8)
+        .frame(width: viewWidth)
     }
 }
 
-
-// =================================================================
-// HELPER STRUCT 1: TAMPILAN JADWAL SHOLAT
-// =================================================================
 struct PrayerListView: View {
     @EnvironmentObject var vm: PrayerTimeViewModel
     
     private var prayerOrder: [String] {
         if vm.showSunnahPrayers {
-            return ["Tahajud", "Fajr", "Dhuha", "Dhuhr", "Asr", "Maghrib", "Isha"]
+            let sortedTimes = vm.todayTimes.sorted { $0.value < $1.value }
+            return sortedTimes.map { $0.key }.filter { ["Tahajud", "Fajr", "Dhuha", "Dhuhr", "Asr", "Maghrib", "Isha"].contains($0) }
         } else {
             return ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"]
         }
@@ -98,11 +94,16 @@ struct PrayerListView: View {
                 ForEach(prayerOrder, id: \.self) { prayerName in
                     if let prayerTime = vm.todayTimes[prayerName] {
                         let isNextPrayer = prayerName == vm.nextPrayerName
-                        let highlightColor = vm.isMonochrome ? Color.secondary.opacity(0.25) : Color.accentColor
-                        let textColor = isNextPrayer ? (vm.isMonochrome ? Color.primary : Color.white) : Color.primary
+                        let highlightColor = vm.useAccentColor ? Color.accentColor : Color.secondary.opacity(0.25)
+                        let textColor = isNextPrayer ? (vm.useAccentColor ? Color.white : Color.primary) : Color.primary
                         HStack {
                             Text(prayerName)
                             Spacer()
+                            if prayerName == "Tahajud" || prayerName == "Dhuha" {
+                                Text("Around")
+                                    .font(.caption)
+                                    .foregroundColor(isNextPrayer ? textColor.opacity(0.8) : .secondary)
+                            }
                             Text(vm.dateFormatter.string(from: prayerTime)).font(.system(.body, design: .monospaced))
                         }
                         .foregroundColor(textColor).fontWeight(isNextPrayer ? .bold : .regular)
@@ -115,10 +116,6 @@ struct PrayerListView: View {
     }
 }
 
-
-// =================================================================
-// HELPER STRUCT 2: TAMPILAN PERMINTAAN IZIN (DENGAN SINTAKS YANG BENAR)
-// =================================================================
 struct PermissionRequestView: View {
     @EnvironmentObject var vm: PrayerTimeViewModel
     @Binding var activePage: ActivePage
@@ -141,16 +138,10 @@ struct PermissionRequestView: View {
             
             VStack(spacing: 8) {
                 if vm.authorizationStatus == .denied {
-                    // PERBAIKAN FINAL: Menggunakan sintaks Button("Judul", action: vm.fungsi)
                     Button("Open System Settings", action: vm.openLocationSettings)
                         .buttonStyle(.borderedProminent)
                         .controlSize(.regular)
-                    
-                    Text("Enable location for Sajda in System Settings to proceed.")
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
                 } else {
-                    // PERBAIKAN FINAL: Menggunakan sintaks Button("Judul", action: vm.fungsi)
                     Button("Allow Location Access", action: vm.requestLocationPermission)
                         .buttonStyle(.borderedProminent)
                         .controlSize(.regular)

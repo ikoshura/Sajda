@@ -14,19 +14,10 @@ struct LocationSearchResult: Identifiable {
     let coordinates: CLLocationCoordinate2D
 }
 
-enum MenuBarStyle: String, CaseIterable, Identifiable {
-    case countdown = "Countdown with Icon", exactTime = "Exact Time with Icon", iconOnly = "Icon Only", countdownTextOnly = "Countdown (Text Only)", exactTimeTextOnly = "Exact Time (Text Only)"
-    var id: Self { self }
-    var showsIcon: Bool {
-        switch self {
-        case .countdown, .exactTime, .iconOnly: return true
-        case .countdownTextOnly, .exactTimeTextOnly: return false
-        }
-    }
-}
-
-enum TimeFormat: String, CaseIterable, Identifiable {
-    case h12 = "12-Hour", h24 = "24-Hour"
+enum MenuBarTextMode: String, CaseIterable, Identifiable {
+    case countdown = "Countdown"
+    case exactTime = "Exact Time"
+    case hidden = "Icon Only"
     var id: Self { self }
 }
 
@@ -44,12 +35,15 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
         }
     }
     
+    @Published var useAccentColor: Bool { didSet { UserDefaults.standard.set(useAccentColor, forKey: "useAccentColor") } }
     @Published var isNotificationsEnabled: Bool { didSet { UserDefaults.standard.set(isNotificationsEnabled, forKey: "isNotificationsEnabled"); updateNotifications() } }
-    @Published var isMonochrome: Bool { didSet { UserDefaults.standard.set(isMonochrome, forKey: "isMonochrome") } }
-    @Published var menuBarStyle: MenuBarStyle { didSet { UserDefaults.standard.set(menuBarStyle.rawValue, forKey: "menuBarStyle") } }
-    @Published var timeFormat: TimeFormat { didSet { UserDefaults.standard.set(timeFormat.rawValue, forKey: "timeFormat"); updatePrayerTimes() } }
+    
+    @Published var useCompactLayout: Bool { didSet { UserDefaults.standard.set(useCompactLayout, forKey: "useCompactLayout") } }
+    @Published var use24HourFormat: Bool { didSet { UserDefaults.standard.set(use24HourFormat, forKey: "use24HourFormat"); updatePrayerTimes() } }
+    @Published var useHanafiMadhhab: Bool { didSet { UserDefaults.standard.set(useHanafiMadhhab, forKey: "useHanafiMadhhab"); updatePrayerTimes() } }
+    
+    @Published var menuBarTextMode: MenuBarTextMode { didSet { UserDefaults.standard.set(menuBarTextMode.rawValue, forKey: "menuBarTextMode"); updateMenuTitle() } }
     @Published var method: CalculationMethod = .karachi { didSet { updatePrayerTimes() } }
-    @Published var madhhab: Madhab = .shafi { didSet { updatePrayerTimes() } }
     
     @Published var authorizationStatus: CLAuthorizationStatus
     @Published var isUsingManualLocation: Bool { didSet { UserDefaults.standard.set(isUsingManualLocation, forKey: "isUsingManualLocation") } }
@@ -62,10 +56,15 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
 
     override init() {
         self.showSunnahPrayers = UserDefaults.standard.bool(forKey: "showSunnahPrayers")
+        self.useAccentColor = UserDefaults.standard.bool(forKey: "useAccentColor")
         self.isNotificationsEnabled = UserDefaults.standard.bool(forKey: "isNotificationsEnabled")
-        self.isMonochrome = UserDefaults.standard.bool(forKey: "isMonochrome")
-        let savedStyle = UserDefaults.standard.string(forKey: "menuBarStyle"); self.menuBarStyle = MenuBarStyle(rawValue: savedStyle ?? "") ?? .countdown
-        let savedFormat = UserDefaults.standard.string(forKey: "timeFormat"); self.timeFormat = TimeFormat(rawValue: savedFormat ?? "") ?? .h12
+        
+        self.useCompactLayout = UserDefaults.standard.bool(forKey: "useCompactLayout")
+        self.use24HourFormat = UserDefaults.standard.bool(forKey: "use24HourFormat")
+        self.useHanafiMadhhab = UserDefaults.standard.bool(forKey: "useHanafiMadhhab")
+        
+        let savedTextMode = UserDefaults.standard.string(forKey: "menuBarTextMode"); self.menuBarTextMode = MenuBarTextMode(rawValue: savedTextMode ?? "") ?? .countdown
+        
         self.authorizationStatus = locMgr.authorizationStatus
         self.isUsingManualLocation = UserDefaults.standard.bool(forKey: "isUsingManualLocation")
         
@@ -151,8 +150,10 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
             locationStatusText = "Fetching location..."; locMgr.requestLocation()
         case .denied, .restricted:
             locationStatusText = "Location access denied."; menuTitle = "Location needed"
+            self.todayTimes = [:]
         case .notDetermined:
             locationStatusText = "Waiting for location access."; menuTitle = "Location needed"
+            self.todayTimes = [:]
         @unknown default: break
         }
     }
@@ -185,11 +186,17 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
     
     func requestLocationPermission() { if authorizationStatus == .notDetermined { locMgr.requestWhenInUseAuthorization() } }
     
+    func openLocationSettings() {
+        guard let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_LocationServices") else { return }
+        NSWorkspace.shared.open(url)
+    }
+    
     func updatePrayerTimes() {
         guard let coord = currentCoordinates else { return }
         
         let cal = Calendar(identifier: .gregorian)
-        var params = method.params; params.madhab = self.madhhab
+        var params = method.params
+        params.madhab = self.useHanafiMadhhab ? .hanafi : .shafi
         let today = Date()
         
         let todayDC = cal.dateComponents([.year, .month, .day], from: today)
@@ -228,11 +235,8 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
             if let nextPrayer = nextPrayer {
                 self.nextPrayerName = nextPrayer.name
             } else {
-                // Jika tidak ada lagi (bahkan setelah Tahajud), itu berarti sholat berikutnya
-                // adalah sholat pertama besok (Fajr dari jadwal besok).
-                // Kita akan hitung ulang untuk besok agar countdown benar.
                 self.recalculateForTomorrow()
-                return // Hentikan eksekusi di sini karena akan dipicu ulang
+                return
             }
             
             self.updateCountdown()
@@ -240,11 +244,11 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
         }
     }
     
-    // Fungsi baru untuk menangani kasus setelah sholat terakhir
     private func recalculateForTomorrow() {
         guard let coord = currentCoordinates else { return }
         let cal = Calendar(identifier: .gregorian)
-        var params = method.params; params.madhab = self.madhhab
+        var params = method.params
+        params.madhab = self.useHanafiMadhhab ? .hanafi : .shafi
         guard let tomorrowDate = cal.date(byAdding: .day, value: 1, to: Date()),
               let prayersTomorrow = PrayerTimes(
                 coordinates: Coordinates(latitude: coord.latitude, longitude: coord.longitude),
@@ -252,15 +256,13 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
                 calculationParameters: params
               ) else { return }
         
-        // Cukup perbarui jadwal ke jadwal besok dan tetapkan Fajr sebagai yang berikutnya
         self.nextPrayerName = "Fajr"
         self.todayTimes = [
             "Fajr": prayersTomorrow.fajr, "Dhuhr": prayersTomorrow.dhuhr, "Asr": prayersTomorrow.asr,
             "Maghrib": prayersTomorrow.maghrib, "Isha": prayersTomorrow.isha
         ]
-        // Jika sunnah aktif, tambahkan juga
+
         if showSunnahPrayers {
-            // Kita perlu jadwal lusa untuk menghitung Tahajud besok
             guard let dayAfterTomorrow = cal.date(byAdding: .day, value: 1, to: tomorrowDate),
                   let prayersDayAfter = PrayerTimes(
                     coordinates: Coordinates(latitude: coord.latitude, longitude: coord.longitude),
@@ -291,17 +293,17 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
         updateMenuTitle()
     }
     
-    private func updateMenuTitle() {
+    func updateMenuTitle() {
         var textToShow = ""
         if !isPrayerDataAvailable {
             textToShow = "Sajda"
         } else {
-            switch menuBarStyle {
-            case .iconOnly:
+            switch menuBarTextMode {
+            case .hidden:
                 textToShow = ""
-            case .countdown, .countdownTextOnly:
+            case .countdown:
                 textToShow = "\(nextPrayerName) in \(countdown)"
-            case .exactTime, .exactTimeTextOnly:
+            case .exactTime:
                 if let nextDate = todayTimes[nextPrayerName] {
                     textToShow = "\(nextPrayerName) at \(dateFormatter.string(from: nextDate))"
                 } else {
@@ -327,7 +329,7 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
     
     var dateFormatter: DateFormatter {
         let formatter = DateFormatter(); formatter.timeStyle = .short
-        formatter.locale = timeFormat == .h12 ? Locale(identifier: "en_US") : Locale(identifier: "en_GB")
+        formatter.locale = use24HourFormat ? Locale(identifier: "en_GB") : Locale(identifier: "en_US")
         return formatter
     }
 }

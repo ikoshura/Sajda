@@ -25,6 +25,7 @@
 		CCE1BA3E2E61852B003AF03C /* UpdateSizeAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCE1BA2E2E61839E003AF03C /* UpdateSizeAction.swift */; };
 		CCE1BA3F2E61852B003AF03C /* FluidMenuBarExtraWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCE1BA322E61839F003AF03C /* FluidMenuBarExtraWindow.swift */; };
 		CCE1BA452E6198C1003AF03C /* ManualLocationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCE1BA442E6198C1003AF03C /* ManualLocationView.swift */; };
+		CCE1BA472E620757003AF03C /* StyledToggle.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCE1BA462E620757003AF03C /* StyledToggle.swift */; };
 		CCEC0E3F2E60A3A0001E9B1E /* Adhan in Frameworks */ = {isa = PBXBuildFile; productRef = CCEC0E3E2E60A3A0001E9B1E /* Adhan */; };
 		CCEC0E412E60A899001E9B1E /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCEC0E402E60A899001E9B1E /* MainView.swift */; };
 		CCEC0E452E60B08D001E9B1E /* AboutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCEC0E442E60B08D001E9B1E /* AboutView.swift */; };
@@ -72,6 +73,7 @@
 		CCE1BA322E61839F003AF03C /* FluidMenuBarExtraWindow.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FluidMenuBarExtraWindow.swift; sourceTree = "<group>"; };
 		CCE1BA332E6183A0003AF03C /* RootViewModifier.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RootViewModifier.swift; sourceTree = "<group>"; };
 		CCE1BA442E6198C1003AF03C /* ManualLocationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManualLocationView.swift; sourceTree = "<group>"; };
+		CCE1BA462E620757003AF03C /* StyledToggle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StyledToggle.swift; sourceTree = "<group>"; };
 		CCEC0E402E60A899001E9B1E /* MainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
 		CCEC0E442E60B08D001E9B1E /* AboutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutView.swift; sourceTree = "<group>"; };
 		CCEC0E482E60B700001E9B1E /* StartupManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartupManager.swift; sourceTree = "<group>"; };
@@ -141,6 +143,7 @@
 				CCEC0E4E2E60D2EC001E9B1E /* NotificationManager.swift */,
 				CC9C2F002E61385B00BAE49A /* AppDelegate.swift */,
 				CCE1BA442E6198C1003AF03C /* ManualLocationView.swift */,
+				CCE1BA462E620757003AF03C /* StyledToggle.swift */,
 				CCE1BA212E618251003AF03C /* FluidMenuBar */,
 			);
 			path = Sajda;
@@ -324,6 +327,7 @@
 				CC9C2F012E61385B00BAE49A /* AppDelegate.swift in Sources */,
 				CCE1BA3C2E61852B003AF03C /* FluidMenuBarExtraStatusItem.swift in Sources */,
 				CC969CA72E60989F00C8630A /* PrayerTimeViewModel.swift in Sources */,
+				CCE1BA472E620757003AF03C /* StyledToggle.swift in Sources */,
 				CCE1BA452E6198C1003AF03C /* ManualLocationView.swift in Sources */,
 				CCEC0E452E60B08D001E9B1E /* AboutView.swift in Sources */,
 				CCE1BA3A2E61852B003AF03C /* EventMonitor.swift in Sources */,
@@ -492,10 +496,13 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Sajda/Sajda.entitlements;
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Sajda/Preview Content\"";
+				DEVELOPMENT_TEAM = R9K95P32SA;
+				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_LSUIElement = NO;
@@ -518,10 +525,13 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Sajda/Sajda.entitlements;
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Sajda/Preview Content\"";
+				DEVELOPMENT_TEAM = R9K95P32SA;
+				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_LSUIElement = NO;

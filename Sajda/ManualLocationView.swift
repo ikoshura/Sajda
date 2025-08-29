@@ -12,12 +12,14 @@ struct ManualLocationView: View {
     @State private var searchResults: [LocationSearchResult] = []
     @State private var isSearching = false
     @State private var hoveringResult: UUID?
-    // PERBAIKAN: State baru untuk hover effect pada header
     @State private var isHeaderHovering = false
+
+    private var viewWidth: CGFloat {
+        return vm.useCompactLayout ? 220 : 260
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            // PERBAIKAN: Header sekarang memiliki hover effect yang konsisten
             Button(action: { activePage = returnPage }) {
                 HStack {
                     Image(systemName: "chevron.left").font(.body.weight(.semibold))
@@ -45,7 +47,9 @@ struct ManualLocationView: View {
             
             ScrollView {
                 if isSearching && !searchQuery.isEmpty {
-                    ProgressView().padding()
+                    ProgressView()
+                        .frame(maxWidth: .infinity)
+                        .padding()
                 } else {
                     VStack(spacing: 2) {
                         ForEach(searchResults) { result in
@@ -71,9 +75,8 @@ struct ManualLocationView: View {
                     .padding(.horizontal, 12)
                 }
             }
-            // Beri tinggi minimal agar view tidak kolaps saat hasil kosong
-            .frame(maxWidth: .infinity, minHeight: 200)
         }
         .padding(.vertical, 8)
+        .frame(width: viewWidth)
     }
 }
