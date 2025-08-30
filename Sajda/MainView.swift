@@ -1,4 +1,5 @@
-// Salin dan tempel SELURUH kode ini ke dalam file MainView.swift
+// MARK: - GANTI FILE: Sajda/MainView.swift
+// Salin dan tempel SELURUH kode ini. Perubahan warna ada di baris ke-21.
 
 import SwiftUI
 import Adhan
@@ -21,7 +22,10 @@ struct MainView: View {
                 Text("Sajda").font(.body).fontWeight(.bold)
                 Spacer()
                 if vm.isPrayerDataAvailable {
-                    Text("\(vm.nextPrayerName) in \(vm.countdown)").font(.body).foregroundColor(.secondary)
+                    // --- PERBAIKAN WARNA DI SINI ---
+                    Text("\(vm.nextPrayerName) in \(vm.countdown)")
+                        .font(.body)
+                        .foregroundColor(Color("SecondaryTextColor")) // Menggunakan dark grey kustom
                 }
             }.padding(.horizontal, 12).padding(.top, 4)
             
@@ -86,7 +90,7 @@ struct PrayerListView: View {
                 Spacer()
             }
             .font(.caption)
-            .foregroundColor(.secondary)
+            .foregroundColor(Color("SecondaryTextColor")) // Warna ini juga sudah benar
             .padding(.horizontal, 12)
             .padding(.bottom, 4)
             

@@ -1,5 +1,5 @@
 // MARK: - GANTI FILE: Sajda/PrayerTimeViewModel.swift
-// Salin dan tempel SELURUH kode ini ke dalam file PrayerTimeViewModel.swift
+// Salin dan tempel SELURUH kode ini.
 
 import Foundation
 import Combine
@@ -8,18 +8,23 @@ import CoreLocation
 import SwiftUI
 import MapKit
 
-struct LocationSearchResult: Identifiable {
-    let id = UUID()
-    let name: String
-    let country: String
-    let coordinates: CLLocationCoordinate2D
-}
-
+// --- PERBAIKAN: enum ini dipindahkan ke luar kelas agar bisa diakses oleh SettingsView ---
 enum MenuBarTextMode: String, CaseIterable, Identifiable {
     case countdown = "Countdown"
     case exactTime = "Exact Time"
     case hidden = "Icon Only"
     var id: Self { self }
+}
+
+struct LocationSearchResult: Identifiable, Equatable {
+    let id = UUID()
+    let name: String
+    let country: String
+    let coordinates: CLLocationCoordinate2D
+
+    static func == (lhs: LocationSearchResult, rhs: LocationSearchResult) -> Bool {
+        lhs.id == rhs.id
+    }
 }
 
 class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
@@ -43,7 +48,6 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
     @Published var use24HourFormat: Bool { didSet { UserDefaults.standard.set(use24HourFormat, forKey: "use24HourFormat"); updatePrayerTimes() } }
     @Published var useHanafiMadhhab: Bool { didSet { UserDefaults.standard.set(useHanafiMadhhab, forKey: "useHanafiMadhhab"); updatePrayerTimes() } }
     
-    // --- PERUBAHAN: Logika didSet disederhanakan, debounce dihapus dari sini ---
     @Published var fajrCorrection: Double { didSet { UserDefaults.standard.set(fajrCorrection, forKey: "fajrCorrection"); updatePrayerTimes() } }
     @Published var dhuhrCorrection: Double { didSet { UserDefaults.standard.set(dhuhrCorrection, forKey: "dhuhrCorrection"); updatePrayerTimes() } }
     @Published var asrCorrection: Double { didSet { UserDefaults.standard.set(asrCorrection, forKey: "asrCorrection"); updatePrayerTimes() } }
@@ -96,10 +100,6 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
     
     func resetAllCorrections() {
         guard isAnyCorrectionActive else { return }
-        
-        // Atur semua nilai kembali ke 0.
-        // `didSet` akan memanggil `updatePrayerTimes()` secara otomatis.
-        // Kita set nilainya tanpa animasi di sini karena UI di-handle di view.
         fajrCorrection = 0
         dhuhrCorrection = 0
         asrCorrection = 0
@@ -151,7 +151,7 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
         return (name, CLLocationCoordinate2D(latitude: lat, longitude: lon))
     }
     
-    func searchLocation(query: String, completion: @escaping ([LocationSearchResult]) -> Void) {
+    func searchLocation(query: String, maxResults: Int = 10, completion: @escaping ([LocationSearchResult]) -> Void) {
         searchCancellable?.cancel()
         guard !query.isEmpty else { completion([]); return }
         let subject = PassthroughSubject<String, Never>()
@@ -167,7 +167,9 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
                             guard let city = item.placemark.locality, let country = item.placemark.country else { return nil }
                             return LocationSearchResult(name: city, country: country, coordinates: item.placemark.coordinate)
                         }.unique(by: \.name)
-                        promise(.success(results))
+                        
+                        let limitedResults = Array(results.prefix(maxResults))
+                        promise(.success(limitedResults))
                     }
                 }
             }
@@ -270,6 +272,7 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
         let nextPrayer = allPrayerTimes.first { $0.time > today }
         
         DispatchQueue.main.async {
+            let oldNextPrayerName = self.nextPrayerName
             self.todayTimes = Dictionary(uniqueKeysWithValues: allPrayerTimes.map { ($0.name, $0.time) })
 
             if let nextPrayer = nextPrayer {
@@ -277,6 +280,14 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
             } else {
                 self.recalculateForTomorrow()
                 return
+            }
+
+            if self.nextPrayerName != oldNextPrayerName && !oldNextPrayerName.isEmpty {
+                let userInfo: [String: Any] = [
+                    "prayerTimes": self.todayTimes,
+                    "nextPrayerName": self.nextPrayerName
+                ]
+                NotificationCenter.default.post(name: .prayerTimesUpdated, object: nil, userInfo: userInfo)
             }
             
             self.updateCountdown()
