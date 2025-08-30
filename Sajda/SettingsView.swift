@@ -1,3 +1,4 @@
+// MARK: - GANTI FILE: Sajda/SettingsView.swift
 // Salin dan tempel SELURUH kode ini ke dalam file SettingsView.swift
 
 import SwiftUI
@@ -23,7 +24,6 @@ struct SettingsView: View {
             }.buttonStyle(.plain).padding(.horizontal, 5).padding(.top, 2).onHover { hovering in isHeaderHovering = hovering }
             
             Divider().padding(.horizontal, 12)
-            // Text("Display") — DIPINDAHKAN KE DALAM SCROLLVIEW
 
             ScrollView {
                 VStack(alignment: .leading, spacing: 12) {
@@ -66,7 +66,17 @@ struct SettingsView: View {
                             }
                             .fixedSize(horizontal: true, vertical: false)
                         }
+                        // --- TOMBOL TIME CORRECTION DULU ---
+                        HStack {
+                            Text("Time Correction")
+                            Spacer()
+                            Button("Adjust") { activePage = .correction }
+                        }
+                        .padding(.top, 2)
+
+                        // LALU BARU HANAfi MADHHAB
                         StyledToggle(label: "Hanafi Madhhab", isOn: $vm.useHanafiMadhhab)
+
                     }
 
                     Divider()

@@ -1,3 +1,4 @@
+// MARK: - GANTI FILE: Sajda/ContentView.swift
 // Salin dan tempel SELURUH kode ini ke dalam file ContentView.swift
 
 import SwiftUI
@@ -8,6 +9,7 @@ indirect enum ActivePage: Equatable {
     case main
     case settings
     case about
+    case correction
     case manualLocation(returnPage: ActivePage)
 }
 
@@ -29,8 +31,17 @@ struct ContentView: View {
                     SettingsView(activePage: $activePage)
                         .transition(.asymmetric(
                             insertion: .move(edge: .trailing),
-                            removal: .offset(x: 400)
+                            removal: .move(edge: .trailing)
                         ))
+                
+                // --- PERBAIKAN: Animasi keluar diubah menjadi menghilang (fade-out) ---
+                case .correction:
+                    PrayerTimeCorrectionView(activePage: $activePage)
+                        .transition(.asymmetric(
+                            insertion: .move(edge: .top),
+                            removal: .opacity
+                        ))
+                // --- AKHIR PERBAIKAN ---
                 
                 case .about:
                     AboutView(activePage: $activePage)
@@ -53,9 +64,7 @@ struct ContentView: View {
         .onReceive(NotificationCenter.default.publisher(for: .popoverDidClose)) { _ in
             activePage = .main
         }
-        // PERBAIKAN: Membuat UI reaktif terhadap perubahan izin lokasi
         .onReceive(vm.$authorizationStatus) { newStatus in
-            // Jika izin ditolak (dan tidak pakai lokasi manual), paksa kembali ke main view
             if newStatus == .denied && !vm.isUsingManualLocation {
                 activePage = .main
             }
