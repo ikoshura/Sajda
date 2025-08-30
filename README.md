@@ -41,7 +41,7 @@
 
 ## Installation
 
-1. Download the app from the [releases section](#) of this repository.
+1. Download the app from the [releases section](https://github.com/ikoshura/Sajda/releases/tag/1.0.0) of this repository.
 2. Open the `.dmg` file and drag the app to your Applications folder.
 3. Launch the app from your Applications folder and customize your settings as desired.
 
