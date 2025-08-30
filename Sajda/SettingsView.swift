@@ -1,3 +1,5 @@
+// MARK: - GANTI FILE: Sajda/SettingsView.swift (VERSI FINAL & DIPERBAIKI)
+
 import SwiftUI
 import Adhan
 
@@ -7,9 +9,6 @@ struct SettingsView: View {
     
     @AppStorage("launchAtLogin") private var launchAtLogin = false
     @State private var isHeaderHovering = false
-
-    @AppStorage("isPrayerTimerEnabled") private var isPrayerTimerEnabled: Bool = false
-    @AppStorage("prayerTimerDuration") private var prayerTimerDuration: Int = 5
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
@@ -27,88 +26,51 @@ struct SettingsView: View {
 
             ScrollView {
                 VStack(alignment: .leading, spacing: 12) {
-                    
                     Group {
-                        Text("Display")
-                            .font(.caption)
-                            .foregroundColor(Color("SecondaryTextColor"))
+                        Text("Display").font(.caption).foregroundColor(.secondary)
                         HStack {
                             Text("Menu Bar Style")
                             Spacer()
                             Picker("", selection: $vm.menuBarTextMode) {
-                                ForEach(MenuBarTextMode.allCases) { mode in
-                                    Text(mode.rawValue).tag(mode)
-                                }
-                            }
-                            .fixedSize(horizontal: true, vertical: false)
+                                ForEach(MenuBarTextMode.allCases) { mode in Text(mode.rawValue).tag(mode) }
+                            }.fixedSize()
                         }
-                        VStack(spacing: 10) {
-                            StyledToggle(label: "Compact Main View", isOn: $vm.useCompactLayout)
-                            StyledToggle(label: "24-Hour Time", isOn: $vm.use24HourFormat)
-                            StyledToggle(label: "Use Accent Color", isOn: $vm.useAccentColor)
-                            StyledToggle(label: "Show Sunnah Prayers", isOn: $vm.showSunnahPrayers)
-                        }
+                        StyledToggle(label: "Compact Main View", isOn: $vm.useCompactLayout)
+                        StyledToggle(label: "24-Hour Time", isOn: $vm.use24HourFormat)
+                        StyledToggle(label: "Use System Accent Color", isOn: $vm.useAccentColor)
+                        StyledToggle(label: "Show Sunnah Prayers", isOn: $vm.showSunnahPrayers)
                     }
-                    
+
                     Divider()
+                    
                     Group {
-                        Text("Inter-Prayer Timer (Optional)")
-                            .font(.caption)
-                            .foregroundColor(Color("SecondaryTextColor"))
-                        
-                        StyledToggle(label: "Enable Timer", isOn: $isPrayerTimerEnabled)
-
-                        if isPrayerTimerEnabled {
-                            Stepper(value: $prayerTimerDuration, in: 1...60, step: 1) {
-                                // Corrected Stepper
-                                HStack(spacing: 4) {
-                                    Text("Start timer")
-                                    Text("\(prayerTimerDuration)").bold()
-                                    Text("minutes after prayer")
-                                }
-                            }
-                            .controlSize(.small)
-                            .padding(.top, 5)
-                        }
-                        
-                        Text("When enabled, a visual prompt will appear after your set duration, reminding you to begin your next activity.")
-                            .font(.caption2)
-                            .foregroundColor(.secondary)
-                    }
-
-                    Divider()
-                    Text("Calculation")
-                        .font(.caption)
-                        .foregroundColor(Color("SecondaryTextColor"))
-                    
-                    VStack(spacing: 10) {
+                        Text("Calculation").font(.caption).foregroundColor(.secondary)
                         HStack {
                             Text("Method")
                             Spacer()
+                            // --- PERBAIKAN: Picker sekarang menggunakan SajdaCalculationMethod ---
                             Picker("", selection: $vm.method) {
-                                ForEach(CalculationMethod.allCases, id: \.self) { method in Text("\(method.rawValue.capitalized)").tag(method) }
-                            }
-                            .fixedSize(horizontal: true, vertical: false)
+                                ForEach(SajdaCalculationMethod.allCases) { method in
+                                    Text(method.name).tag(method)
+                                }
+                            }.fixedSize()
                         }
                         HStack {
                             Text("Time Correction")
                             Spacer()
                             Button("Adjust") { activePage = .correction }
                         }
-                        .padding(.top, 2)
-                        StyledToggle(label: "Hanafi Madhhab", isOn: $vm.useHanafiMadhhab)
+                        StyledToggle(label: "Hanafi Madhhab (for Asr)", isOn: $vm.useHanafiMadhhab)
                     }
 
                     Divider()
-                    Text("Location").font(.caption).foregroundColor(Color("SecondaryTextColor"))
-
-                    VStack(alignment: .leading, spacing: 10) {
+                    
+                    Group {
+                        Text("Location").font(.caption).foregroundColor(.secondary)
                         HStack {
                             Image(systemName: vm.isUsingManualLocation ? "pencil.circle.fill" : "location.circle.fill").foregroundColor(.secondary)
                             Text(vm.isUsingManualLocation ? "Manual: \(vm.locationStatusText)" : "Automatic: \(vm.locationStatusText)")
-                        }
-                        .lineLimit(1).truncationMode(.tail)
-                        
+                        }.lineLimit(1).truncationMode(.tail)
                         HStack {
                             Button("Change Manual Location") { activePage = .manualLocation(returnPage: .settings) }
                             Spacer()
@@ -116,29 +78,40 @@ struct SettingsView: View {
                                 Button("Use Automatic") { vm.switchToAutomaticLocation() }
                             }
                         }
-                        
-                        if vm.authorizationStatus == .denied && !vm.isUsingManualLocation {
-                            Button("Open System Settings", action: vm.openLocationSettings)
-                        }
                     }
-                    .frame(maxWidth: .infinity, alignment: .leading)
 
                     Divider()
-                    Text("System").font(.caption).foregroundColor(Color("SecondaryTextColor"))
-
-                    VStack(spacing: 10) {
+                    
+                    Group {
+                        Text("System & Notifications").font(.caption).foregroundColor(.secondary)
                         StyledToggle(label: "Run at Login", isOn: $launchAtLogin)
-                            .onChange(of: launchAtLogin) { newValue in StartupManager.toggleLaunchAtLogin(isEnabled: newValue) }
                         StyledToggle(label: "Prayer Notifications", isOn: $vm.isNotificationsEnabled)
+                        VStack(alignment: .leading, spacing: 10) {
+                            HStack {
+                                Text("Notification Sound")
+                                Spacer()
+                                Picker("", selection: $vm.adhanSound) {
+                                    ForEach(AdhanSound.allCases) { sound in
+                                        Text(sound.rawValue).tag(sound)
+                                    }
+                                }.fixedSize()
+                            }
+                            if vm.adhanSound == .custom {
+                                HStack {
+                                    Text("Custom File")
+                                    Spacer()
+                                    Button("Browse...") { vm.selectCustomAdhanSound() }
+                                }
+                                Text(URL(string: vm.customAdhanSoundPath)?.lastPathComponent ?? "No file selected")
+                                    .font(.caption).foregroundColor(.secondary)
+                                    .frame(maxWidth: .infinity, alignment: .trailing)
+                            }
+                        }.disabled(!vm.isNotificationsEnabled)
                     }
                 }
-                .controlSize(.small)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 8)
+                .controlSize(.small).padding(.horizontal, 16).padding(.vertical, 8)
             }
-            .focusable(false)
         }
         .padding(.vertical, 8)
-        .padding(.bottom, 4)
     }
 }

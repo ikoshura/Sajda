@@ -12,6 +12,12 @@
 		CC786E542E6359E1007299F3 /* PrayerTimerMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC786E532E6359E1007299F3 /* PrayerTimerMonitor.swift */; };
 		CC786E562E635ADA007299F3 /* AlertWindowManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC786E552E635ADA007299F3 /* AlertWindowManager.swift */; };
 		CC786E582E635B46007299F3 /* PrayerTimerAlertView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC786E572E635B46007299F3 /* PrayerTimerAlertView.swift */; };
+		CC786E5B2E636A04007299F3 /* TimeZoneLocate.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC786E5A2E636A04007299F3 /* TimeZoneLocate.swift */; };
+		CC786E5D2E636A58007299F3 /* timezones.json in Resources */ = {isa = PBXBuildFile; fileRef = CC786E5C2E636A58007299F3 /* timezones.json */; };
+		CC786E5F2E637700007299F3 /* AdhanSound.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC786E5E2E637700007299F3 /* AdhanSound.swift */; };
+		CC786E632E63787E007299F3 /* MenuBarTextMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC786E622E63787E007299F3 /* MenuBarTextMode.swift */; };
+		CC786E652E638353007299F3 /* SajdaCalculationMethod.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC786E642E638353007299F3 /* SajdaCalculationMethod.swift */; };
+		CC786E672E638425007299F3 /* LocationSearchResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC786E662E638425007299F3 /* LocationSearchResult.swift */; };
 		CC969C782E60857A00C8630A /* SajdaApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC969C772E60857A00C8630A /* SajdaApp.swift */; };
 		CC969C7A2E60857A00C8630A /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC969C792E60857A00C8630A /* ContentView.swift */; };
 		CC969C7C2E60857D00C8630A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CC969C7B2E60857D00C8630A /* Assets.xcassets */; };
@@ -63,6 +69,12 @@
 		CC786E532E6359E1007299F3 /* PrayerTimerMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrayerTimerMonitor.swift; sourceTree = "<group>"; };
 		CC786E552E635ADA007299F3 /* AlertWindowManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertWindowManager.swift; sourceTree = "<group>"; };
 		CC786E572E635B46007299F3 /* PrayerTimerAlertView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrayerTimerAlertView.swift; sourceTree = "<group>"; };
+		CC786E5A2E636A04007299F3 /* TimeZoneLocate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeZoneLocate.swift; sourceTree = "<group>"; };
+		CC786E5C2E636A58007299F3 /* timezones.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = timezones.json; sourceTree = "<group>"; };
+		CC786E5E2E637700007299F3 /* AdhanSound.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdhanSound.swift; sourceTree = "<group>"; };
+		CC786E622E63787E007299F3 /* MenuBarTextMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarTextMode.swift; sourceTree = "<group>"; };
+		CC786E642E638353007299F3 /* SajdaCalculationMethod.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SajdaCalculationMethod.swift; sourceTree = "<group>"; };
+		CC786E662E638425007299F3 /* LocationSearchResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationSearchResult.swift; sourceTree = "<group>"; };
 		CC969C742E60857A00C8630A /* Sajda.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Sajda.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		CC969C772E60857A00C8630A /* SajdaApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SajdaApp.swift; sourceTree = "<group>"; };
 		CC969C792E60857A00C8630A /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -120,6 +132,15 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		CC786E592E6369EA007299F3 /* TimeZoneLocate */ = {
+			isa = PBXGroup;
+			children = (
+				CC786E5A2E636A04007299F3 /* TimeZoneLocate.swift */,
+				CC786E5C2E636A58007299F3 /* timezones.json */,
+			);
+			path = TimeZoneLocate;
+			sourceTree = "<group>";
+		};
 		CC969C6B2E60857A00C8630A = {
 			isa = PBXGroup;
 			children = (
@@ -143,6 +164,7 @@
 		CC969C762E60857A00C8630A /* Sajda */ = {
 			isa = PBXGroup;
 			children = (
+				CC786E592E6369EA007299F3 /* TimeZoneLocate */,
 				CC969C772E60857A00C8630A /* SajdaApp.swift */,
 				CC969C792E60857A00C8630A /* ContentView.swift */,
 				CC969C7B2E60857D00C8630A /* Assets.xcassets */,
@@ -166,6 +188,10 @@
 				CC786E532E6359E1007299F3 /* PrayerTimerMonitor.swift */,
 				CC786E552E635ADA007299F3 /* AlertWindowManager.swift */,
 				CC786E572E635B46007299F3 /* PrayerTimerAlertView.swift */,
+				CC786E5E2E637700007299F3 /* AdhanSound.swift */,
+				CC786E622E63787E007299F3 /* MenuBarTextMode.swift */,
+				CC786E642E638353007299F3 /* SajdaCalculationMethod.swift */,
+				CC786E662E638425007299F3 /* LocationSearchResult.swift */,
 			);
 			path = Sajda;
 			sourceTree = "<group>";
@@ -318,6 +344,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CC786E5D2E636A58007299F3 /* timezones.json in Resources */,
 				CC969C7F2E60857D00C8630A /* Preview Assets.xcassets in Resources */,
 				CC969C7C2E60857D00C8630A /* Assets.xcassets in Resources */,
 				CC969CA32E6085F200C8630A /* Info.plist in Resources */,
@@ -352,18 +379,23 @@
 				CC786E582E635B46007299F3 /* PrayerTimerAlertView.swift in Sources */,
 				CCE1BA472E620757003AF03C /* StyledToggle.swift in Sources */,
 				CCE1BA452E6198C1003AF03C /* ManualLocationView.swift in Sources */,
+				CC786E632E63787E007299F3 /* MenuBarTextMode.swift in Sources */,
 				CCEC0E452E60B08D001E9B1E /* AboutView.swift in Sources */,
 				CC786E542E6359E1007299F3 /* PrayerTimerMonitor.swift in Sources */,
 				CCFD21E62E62D3A500A80402 /* InteractiveStepper.swift in Sources */,
+				CC786E5F2E637700007299F3 /* AdhanSound.swift in Sources */,
 				CCE1BA3A2E61852B003AF03C /* EventMonitor.swift in Sources */,
 				CCE1BA3D2E61852B003AF03C /* FluidMenuBarExtra.swift in Sources */,
 				CC969CA92E6098C600C8630A /* SettingsView.swift in Sources */,
 				CCE1BA3F2E61852B003AF03C /* FluidMenuBarExtraWindow.swift in Sources */,
 				CCEC0E4F2E60D2EC001E9B1E /* NotificationManager.swift in Sources */,
+				CC786E672E638425007299F3 /* LocationSearchResult.swift in Sources */,
 				CC786E4E2E634B65007299F3 /* OnboardingView.swift in Sources */,
 				CC969C7A2E60857A00C8630A /* ContentView.swift in Sources */,
 				CCEC0E492E60B700001E9B1E /* StartupManager.swift in Sources */,
 				CCEC0E412E60A899001E9B1E /* MainView.swift in Sources */,
+				CC786E5B2E636A04007299F3 /* TimeZoneLocate.swift in Sources */,
+				CC786E652E638353007299F3 /* SajdaCalculationMethod.swift in Sources */,
 				CC969C782E60857A00C8630A /* SajdaApp.swift in Sources */,
 				CCE1BA3E2E61852B003AF03C /* UpdateSizeAction.swift in Sources */,
 				CCE1BA3B2E61852B003AF03C /* RootViewModifier.swift in Sources */,

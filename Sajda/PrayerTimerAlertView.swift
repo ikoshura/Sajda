@@ -1,5 +1,5 @@
-// MARK: - FILE BARU: Sajda/PrayerTimerAlertView.swift
-// Salin dan tempel SELURUH kode ini ke dalam file baru.
+// MARK: - GANTI FILE: Sajda/PrayerTimerAlertView.swift
+// KEMBALIKAN KE KODE ASLI YANG BENAR.
 
 import SwiftUI
 
@@ -9,8 +9,6 @@ struct PrayerTimerAlertView: View {
 
     var body: some View {
         ZStack {
-            // Latar belakang tembus pandang dengan efek blur
-            // Ini adalah helper view yang sama yang digunakan di OnboardingView
             VisualEffectView().ignoresSafeArea()
 
             VStack(spacing: 20) {
@@ -35,7 +33,7 @@ struct PrayerTimerAlertView: View {
                 }
                 .buttonStyle(.borderedProminent)
                 .controlSize(.large)
-                .keyboardShortcut(.defaultAction) // Bisa ditutup dengan tombol Enter
+                .keyboardShortcut(.defaultAction)
             }
             .padding(40)
         }

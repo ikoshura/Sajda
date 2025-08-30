@@ -1,5 +1,4 @@
-// MARK: - GANTI FILE: Sajda/AppDelegate.swift
-// Salin dan tempel SELURUH kode ini untuk memastikan logikanya benar.
+// MARK: - GANTI FILE: Sajda/AppDelegate.swift (VERSI FINAL)
 
 import SwiftUI
 import Combine
@@ -9,7 +8,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     private var menuBarExtra: FluidMenuBarExtra?
     private var cancellables = Set<AnyCancellable>()
     
-    // 1. Mengambil nilai toggle dari penyimpanan permanen. Defaultnya adalah `true`.
     @AppStorage("showOnboardingAtLaunch") private var showOnboardingAtLaunch = true
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -29,6 +27,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
             }
             .store(in: &cancellables)
             
+        // --- Kode ini sekarang akan berfungsi karena menuBarTextMode adalah @Published ---
         vm.$menuBarTextMode
             .dropFirst()
             .sink { [weak self] newMode in
@@ -36,9 +35,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
             }
             .store(in: &cancellables)
             
-        // 2. Setiap kali aplikasi launch, kode ini akan memeriksa nilai `showOnboardingAtLaunch`.
-        // Jika `true`, jendela akan ditampilkan. Jika pengguna mematikannya, nilai ini akan `false`
-        // pada saat launch berikutnya, dan jendela tidak akan muncul.
         DispatchQueue.main.async {
             if self.showOnboardingAtLaunch {
                 self.showOnboardingWindow()

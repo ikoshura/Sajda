@@ -1,26 +1,24 @@
 // MARK: - GANTI FILE: Sajda/ManualLocationSheetView.swift
-// Salin dan tempel SELURUH kode ini.
+// PERBAIKAN: Memperbaiki cara pemanggilan fungsi searchLocation.
 
 import SwiftUI
 import MapKit
 
 struct ManualLocationSheetView: View {
     @EnvironmentObject var vm: PrayerTimeViewModel
-    @Environment(\.dismiss) var dismiss // Untuk menutup sheet
+    @Environment(\.dismiss) var dismiss
 
     @State private var searchQuery = ""
     @State private var searchResults: [LocationSearchResult] = []
     @State private var isSearching = false
     @State private var hoveringResult: UUID?
 
-    // Ambil hasil pertama yang paling relevan
     private var firstResult: LocationSearchResult? {
         searchResults.first
     }
 
     var body: some View {
         VStack(spacing: 16) {
-            // Header
             VStack {
                 Text("Set Location Manually")
                     .font(.headline)
@@ -29,28 +27,27 @@ struct ManualLocationSheetView: View {
                     .foregroundColor(Color("SecondaryTextColor"))
             }
 
-            // Text Field Pencarian
             TextField("Search for a city...", text: $searchQuery)
                 .textFieldStyle(.roundedBorder)
                 .onChange(of: searchQuery) { newValue in
                     isSearching = true
-                    // Ambil hanya 5 hasil teratas agar lebih cepat dan relevan
-                    vm.searchLocation(query: newValue, maxResults: 5) { results in
+                    // --- PERBAIKAN DI SINI ---
+                    // Menghapus argumen 'maxResults' yang sudah tidak ada.
+                    vm.searchLocation(query: newValue) { results in
                         self.searchResults = results
                         self.isSearching = false
                     }
+                    // --- AKHIR PERBAIKAN ---
                 }
             
-            // Kontainer Hasil Pencarian (ukurannya dinamis)
             VStack {
                 if isSearching {
                     ProgressView()
                         .padding()
                 } else if let result = firstResult {
-                    // Tampilkan hanya satu hasil terbaik
                     Button(action: {
                         vm.setManualLocation(city: result.name, coordinates: result.coordinates)
-                        dismiss() // Tutup sheet setelah lokasi dipilih
+                        dismiss()
                     }) {
                         HStack {
                             VStack(alignment: .leading) {
@@ -70,20 +67,17 @@ struct ManualLocationSheetView: View {
                     }
                     .buttonStyle(.plain)
                 } else {
-                    // Tampilan saat tidak ada hasil atau belum mencari
                     Text(searchQuery.isEmpty ? " " : "No results found.")
                         .foregroundColor(.secondary)
                         .padding()
                 }
             }
-            // Animasi untuk memunculkan/menghilangkan hasil dengan mulus
             .animation(.easeInOut(duration: 0.2), value: isSearching)
             .animation(.easeInOut(duration: 0.2), value: firstResult?.id)
         }
         .padding()
-        .frame(width: 320) // Lebar tetap, tinggi akan menyesuaikan konten
+        .frame(width: 320)
         .toolbar {
-            // Tombol "Cancel" di pojok kanan atas, cara standar macOS
             ToolbarItem(placement: .cancellationAction) {
                 Button("Cancel") {
                     dismiss()
