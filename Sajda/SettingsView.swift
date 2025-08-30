@@ -1,6 +1,3 @@
-// MARK: - GANTI FILE: Sajda/SettingsView.swift
-// Salin dan tempel SELURUH kode ini ke dalam file SettingsView.swift
-
 import SwiftUI
 import Adhan
 
@@ -10,6 +7,9 @@ struct SettingsView: View {
     
     @AppStorage("launchAtLogin") private var launchAtLogin = false
     @State private var isHeaderHovering = false
+
+    @AppStorage("isPrayerTimerEnabled") private var isPrayerTimerEnabled: Bool = false
+    @AppStorage("prayerTimerDuration") private var prayerTimerDuration: Int = 5
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
@@ -28,11 +28,10 @@ struct SettingsView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 12) {
                     
-                    // --- Display Section ---
                     Group {
                         Text("Display")
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(Color("SecondaryTextColor"))
                         HStack {
                             Text("Menu Bar Style")
                             Spacer()
@@ -52,11 +51,36 @@ struct SettingsView: View {
                     }
                     
                     Divider()
+                    Group {
+                        Text("Inter-Prayer Timer (Optional)")
+                            .font(.caption)
+                            .foregroundColor(Color("SecondaryTextColor"))
+                        
+                        StyledToggle(label: "Enable Timer", isOn: $isPrayerTimerEnabled)
+
+                        if isPrayerTimerEnabled {
+                            Stepper(value: $prayerTimerDuration, in: 1...60, step: 1) {
+                                // Corrected Stepper
+                                HStack(spacing: 4) {
+                                    Text("Start timer")
+                                    Text("\(prayerTimerDuration)").bold()
+                                    Text("minutes after prayer")
+                                }
+                            }
+                            .controlSize(.small)
+                            .padding(.top, 5)
+                        }
+                        
+                        Text("When enabled, a visual prompt will appear after your set duration, reminding you to begin your next activity.")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                    }
+
+                    Divider()
                     Text("Calculation")
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(Color("SecondaryTextColor"))
                     
-                    // --- Calculation Section ---
                     VStack(spacing: 10) {
                         HStack {
                             Text("Method")
@@ -66,23 +90,18 @@ struct SettingsView: View {
                             }
                             .fixedSize(horizontal: true, vertical: false)
                         }
-                        // --- TOMBOL TIME CORRECTION DULU ---
                         HStack {
                             Text("Time Correction")
                             Spacer()
                             Button("Adjust") { activePage = .correction }
                         }
                         .padding(.top, 2)
-
-                        // LALU BARU HANAfi MADHHAB
                         StyledToggle(label: "Hanafi Madhhab", isOn: $vm.useHanafiMadhhab)
-
                     }
 
                     Divider()
-                    Text("Location").font(.caption).foregroundColor(.secondary)
+                    Text("Location").font(.caption).foregroundColor(Color("SecondaryTextColor"))
 
-                    // --- Location Section ---
                     VStack(alignment: .leading, spacing: 10) {
                         HStack {
                             Image(systemName: vm.isUsingManualLocation ? "pencil.circle.fill" : "location.circle.fill").foregroundColor(.secondary)
@@ -105,9 +124,8 @@ struct SettingsView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
 
                     Divider()
-                    Text("System").font(.caption).foregroundColor(.secondary)
+                    Text("System").font(.caption).foregroundColor(Color("SecondaryTextColor"))
 
-                    // --- System Section ---
                     VStack(spacing: 10) {
                         StyledToggle(label: "Run at Login", isOn: $launchAtLogin)
                             .onChange(of: launchAtLogin) { newValue in StartupManager.toggleLaunchAtLogin(isEnabled: newValue) }

@@ -7,6 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		CC786E4E2E634B65007299F3 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC786E4D2E634B65007299F3 /* OnboardingView.swift */; };
+		CC786E522E6353F1007299F3 /* ManualLocationSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC786E512E6353F1007299F3 /* ManualLocationSheetView.swift */; };
+		CC786E542E6359E1007299F3 /* PrayerTimerMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC786E532E6359E1007299F3 /* PrayerTimerMonitor.swift */; };
+		CC786E562E635ADA007299F3 /* AlertWindowManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC786E552E635ADA007299F3 /* AlertWindowManager.swift */; };
+		CC786E582E635B46007299F3 /* PrayerTimerAlertView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC786E572E635B46007299F3 /* PrayerTimerAlertView.swift */; };
 		CC969C782E60857A00C8630A /* SajdaApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC969C772E60857A00C8630A /* SajdaApp.swift */; };
 		CC969C7A2E60857A00C8630A /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC969C792E60857A00C8630A /* ContentView.swift */; };
 		CC969C7C2E60857D00C8630A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CC969C7B2E60857D00C8630A /* Assets.xcassets */; };
@@ -53,6 +58,11 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		CC786E4D2E634B65007299F3 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
+		CC786E512E6353F1007299F3 /* ManualLocationSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManualLocationSheetView.swift; sourceTree = "<group>"; };
+		CC786E532E6359E1007299F3 /* PrayerTimerMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrayerTimerMonitor.swift; sourceTree = "<group>"; };
+		CC786E552E635ADA007299F3 /* AlertWindowManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertWindowManager.swift; sourceTree = "<group>"; };
+		CC786E572E635B46007299F3 /* PrayerTimerAlertView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrayerTimerAlertView.swift; sourceTree = "<group>"; };
 		CC969C742E60857A00C8630A /* Sajda.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Sajda.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		CC969C772E60857A00C8630A /* SajdaApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SajdaApp.swift; sourceTree = "<group>"; };
 		CC969C792E60857A00C8630A /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -151,6 +161,11 @@
 				CCE1BA212E618251003AF03C /* FluidMenuBar */,
 				CCFD21D92E62BEEB00A80402 /* PrayerTimeCorrectionView.swift */,
 				CCFD21E52E62D3A500A80402 /* InteractiveStepper.swift */,
+				CC786E4D2E634B65007299F3 /* OnboardingView.swift */,
+				CC786E512E6353F1007299F3 /* ManualLocationSheetView.swift */,
+				CC786E532E6359E1007299F3 /* PrayerTimerMonitor.swift */,
+				CC786E552E635ADA007299F3 /* AlertWindowManager.swift */,
+				CC786E572E635B46007299F3 /* PrayerTimerAlertView.swift */,
 			);
 			path = Sajda;
 			sourceTree = "<group>";
@@ -334,21 +349,26 @@
 				CCE1BA3C2E61852B003AF03C /* FluidMenuBarExtraStatusItem.swift in Sources */,
 				CCFD21DA2E62BEEB00A80402 /* PrayerTimeCorrectionView.swift in Sources */,
 				CC969CA72E60989F00C8630A /* PrayerTimeViewModel.swift in Sources */,
+				CC786E582E635B46007299F3 /* PrayerTimerAlertView.swift in Sources */,
 				CCE1BA472E620757003AF03C /* StyledToggle.swift in Sources */,
 				CCE1BA452E6198C1003AF03C /* ManualLocationView.swift in Sources */,
 				CCEC0E452E60B08D001E9B1E /* AboutView.swift in Sources */,
+				CC786E542E6359E1007299F3 /* PrayerTimerMonitor.swift in Sources */,
 				CCFD21E62E62D3A500A80402 /* InteractiveStepper.swift in Sources */,
 				CCE1BA3A2E61852B003AF03C /* EventMonitor.swift in Sources */,
 				CCE1BA3D2E61852B003AF03C /* FluidMenuBarExtra.swift in Sources */,
 				CC969CA92E6098C600C8630A /* SettingsView.swift in Sources */,
 				CCE1BA3F2E61852B003AF03C /* FluidMenuBarExtraWindow.swift in Sources */,
 				CCEC0E4F2E60D2EC001E9B1E /* NotificationManager.swift in Sources */,
+				CC786E4E2E634B65007299F3 /* OnboardingView.swift in Sources */,
 				CC969C7A2E60857A00C8630A /* ContentView.swift in Sources */,
 				CCEC0E492E60B700001E9B1E /* StartupManager.swift in Sources */,
 				CCEC0E412E60A899001E9B1E /* MainView.swift in Sources */,
 				CC969C782E60857A00C8630A /* SajdaApp.swift in Sources */,
 				CCE1BA3E2E61852B003AF03C /* UpdateSizeAction.swift in Sources */,
 				CCE1BA3B2E61852B003AF03C /* RootViewModifier.swift in Sources */,
+				CC786E522E6353F1007299F3 /* ManualLocationSheetView.swift in Sources */,
+				CC786E562E635ADA007299F3 /* AlertWindowManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
