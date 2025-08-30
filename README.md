@@ -2,58 +2,58 @@
 
 ![Sajda App Screenshot](https://github.com/user-attachments/assets/6e8bd922-a446-4b33-a184-e5e89493a4b1)
 
-**Sajda** is a clean and simple prayer times app designed for your Mac's menu bar. It's built to be quiet, beautiful, and minimal, providing you with accurate prayer times and gentle reminders in a sleek, unobtrusive design.
+## About The Project
 
----
+As a Muslim who uses a Mac all day, I was looking for a prayer times app that was minimalist, fast, and felt truly native to macOS. Many of the available apps felt like clunky ports, had outdated designs, or were filled with features I didn't need.
+
+Sajda is the app I wanted for myself. It's built entirely in modern SwiftUI to be a "calm" and quiet companion that lives in your menu bar, respects your focus, and feels like it belongs on your Mac.
+
+This project is fully open-source. I built it to solve my own problem, but I hope others find it useful too.
 
 ## Features
 
-* **Accurate Prayer Times**
-  Automatically detects your location or allows you to set your location manually for precise prayer times.
+Sajda is designed to be simple on the surface but powerful when you need it.
 
-* **Quiet Notifications**
-  Receive gentle, non-intrusive reminders shortly before each prayer time.
+#### ✨ Native Look & Feel
+*   **Menu Bar Native:** Lives entirely in the menu bar, saving screen space and staying out of your way.
+*   **SwiftUI Built:** A modern, fast, and efficient app built with the latest Apple technologies.
+*   **Light & Dark Mode:** Automatically adapts to your system's appearance.
+*   **No Dock Icon:** Runs as a quiet background agent (`UIElement`), just like it should.
 
-* **Minimalist Design**
-  A clean, elegant interface that feels native to macOS.
+#### 🕌 Accurate & Flexible Prayer Times
+*   **Smart Location:** Automatically detects your location for precise prayer times. You can also search for and set any city in the world manually.
+*   **Trusted Calculation Methods:** Choose from several standard calculation methods (e.g., Muslim World League, ISNA, Karachi, Umm al-Qura) to match your preference.
+*   **Hanafi Madhhab:** A dedicated toggle to adjust the Asr prayer time according to the Hanafi school.
 
-* **Lightweight & Fast**
-  Sajda is optimized to be lightweight, ensuring it won’t slow down your Mac.
+#### 🛠️ Deep Customization
+*   **Customizable Menu Bar:** Choose exactly what you see:
+    *   A simple moon icon.
+    *   A countdown to the next prayer (`Asr in 24m`).
+    *   The exact time of the next prayer (`Maghrib at 6:05 PM`).
+*   **Precision Time Correction:** A key feature for ultimate accuracy. If your local mosque's schedule differs from standard calculations, you can manually adjust *each* of the five daily prayers (+/- 60 minutes) using a simple, clean stepper interface.
+*   **Optional Sunnah Prayers:** Choose to show or hide the times for Tahajud and Dhuha.
+*   **Native Accent Color:** Uses your Mac's own system accent color to highlight the next prayer for a beautifully integrated feel.
 
----
-
-## Customization Options
-
-* **Adjustable Times**
-  Manually fine-tune each prayer time (+/- 60 minutes) to match your local mosque's schedule.
-
-* **Custom Menu Bar Item**
-  Choose how you want to display the app in your menu bar:
-
-  * Icon only
-  * Next prayer time
-  * Countdown to the next prayer
-
-* **Sunnah Prayers**
-  Option to show or hide **Tahajud** and **Dhuha** prayer times.
+#### 🔔 System Integration
+*   **Native Notifications:** Get gentle, standard macOS notifications to remind you a few minutes before each prayer begins.
+*   **Run at Login:** Set it once and forget it. Sajda can launch automatically and silently every time you start your Mac.
 
 ---
 
 ## Installation
 
-1. Download the app from the [releases section](https://github.com/ikoshura/Sajda/releases/tag/1.0.0) of this repository.
-2. Open the `.dmg` file and drag the app to your Applications folder.
-3. Launch the app from your Applications folder and customize your settings as desired.
+**➡️ [Download Sajda now on Gumroad](https://ikoshura.gumroad.com/l/sajda)**
+Or check out the [Releases page on GitHub](https://github.com/ikoshura/Sajda/releases/tag/1.0.0).
 
----
+### Important: First-Time Launch Instructions
+Because I'm a solo developer and can't yet afford Apple's developer program fee, this app isn't "signed." This is perfectly safe, but it means you must give macOS permission to open it the first time.
 
-## A Quick Guide to Installing Sajda
+The easiest way is to **right-click** (or Control-click) the **Sajda** app icon in your Applications folder and select **Open**.
 
-### (For First-Time Installation on macOS)
+<details>
+<summary><strong>Troubleshooting?</strong> Click here for the complete, detailed installation guide.</summary>
 
-Since I’m a solo developer and can’t yet afford Apple's expensive developer program fee, this app isn’t signed through their official program. This is perfectly safe, but macOS's security feature, **Gatekeeper**, will ask for your permission to run Sajda the first time.
-
-Follow the steps below to grant that permission. You only need to do this once.
+Here are three methods to get the app running. If the first one doesn't work, try the next.
 
 ---
 
@@ -85,7 +85,7 @@ After this, **Sajda** is approved and will open without any more warnings.
 
 ---
 
-### **Method 3: Using Terminal**
+### **Method 3: The Guaranteed Fix (Using Terminal)**
 
 If the methods above still don’t work (especially on the newest macOS versions), you can manually remove the "quarantine" flag that macOS places on downloaded apps. This may seem technical, but it's just a simple copy-paste!
 
@@ -95,13 +95,13 @@ If the methods above still don’t work (especially on the newest macOS versions
 2. Carefully copy the following command (don’t press **Return** yet):
 
    ```
-   xattr -r -d com.apple.quarantine
+   xattr -r -d com.apple.quarantine 
    ```
 
 3. Paste the command into the Terminal window, then press the **spacebar** once. Your window should now look like this:
 
    ```
-   xattr -r -d com.apple.quarantine
+   xattr -r -d com.apple.quarantine 
    ```
 
 4. Find the **Sajda** app in your **Applications** folder and drag the app icon directly onto the Terminal window. The path to the app will appear automatically after the command.
@@ -115,14 +115,36 @@ If the methods above still don’t work (especially on the newest macOS versions
 
 That’s it! The quarantine flag has been removed. You can now close the Terminal and open **Sajda** normally by double-clicking it.
 
+</details>
+
+---
+
+## Building from Source
+
+1.  Clone the repository:
+    ```sh
+    git clone https://github.com/ikoshura/sajda.git
+    ```
+2.  Open the `Sajda.xcodeproj` file in Xcode.
+3.  This project uses the `Adhan` library via Swift Package Manager, which should be fetched automatically.
+4.  Press ▶ to build and run.
+
 ---
 
 ## Contributing
 
-We welcome contributions! Feel free to fork the repository, create a branch, and submit pull requests. If you encounter any issues or have feature requests, please open an issue on the GitHub page.
+Contributions are what make the open-source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+
+If you have a suggestion that would make this better, please fork the repo and create a pull request. You can also simply open an issue with the tag "enhancement".
 
 ---
 
 ## License
 
-Sajda is released under the [MIT License](LICENSE).
+Distributed under the MIT License. See `LICENSE` for more information.
+
+---
+
+## Acknowledgements
+*   [Adhan](https://github.com/batoulapps/Adhan) - The core library used for calculating prayer times.
+*   [FluidMenuBarExtra](https://github.com/lfroms/fluid-menu-bar-extra) - For the dynamically resizing pop-up window.
