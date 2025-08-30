@@ -1,5 +1,5 @@
-// MARK: - GANTI FILE: Sajda/AboutView.swift
-// Salin dan tempel SELURUH kode ini. Kesalahan 'NSApp.shared' sudah diperbaiki.
+// MARK: - FILE: Sajda/AboutView.swift
+// Mengganti tombol "Show Welcome Guide" dengan checkbox yang lebih andal.
 
 import SwiftUI
 
@@ -7,9 +7,10 @@ struct AboutView: View {
     @EnvironmentObject var vm: PrayerTimeViewModel
     @Binding var activePage: ActivePage
     
+    @AppStorage("showOnboardingAtLaunch") private var showOnboardingAtLaunch = true
+    
     @State private var isHeaderHovering = false
     @State private var isDoneHovering = false
-    @State private var isWelcomeHovering = false
 
     private var viewWidth: CGFloat {
         return vm.useCompactLayout ? 220 : 260
@@ -49,21 +50,9 @@ struct AboutView: View {
                     .multilineTextAlignment(.center)
                     .padding(.horizontal)
                 
-                Button(action: {
-                    // --- PERBAIKAN DI SINI ---
-                    // Menggunakan `NSApp.delegate` bukan `NSApp.shared.delegate`
-                    if let appDelegate = NSApp.delegate as? AppDelegate {
-                        appDelegate.showOnboardingWindow()
-                    }
-                }) {
-                    Text("Show Welcome Guide")
-                        .padding(.vertical, 3).padding(.horizontal, 8)
-                        .background(Color.secondary.opacity(isWelcomeHovering ? 0.25 : 0))
-                        .cornerRadius(5)
-                }
-                .buttonStyle(.plain)
-                .onHover { hovering in isWelcomeHovering = hovering }
-                .padding(.top, 8)
+                Toggle("Show Welcome Guide on Launch", isOn: $showOnboardingAtLaunch)
+                    .toggleStyle(.checkbox)
+                    .padding(.top, 8)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             

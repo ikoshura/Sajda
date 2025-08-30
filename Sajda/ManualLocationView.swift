@@ -1,4 +1,5 @@
-// Salin dan tempel SELURUH kode ini ke dalam file ManualLocationView.swift
+// MARK: - GANTI FILE: Sajda/ManualLocationView.swift (KONFIRMASI)
+// Memastikan pemanggilan fungsi searchLocation di sini juga benar.
 
 import SwiftUI
 import MapKit
@@ -40,6 +41,7 @@ struct ManualLocationView: View {
                 .padding(.horizontal, 12)
                 .onChange(of: searchQuery) { newValue in
                     isSearching = true
+                    // --- Pastikan baris ini sudah benar ---
                     vm.searchLocation(query: newValue) { results in
                         self.searchResults = results; self.isSearching = false
                     }
