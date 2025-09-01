@@ -1,17 +1,15 @@
-// MARK: - GANTI FILE: Sajda/ManualLocationView.swift (KONFIRMASI)
-// Memastikan pemanggilan fungsi searchLocation di sini juga benar.
+// MARK: - GANTI SELURUH FILE: ManualLocationView.swift (PERBAIKAN READABILITY)
 
 import SwiftUI
 import MapKit
+import NavigationStack
 
 struct ManualLocationView: View {
     @EnvironmentObject var vm: PrayerTimeViewModel
-    @Binding var activePage: ActivePage
-    let returnPage: ActivePage
+    @EnvironmentObject var navigationModel: NavigationModel
     
-    @State private var searchQuery = ""
-    @State private var searchResults: [LocationSearchResult] = []
-    @State private var isSearching = false
+    let isModal: Bool
+    
     @State private var hoveringResult: UUID?
     @State private var isHeaderHovering = false
 
@@ -21,53 +19,48 @@ struct ManualLocationView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Button(action: { activePage = returnPage }) {
+            Button(action: handleBackButton) {
                 HStack {
                     Image(systemName: "chevron.left").font(.body.weight(.semibold))
-                    Text("Set Location").font(.body).fontWeight(.bold)
+                    Text(LocalizedStringKey("Set Location")).font(.body).fontWeight(.bold)
                     Spacer()
                 }
                 .padding(.vertical, 5).padding(.horizontal, 8)
-                .background(Color.secondary.opacity(isHeaderHovering ? 0.25 : 0)).cornerRadius(5)
+                .background(isHeaderHovering ? Color("HoverColor") : .clear).cornerRadius(5)
             }
             .buttonStyle(.plain)
             .padding(.horizontal, 5).padding(.top, 2)
             .onHover { hovering in isHeaderHovering = hovering }
             
-            Divider().padding(.horizontal, 12)
+            Divider().padding(.horizontal, 12).drawingGroup()
             
-            TextField("Search for a city...", text: $searchQuery)
+            TextField(LocalizedStringKey("Search for a city or paste coordinates..."), text: $vm.locationSearchQuery)
                 .textFieldStyle(.roundedBorder)
                 .padding(.horizontal, 12)
-                .onChange(of: searchQuery) { newValue in
-                    isSearching = true
-                    // --- Pastikan baris ini sudah benar ---
-                    vm.searchLocation(query: newValue) { results in
-                        self.searchResults = results; self.isSearching = false
-                    }
-                }
             
             ScrollView {
-                if isSearching && !searchQuery.isEmpty {
+                if vm.isLocationSearching {
                     ProgressView()
                         .frame(maxWidth: .infinity)
                         .padding()
                 } else {
                     VStack(spacing: 2) {
-                        ForEach(searchResults) { result in
+                        ForEach(vm.locationSearchResults) { result in
                             Button(action: {
                                 vm.setManualLocation(city: result.name, coordinates: result.coordinates)
-                                activePage = .main
+                                handleBackButton()
                             }) {
                                 HStack {
                                     VStack(alignment: .leading) {
                                         Text(result.name).fontWeight(.semibold)
-                                        Text(result.country).font(.caption).foregroundColor(.secondary)
+                                        // PERBAIKAN: Gunakan Color Set kustom untuk readability
+                                        Text(result.country).font(.caption).foregroundColor(Color("SecondaryTextColor"))
                                     }
                                     Spacer()
                                 }
+                                .frame(maxWidth: .infinity, alignment: .leading)
                                 .padding(EdgeInsets(top: 6, leading: 8, bottom: 6, trailing: 8))
-                                .background(hoveringResult == result.id ? Color.secondary.opacity(0.25) : Color.clear)
+                                .background(hoveringResult == result.id ? Color("HoverColor") : Color.clear)
                                 .cornerRadius(5)
                             }
                             .buttonStyle(.plain)
@@ -80,5 +73,16 @@ struct ManualLocationView: View {
         }
         .padding(.vertical, 8)
         .frame(width: viewWidth)
+        .onDisappear {
+            vm.locationSearchQuery = ""
+        }
+    }
+    
+    private func handleBackButton() {
+        if isModal {
+            navigationModel.hideTopViewWithReverseAnimation()
+        } else {
+            navigationModel.popContent(LocationAndCalcSettingsView.id)
+        }
     }
 }

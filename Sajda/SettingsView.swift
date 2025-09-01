@@ -1,117 +1,115 @@
-// MARK: - GANTI FILE: Sajda/SettingsView.swift (VERSI FINAL & DIPERBAIKI)
+// MARK: - GANTI SELURUH FILE: SettingsView.swift (DENGAN DIVIDER KUSTOM)
 
 import SwiftUI
-import Adhan
+import NavigationStack
 
 struct SettingsView: View {
+    static let id = "SettingsNavigationStack"
+
     @EnvironmentObject var vm: PrayerTimeViewModel
-    @Binding var activePage: ActivePage
+    @EnvironmentObject var languageManager: LanguageManager
+    @EnvironmentObject var navigationModel: NavigationModel
     
-    @AppStorage("launchAtLogin") private var launchAtLogin = false
     @State private var isHeaderHovering = false
+    @State private var isCalcHovering = false
+    @State private var isNotifHovering = false
+
+    private var viewWidth: CGFloat {
+        return vm.useCompactLayout ? 220 : 260
+    }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Button(action: { activePage = .main }) {
-                HStack {
-                    Image(systemName: "chevron.left").font(.body.weight(.semibold))
-                    Text("Settings").font(.body).fontWeight(.bold)
-                    Spacer()
-                }
-                .padding(.vertical, 5).padding(.horizontal, 8)
-                .background(Color.secondary.opacity(isHeaderHovering ? 0.25 : 0)).cornerRadius(5)
-            }.buttonStyle(.plain).padding(.horizontal, 5).padding(.top, 2).onHover { hovering in isHeaderHovering = hovering }
-            
-            Divider().padding(.horizontal, 12)
+        NavigationStackView(Self.id) {
+            VStack(alignment: .leading, spacing: 6) {
+                Button(action: {
+                    navigationModel.popContent(ContentView.id)
+                }) {
+                    HStack {
+                        Image(systemName: "chevron.left").font(.body.weight(.semibold))
+                        Text("Settings").font(.body).fontWeight(.bold)
+                        Spacer()
+                    }
+                    .padding(.vertical, 5).padding(.horizontal, 8)
+                    .background(isHeaderHovering ? Color("HoverColor") : .clear).cornerRadius(5)
+                }.buttonStyle(.plain).padding(.horizontal, 5).padding(.top, 2).onHover { hovering in isHeaderHovering = hovering }
+                
+                Rectangle()
+                    .fill(Color("DividerColor"))
+                    .frame(height: 0.5)
+                    .padding(.horizontal, 12)
 
-            ScrollView {
                 VStack(alignment: .leading, spacing: 12) {
-                    Group {
-                        Text("Display").font(.caption).foregroundColor(.secondary)
-                        HStack {
-                            Text("Menu Bar Style")
-                            Spacer()
-                            Picker("", selection: $vm.menuBarTextMode) {
-                                ForEach(MenuBarTextMode.allCases) { mode in Text(mode.rawValue).tag(mode) }
-                            }.fixedSize()
-                        }
-                        StyledToggle(label: "Compact Main View", isOn: $vm.useCompactLayout)
-                        StyledToggle(label: "24-Hour Time", isOn: $vm.use24HourFormat)
-                        StyledToggle(label: "Use System Accent Color", isOn: $vm.useAccentColor)
-                        StyledToggle(label: "Show Sunnah Prayers", isOn: $vm.showSunnahPrayers)
+                    Text("Display").font(.caption).foregroundColor(Color("SecondaryTextColor"))
+                    
+                    HStack {
+                        Text("Language").font(.subheadline)
+                        Spacer()
+                        Picker("", selection: $languageManager.language) {
+                            Text("English").tag("en")
+                            Text("العربية").tag("ar")
+                            Text("Indonesia").tag("id")
+                        }.fixedSize()
                     }
 
-                    Divider()
-                    
-                    Group {
-                        Text("Calculation").font(.caption).foregroundColor(.secondary)
-                        HStack {
-                            Text("Method")
-                            Spacer()
-                            // --- PERBAIKAN: Picker sekarang menggunakan SajdaCalculationMethod ---
-                            Picker("", selection: $vm.method) {
-                                ForEach(SajdaCalculationMethod.allCases) { method in
-                                    Text(method.name).tag(method)
-                                }
-                            }.fixedSize()
-                        }
-                        HStack {
-                            Text("Time Correction")
-                            Spacer()
-                            Button("Adjust") { activePage = .correction }
-                        }
-                        StyledToggle(label: "Hanafi Madhhab (for Asr)", isOn: $vm.useHanafiMadhhab)
+                    HStack {
+                        Text("Menu Bar Style").font(.subheadline)
+                        Spacer()
+                        Picker("", selection: $vm.menuBarTextMode) {
+                            ForEach(MenuBarTextMode.allCases) { mode in Text(mode.localized).tag(mode) }
+                        }.fixedSize()
                     }
-
-                    Divider()
-                    
-                    Group {
-                        Text("Location").font(.caption).foregroundColor(.secondary)
-                        HStack {
-                            Image(systemName: vm.isUsingManualLocation ? "pencil.circle.fill" : "location.circle.fill").foregroundColor(.secondary)
-                            Text(vm.isUsingManualLocation ? "Manual: \(vm.locationStatusText)" : "Automatic: \(vm.locationStatusText)")
-                        }.lineLimit(1).truncationMode(.tail)
-                        HStack {
-                            Button("Change Manual Location") { activePage = .manualLocation(returnPage: .settings) }
-                            Spacer()
-                            if vm.isUsingManualLocation {
-                                Button("Use Automatic") { vm.switchToAutomaticLocation() }
-                            }
-                        }
-                    }
-
-                    Divider()
-                    
-                    Group {
-                        Text("System & Notifications").font(.caption).foregroundColor(.secondary)
-                        StyledToggle(label: "Run at Login", isOn: $launchAtLogin)
-                        StyledToggle(label: "Prayer Notifications", isOn: $vm.isNotificationsEnabled)
-                        VStack(alignment: .leading, spacing: 10) {
-                            HStack {
-                                Text("Notification Sound")
-                                Spacer()
-                                Picker("", selection: $vm.adhanSound) {
-                                    ForEach(AdhanSound.allCases) { sound in
-                                        Text(sound.rawValue).tag(sound)
-                                    }
-                                }.fixedSize()
-                            }
-                            if vm.adhanSound == .custom {
-                                HStack {
-                                    Text("Custom File")
-                                    Spacer()
-                                    Button("Browse...") { vm.selectCustomAdhanSound() }
-                                }
-                                Text(URL(string: vm.customAdhanSoundPath)?.lastPathComponent ?? "No file selected")
-                                    .font(.caption).foregroundColor(.secondary)
-                                    .frame(maxWidth: .infinity, alignment: .trailing)
-                            }
-                        }.disabled(!vm.isNotificationsEnabled)
-                    }
+                    StyledToggle(label: "Compact View", isOn: $vm.useCompactLayout)
+                    StyledToggle(label: "24-Hour Time", isOn: $vm.use24HourFormat)
+                    StyledToggle(label: "Minimal Menu Bar", isOn: $vm.useMinimalMenuBarText).disabled(vm.menuBarTextMode == .hidden)
+                    StyledToggle(label: "Accent Color", isOn: $vm.useAccentColor)
+                    StyledToggle(label: "Show Sunnah Prayers", isOn: $vm.showSunnahPrayers)
                 }
-                .controlSize(.small).padding(.horizontal, 16).padding(.vertical, 8)
+                .controlSize(.small)
+                .padding(.horizontal, 16).padding(.top, 8)
+                
+                Spacer(minLength: 0)
+
+                Rectangle()
+                    .fill(Color("NoneColor"))
+                    .frame(height: 0.5)
+                    .padding(.horizontal, 12)
+                Rectangle()
+                    .fill(Color("DividerColor"))
+                    .frame(height: 0.5)
+                    .padding(.horizontal, 12)
+                
+                VStack(alignment: .leading, spacing: 0) {
+                    Button(action: {
+                        navigationModel.pushContent(Self.id) {
+                            LocationAndCalcSettingsView()
+                        }
+                    }) {
+                        HStack {
+                            Text("Calculation & Location").font(.subheadline)
+                            Spacer()
+                            Image(systemName: "chevron.right").font(.caption.weight(.bold)).foregroundColor(.secondary)
+                        }
+                        .padding(.vertical, 5).padding(.horizontal, 8)
+                        .background(isCalcHovering ? Color("HoverColor") : .clear).cornerRadius(5)
+                    }.buttonStyle(.plain).padding(.horizontal, 5).onHover { hovering in isCalcHovering = hovering }
+                    
+                    Button(action: {
+                        navigationModel.pushContent(Self.id) {
+                            SystemAndNotificationsSettingsView()
+                        }
+                    }) {
+                        HStack {
+                            Text("System & Notifications").font(.subheadline)
+                            Spacer()
+                            Image(systemName: "chevron.right").font(.caption.weight(.bold)).foregroundColor(.secondary)
+                        }
+                        .padding(.vertical, 5).padding(.horizontal, 8)
+                        .background(isNotifHovering ? Color("HoverColor") : .clear).cornerRadius(5)
+                    }.buttonStyle(.plain).padding(.horizontal, 5).onHover { hovering in isNotifHovering = hovering }
+                }
             }
+            .padding(.vertical, 8)
+            .frame(width: viewWidth)
         }
-        .padding(.vertical, 8)
     }
 }

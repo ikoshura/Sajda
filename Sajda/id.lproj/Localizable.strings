@@ -1,0 +1,18 @@
+/* Indonesian */
+"Fajr" = "Subuh"; "Sunrise" = "Terbit"; "Dhuhr" = "Zuhur"; "Asr" = "Asar"; "Maghrib" = "Magrib"; "Isha" = "Isya"; "Tahajud" = "Tahajud"; "Dhuha" = "Dhuha";
+"Sajda Pro" = "Sajda Pro"; "Settings" = "Pengaturan"; "About" = "Tentang"; "Quit" = "Keluar"; "Quit Sajda Pro" = "Keluar dari Sajda Pro"; "Done" = "Selesai"; "Cancel" = "Batal";
+"prayer_in_countdown" = "%@ dalam %@"; "prayer_at_time" = "%@ pada %@"; "Location Required" = "Lokasi Dibutuhkan"; "Open System Settings" = "Buka Pengaturan Sistem"; "Allow Location Access" = "Izinkan Akses Lokasi"; "Or, set location manually" = "Atau, atur lokasi manual"; "Around" = "Sekitar";
+"To provide accurate prayer times, Sajda Pro needs to know your location." = "Untuk memberikan waktu shalat yang akurat, Sajda Pro perlu mengetahui lokasi Anda."; "Location access is already enabled." = "Akses lokasi sudah diaktifkan."; "Or, Set Location Manually" = "Atau, Atur Lokasi Manual"; "Please grant location access in System Settings." = "Mohon berikan akses lokasi di Pengaturan Sistem."; "You are using a manual location: **%@**" = "Anda menggunakan lokasi manual: **%@**"; "Switch to Automatic Location" = "Beralih ke Lokasi Otomatis"; "Change Manual Location" = "Ubah Lokasi Manual"; "Show this window on launch" = "Tampilkan jendela ini saat mulai"; "Welcome to Sajda Pro" = "Selamat Datang di Sajda Pro";
+"To get started, please provide your location for accurate prayer times." = "Untuk memulai, mohon berikan lokasi Anda untuk waktu shalat yang akurat."; "Using manual location: **%@**" = "Menggunakan lokasi manual: **%@**"; "Location access is enabled." = "Akses lokasi telah diaktifkan."; "Please grant access in System Settings." = "Mohon berikan akses di Pengaturan Sistem.";
+"About Sajda Pro" = "Tentang Sajda Pro"; "Version 3.1.0" = "Versi 3.1.0"; "by Abrar Zha" = "oleh Abrar Zha"; "Show Welcome Guide on Launch" = "Tampilkan Panduan saat Mulai"; "Show Welcome Window" = "Tampilkan Jendela Sambutan";
+"General" = "Umum"; "Language" = "Bahasa"; "Display" = "Tampilan"; "Menu Bar Style" = "Gaya Menu Bar"; "Compact View" = "Tampilan Ringkas"; "24-Hour Time" = "Waktu 24 Jam"; "Minimal Menu Bar" = "Menu Bar Ringkas"; "Accent Color" = "Warna Aksen"; "Show Sunnah Prayers" = "Tampilkan Shalat Sunnah";
+"Calculation" = "Perhitungan"; "Method" = "Metode"; "Time Correction" = "Koreksi Waktu"; "Adjust" = "Sesuaikan"; "Hanafi Madhhab (for Asr)" = "Mazhab Hanafi (untuk Asar)"; "Location" = "Lokasi"; "Manual:" = "Manual:"; "Automatic:" = "Otomatis:"; "Use Automatic" = "Gunakan Otomatis";
+"Adjust prayer times to match your local mosque. Hover over the number to reset." = "Sesuaikan waktu shalat agar cocok dengan masjid lokal Anda. Arahkan kursor ke angka untuk reset."; "Reset All to Default" = "Reset Semua ke Default";
+"Set Location" = "Atur Lokasi"; "Search for a city or paste coordinates..." = "Cari kota atau tempel koordinat..."; "Set Location Manually" = "Atur Lokasi Manual"; "Start typing a city or paste coordinates." = "Mulai ketik nama kota atau tempel koordinat."; "No results found." = "Hasil tidak ditemukan.";
+"Calculation & Location" = "Perhitungan & Lokasi";
+"System & Notifications" = "Sistem & Notifikasi";
+"System" = "Sistem"; "Run at Login" = "Jalankan saat Login"; "Notifications" = "Notifikasi"; "Prayer Notifications" = "Notifikasi Shalat"; "Notification Sound" = "Suara Notifikasi"; "Custom File" = "File Kustom"; "Browse..." = "Cari..."; "No file selected" = "Tidak ada file terpilih";
+
+/* New Onboarding Strings */
+"Requesting Permission..." = "Meminta Izin...";
+"Skip for now" = "Lewati untuk saat ini";

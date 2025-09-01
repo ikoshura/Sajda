@@ -1,25 +1,22 @@
-// MARK: - GANTI FILE: Sajda/SajdaApp.swift
-// Salin dan tempel SELURUH kode ini.
+// MARK: - GANTI SELURUH FILE: Sajda/SajdaApp.swift (HAPUS @main)
 
 import SwiftUI
 
-// --- PERBAIKAN: Pindahkan definisi global ke sini agar bisa diakses dari mana saja ---
-extension Notification.Name {
-    /// Notifikasi yang disiarkan saat popover ditutup atau kehilangan fokus.
-    static let popoverDidClose = Notification.Name("com.sajda.popoverDidClose")
-    
-    /// Notifikasi yang disiarkan saat waktu shalat telah diperbarui.
-    static let prayerTimesUpdated = Notification.Name("prayerTimesUpdated")
-}
-
-@main
+// Dengan menghapus @main, kita menyerahkan kontrol peluncuran aplikasi
+// ke file main.swift. Ini adalah kunci untuk stabilitas.
 struct SajdaApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
 
     var body: some Scene {
         Settings {
-            OnboardingView()
-                .environmentObject(appDelegate.vm)
+            // Konten di sini bisa dikosongkan.
         }
     }
+}
+
+// Ekstensi ini bisa tetap di sini atau dipindahkan ke file lain.
+extension Notification.Name {
+    static let popoverDidClose = Notification.Name("com.sajda.popoverDidClose")
+    static let popoverDidOpen = Notification.Name("com.sajda.popoverDidOpen")
+    static let prayerTimesUpdated = Notification.Name("prayerTimesUpdated")
 }

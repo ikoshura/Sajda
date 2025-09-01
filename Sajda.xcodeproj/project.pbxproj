@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		CC07FC602E63FD5800924451 /* LocationAndCalcSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC07FC5F2E63FD5800924451 /* LocationAndCalcSettingsView.swift */; };
+		CC07FC622E63FF5100924451 /* SystemAndNotificationsSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC07FC612E63FF5100924451 /* SystemAndNotificationsSettingsView.swift */; };
+		CC07FC662E64122F00924451 /* NavigationStack in Frameworks */ = {isa = PBXBuildFile; productRef = CC07FC652E64122F00924451 /* NavigationStack */; };
 		CC786E4E2E634B65007299F3 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC786E4D2E634B65007299F3 /* OnboardingView.swift */; };
 		CC786E522E6353F1007299F3 /* ManualLocationSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC786E512E6353F1007299F3 /* ManualLocationSheetView.swift */; };
 		CC786E542E6359E1007299F3 /* PrayerTimerMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC786E532E6359E1007299F3 /* PrayerTimerMonitor.swift */; };
@@ -18,6 +21,9 @@
 		CC786E632E63787E007299F3 /* MenuBarTextMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC786E622E63787E007299F3 /* MenuBarTextMode.swift */; };
 		CC786E652E638353007299F3 /* SajdaCalculationMethod.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC786E642E638353007299F3 /* SajdaCalculationMethod.swift */; };
 		CC786E672E638425007299F3 /* LocationSearchResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC786E662E638425007299F3 /* LocationSearchResult.swift */; };
+		CC786E6C2E63B1CB007299F3 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = CC786E6E2E63B1CB007299F3 /* Localizable.strings */; };
+		CC786E722E63BB26007299F3 /* LanguageManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC786E712E63BB26007299F3 /* LanguageManager.swift */; };
+		CC786E742E63BD15007299F3 /* VisualEffectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC786E732E63BD15007299F3 /* VisualEffectView.swift */; };
 		CC969C782E60857A00C8630A /* SajdaApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC969C772E60857A00C8630A /* SajdaApp.swift */; };
 		CC969C7A2E60857A00C8630A /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC969C792E60857A00C8630A /* ContentView.swift */; };
 		CC969C7C2E60857D00C8630A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CC969C7B2E60857D00C8630A /* Assets.xcassets */; };
@@ -29,6 +35,8 @@
 		CC969CA72E60989F00C8630A /* PrayerTimeViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC969CA62E60989F00C8630A /* PrayerTimeViewModel.swift */; };
 		CC969CA92E6098C600C8630A /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC969CA82E6098C500C8630A /* SettingsView.swift */; };
 		CC9C2F012E61385B00BAE49A /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC9C2F002E61385B00BAE49A /* AppDelegate.swift */; };
+		CCDEFEE62E65231F005D6B45 /* TimePreviewPopover.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCDEFEE52E65231F005D6B45 /* TimePreviewPopover.swift */; };
+		CCE079712E6438100026054C /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCE079702E6438100026054C /* main.swift */; };
 		CCE1BA3A2E61852B003AF03C /* EventMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCE1BA302E61839F003AF03C /* EventMonitor.swift */; };
 		CCE1BA3B2E61852B003AF03C /* RootViewModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCE1BA332E6183A0003AF03C /* RootViewModifier.swift */; };
 		CCE1BA3C2E61852B003AF03C /* FluidMenuBarExtraStatusItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCE1BA312E61839F003AF03C /* FluidMenuBarExtraStatusItem.swift */; };
@@ -64,6 +72,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		CC07FC5F2E63FD5800924451 /* LocationAndCalcSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationAndCalcSettingsView.swift; sourceTree = "<group>"; };
+		CC07FC612E63FF5100924451 /* SystemAndNotificationsSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemAndNotificationsSettingsView.swift; sourceTree = "<group>"; };
 		CC786E4D2E634B65007299F3 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		CC786E512E6353F1007299F3 /* ManualLocationSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManualLocationSheetView.swift; sourceTree = "<group>"; };
 		CC786E532E6359E1007299F3 /* PrayerTimerMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrayerTimerMonitor.swift; sourceTree = "<group>"; };
@@ -75,6 +85,11 @@
 		CC786E622E63787E007299F3 /* MenuBarTextMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarTextMode.swift; sourceTree = "<group>"; };
 		CC786E642E638353007299F3 /* SajdaCalculationMethod.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SajdaCalculationMethod.swift; sourceTree = "<group>"; };
 		CC786E662E638425007299F3 /* LocationSearchResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationSearchResult.swift; sourceTree = "<group>"; };
+		CC786E6D2E63B1CB007299F3 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
+		CC786E6F2E63B20E007299F3 /* ar */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ar; path = ar.lproj/Localizable.strings; sourceTree = "<group>"; };
+		CC786E702E63B21D007299F3 /* id */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = id; path = id.lproj/Localizable.strings; sourceTree = "<group>"; };
+		CC786E712E63BB26007299F3 /* LanguageManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LanguageManager.swift; sourceTree = "<group>"; };
+		CC786E732E63BD15007299F3 /* VisualEffectView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisualEffectView.swift; sourceTree = "<group>"; };
 		CC969C742E60857A00C8630A /* Sajda.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Sajda.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		CC969C772E60857A00C8630A /* SajdaApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SajdaApp.swift; sourceTree = "<group>"; };
 		CC969C792E60857A00C8630A /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -90,6 +105,8 @@
 		CC969CA62E60989F00C8630A /* PrayerTimeViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrayerTimeViewModel.swift; sourceTree = "<group>"; };
 		CC969CA82E6098C500C8630A /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		CC9C2F002E61385B00BAE49A /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		CCDEFEE52E65231F005D6B45 /* TimePreviewPopover.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimePreviewPopover.swift; sourceTree = "<group>"; };
+		CCE079702E6438100026054C /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		CCE1BA2E2E61839E003AF03C /* UpdateSizeAction.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UpdateSizeAction.swift; sourceTree = "<group>"; };
 		CCE1BA2F2E61839E003AF03C /* FluidMenuBarExtra.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FluidMenuBarExtra.swift; sourceTree = "<group>"; };
 		CCE1BA302E61839F003AF03C /* EventMonitor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EventMonitor.swift; sourceTree = "<group>"; };
@@ -112,6 +129,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				CCEC0E3F2E60A3A0001E9B1E /* Adhan in Frameworks */,
+				CC07FC662E64122F00924451 /* NavigationStack in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -171,6 +189,7 @@
 				CC969C802E60857D00C8630A /* Sajda.entitlements */,
 				CC969C7D2E60857D00C8630A /* Preview Content */,
 				CC969CA22E6085F200C8630A /* Info.plist */,
+				CC786E712E63BB26007299F3 /* LanguageManager.swift */,
 				CC969CA62E60989F00C8630A /* PrayerTimeViewModel.swift */,
 				CC969CA82E6098C500C8630A /* SettingsView.swift */,
 				CCEC0E402E60A899001E9B1E /* MainView.swift */,
@@ -192,6 +211,12 @@
 				CC786E622E63787E007299F3 /* MenuBarTextMode.swift */,
 				CC786E642E638353007299F3 /* SajdaCalculationMethod.swift */,
 				CC786E662E638425007299F3 /* LocationSearchResult.swift */,
+				CC786E6E2E63B1CB007299F3 /* Localizable.strings */,
+				CC786E732E63BD15007299F3 /* VisualEffectView.swift */,
+				CC07FC5F2E63FD5800924451 /* LocationAndCalcSettingsView.swift */,
+				CC07FC612E63FF5100924451 /* SystemAndNotificationsSettingsView.swift */,
+				CCE079702E6438100026054C /* main.swift */,
+				CCDEFEE52E65231F005D6B45 /* TimePreviewPopover.swift */,
 			);
 			path = Sajda;
 			sourceTree = "<group>";
@@ -252,6 +277,7 @@
 			name = Sajda;
 			packageProductDependencies = (
 				CCEC0E3E2E60A3A0001E9B1E /* Adhan */,
+				CC07FC652E64122F00924451 /* NavigationStack */,
 			);
 			productName = Sajda;
 			productReference = CC969C742E60857A00C8630A /* Sajda.app */;
@@ -323,10 +349,13 @@
 			knownRegions = (
 				en,
 				Base,
+				ar,
+				id,
 			);
 			mainGroup = CC969C6B2E60857A00C8630A;
 			packageReferences = (
 				CCEC0E3D2E60A3A0001E9B1E /* XCRemoteSwiftPackageReference "adhan-swift" */,
+				CC07FC642E64122F00924451 /* XCRemoteSwiftPackageReference "NavigationStack" */,
 			);
 			productRefGroup = CC969C752E60857A00C8630A /* Products */;
 			projectDirPath = "";
@@ -344,6 +373,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CC786E6C2E63B1CB007299F3 /* Localizable.strings in Resources */,
 				CC786E5D2E636A58007299F3 /* timezones.json in Resources */,
 				CC969C7F2E60857D00C8630A /* Preview Assets.xcassets in Resources */,
 				CC969C7C2E60857D00C8630A /* Assets.xcassets in Resources */,
@@ -374,15 +404,20 @@
 			files = (
 				CC9C2F012E61385B00BAE49A /* AppDelegate.swift in Sources */,
 				CCE1BA3C2E61852B003AF03C /* FluidMenuBarExtraStatusItem.swift in Sources */,
+				CCE079712E6438100026054C /* main.swift in Sources */,
 				CCFD21DA2E62BEEB00A80402 /* PrayerTimeCorrectionView.swift in Sources */,
 				CC969CA72E60989F00C8630A /* PrayerTimeViewModel.swift in Sources */,
 				CC786E582E635B46007299F3 /* PrayerTimerAlertView.swift in Sources */,
+				CCDEFEE62E65231F005D6B45 /* TimePreviewPopover.swift in Sources */,
 				CCE1BA472E620757003AF03C /* StyledToggle.swift in Sources */,
+				CC786E722E63BB26007299F3 /* LanguageManager.swift in Sources */,
 				CCE1BA452E6198C1003AF03C /* ManualLocationView.swift in Sources */,
+				CC07FC622E63FF5100924451 /* SystemAndNotificationsSettingsView.swift in Sources */,
 				CC786E632E63787E007299F3 /* MenuBarTextMode.swift in Sources */,
 				CCEC0E452E60B08D001E9B1E /* AboutView.swift in Sources */,
 				CC786E542E6359E1007299F3 /* PrayerTimerMonitor.swift in Sources */,
 				CCFD21E62E62D3A500A80402 /* InteractiveStepper.swift in Sources */,
+				CC786E742E63BD15007299F3 /* VisualEffectView.swift in Sources */,
 				CC786E5F2E637700007299F3 /* AdhanSound.swift in Sources */,
 				CCE1BA3A2E61852B003AF03C /* EventMonitor.swift in Sources */,
 				CCE1BA3D2E61852B003AF03C /* FluidMenuBarExtra.swift in Sources */,
@@ -391,6 +426,7 @@
 				CCEC0E4F2E60D2EC001E9B1E /* NotificationManager.swift in Sources */,
 				CC786E672E638425007299F3 /* LocationSearchResult.swift in Sources */,
 				CC786E4E2E634B65007299F3 /* OnboardingView.swift in Sources */,
+				CC07FC602E63FD5800924451 /* LocationAndCalcSettingsView.swift in Sources */,
 				CC969C7A2E60857A00C8630A /* ContentView.swift in Sources */,
 				CCEC0E492E60B700001E9B1E /* StartupManager.swift in Sources */,
 				CCEC0E412E60A899001E9B1E /* MainView.swift in Sources */,
@@ -436,11 +472,25 @@
 		};
 /* End PBXTargetDependency section */
 
+/* Begin PBXVariantGroup section */
+		CC786E6E2E63B1CB007299F3 /* Localizable.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				CC786E6D2E63B1CB007299F3 /* en */,
+				CC786E6F2E63B20E007299F3 /* ar */,
+				CC786E702E63B21D007299F3 /* id */,
+			);
+			name = Localizable.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
 /* Begin XCBuildConfiguration section */
 		CC969C972E60857E00C8630A /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
@@ -501,6 +551,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
@@ -571,7 +622,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 3.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.ikoshura.Sajda;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -600,7 +651,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 3.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.ikoshura.Sajda;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -718,6 +769,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		CC07FC642E64122F00924451 /* XCRemoteSwiftPackageReference "NavigationStack" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/indieSoftware/NavigationStack.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.0;
+			};
+		};
 		CCEC0E3D2E60A3A0001E9B1E /* XCRemoteSwiftPackageReference "adhan-swift" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/batoulapps/adhan-swift";
@@ -729,6 +788,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		CC07FC652E64122F00924451 /* NavigationStack */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CC07FC642E64122F00924451 /* XCRemoteSwiftPackageReference "NavigationStack" */;
+			productName = NavigationStack;
+		};
 		CCEC0E3E2E60A3A0001E9B1E /* Adhan */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = CCEC0E3D2E60A3A0001E9B1E /* XCRemoteSwiftPackageReference "adhan-swift" */;
