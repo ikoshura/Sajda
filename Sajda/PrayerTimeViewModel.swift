@@ -1,4 +1,4 @@
-// MARK: - GANTI SELURUH FILE: PrayerTimeViewModel.swift (KODE LENGKAP & PERBAIKAN STARTUP)
+// MARK: - GANTI SELURUH FILE: PrayerTimeViewModel.swift
 
 import Foundation
 import Combine
@@ -6,6 +6,7 @@ import Adhan
 import CoreLocation
 import SwiftUI
 import AppKit
+import NavigationStack
 
 @propertyWrapper
 struct FlexibleDouble: Codable, Equatable, Hashable {
@@ -41,6 +42,7 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
     private var automaticLocationCache: (name: String, coordinates: CLLocationCoordinate2D)?
     private var tomorrowFajrTime: Date?
 
+    @AppStorage("animationType") var animationType: AnimationType = .fade
     @AppStorage("useMinimalMenuBarText") var useMinimalMenuBarText: Bool = false { didSet { updateAndDisplayTimes() } }
     @AppStorage("showSunnahPrayers") var showSunnahPrayers: Bool = false { didSet { updatePrayerTimes() } }
     @AppStorage("useAccentColor") var useAccentColor: Bool = true
@@ -86,6 +88,22 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
         setupSearchPublisher()
     }
     
+    func forwardAnimation() -> NavigationAnimation? {
+        switch animationType {
+        case .none: return nil
+        case .fade: return .sajdaCrossfade
+        case .slide: return .push
+        }
+    }
+    
+    func backwardAnimation() -> NavigationAnimation? {
+        switch animationType {
+        case .none: return nil
+        case .fade: return .sajdaCrossfade
+        case .slide: return .pop
+        }
+    }
+    
     private struct NominatimResult: Codable, Hashable {
         @FlexibleDouble var lat: Double; @FlexibleDouble var lon: Double
         let display_name: String; let address: NominatimAddress
@@ -95,7 +113,70 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
         let city: String?, town: String?, village: String?, state: String?, county: String?, country: String?
     }
     
-    private func setupSearchPublisher() { $locationSearchQuery.debounce(for: .milliseconds(400), scheduler: RunLoop.main).removeDuplicates().handleEvents(receiveOutput: { [weak self] query in let trimmedQuery = query.trimmingCharacters(in: .whitespaces); self?.isLocationSearching = !trimmedQuery.isEmpty; if trimmedQuery.isEmpty { self?.locationSearchResults = [] } }).flatMap { [weak self] query -> AnyPublisher<[LocationSearchResult], Never> in guard let self = self else { return Just([]).eraseToAnyPublisher() }; let trimmedQuery = query.trimmingCharacters(in: .whitespaces); guard !trimmedQuery.isEmpty else { return Just([]).eraseToAnyPublisher() }; if let coordResult = self.parseCoordinates(from: trimmedQuery) { return Just([coordResult]).eraseToAnyPublisher() }; var components = URLComponents(string: "https://nominatim.openstreetmap.org/search")!; components.queryItems = [URLQueryItem(name: "q", value: trimmedQuery), URLQueryItem(name: "format", value: "json"), URLQueryItem(name: "addressdetails", value: "1"), URLQueryItem(name: "accept-language", value: "en"), URLQueryItem(name: "limit", value: "15")]; guard let url = components.url else { return Just([]).eraseToAnyPublisher() }; var request = URLRequest(url: url); request.setValue("Sajda Pro Prayer Times App/1.0", forHTTPHeaderField: "User-Agent"); return URLSession.shared.dataTaskPublisher(for: request).map(\.data).decode(type: [NominatimResult].self, decoder: JSONDecoder()).catch { error -> Just<[NominatimResult]> in print("🔴 DECODING ERROR: \(error)"); return Just([]) }.map { results -> [LocationSearchResult] in results.unique(by: \.display_name).compactMap { result -> LocationSearchResult? in let name = result.address.city ?? result.address.town ?? result.address.village ?? result.address.county ?? result.address.state ?? ""; let country = result.address.country ?? ""; guard !country.isEmpty else { return nil }; let finalName = name.isEmpty ? result.display_name.components(separatedBy: ",")[0] : name; return LocationSearchResult(name: finalName, country: country, coordinates: CLLocationCoordinate2D(latitude: result.lat, longitude: result.lon)) } }.eraseToAnyPublisher() }.receive(on: DispatchQueue.main).sink { [weak self] results in self?.isLocationSearching = false; self?.locationSearchResults = results }.store(in: &cancellables) }
+    // --- PERUBAHAN UTAMA DI FUNGSI INI ---
+    private func setupSearchPublisher() {
+        $locationSearchQuery
+            .debounce(for: .milliseconds(400), scheduler: RunLoop.main)
+            .removeDuplicates()
+            .handleEvents(receiveOutput: { [weak self] query in
+                let trimmedQuery = query.trimmingCharacters(in: .whitespaces)
+                self?.isLocationSearching = !trimmedQuery.isEmpty
+                if trimmedQuery.isEmpty { self?.locationSearchResults = [] }
+            })
+            .flatMap { [weak self] query -> AnyPublisher<[LocationSearchResult], Never> in
+                guard let self = self else { return Just([]).eraseToAnyPublisher() }
+                let trimmedQuery = query.trimmingCharacters(in: .whitespaces)
+                guard !trimmedQuery.isEmpty else { return Just([]).eraseToAnyPublisher() }
+
+                if let coordResult = self.parseCoordinates(from: trimmedQuery) {
+                    return Just([coordResult]).eraseToAnyPublisher()
+                }
+
+                var components = URLComponents(string: "https://nominatim.openstreetmap.org/search")!
+                components.queryItems = [
+                    URLQueryItem(name: "q", value: trimmedQuery),
+                    URLQueryItem(name: "format", value: "json"),
+                    URLQueryItem(name: "addressdetails", value: "1"),
+                    URLQueryItem(name: "accept-language", value: "en"),
+                    URLQueryItem(name: "limit", value: "20") // Ambil lebih banyak untuk di-filter
+                ]
+                guard let url = components.url else { return Just([]).eraseToAnyPublisher() }
+                var request = URLRequest(url: url)
+                request.setValue("Sajda Pro Prayer Times App/1.0", forHTTPHeaderField: "User-Agent")
+
+                return URLSession.shared.dataTaskPublisher(for: request)
+                    .map(\.data)
+                    .decode(type: [NominatimResult].self, decoder: JSONDecoder())
+                    .catch { error -> Just<[NominatimResult]> in
+                        print("🔴 DECODING ERROR: \(error)")
+                        return Just([])
+                    }
+                    .map { results -> [LocationSearchResult] in
+                        // 1. Ubah semua hasil mentah menjadi LocationSearchResult
+                        let mappedResults = results.compactMap { result -> LocationSearchResult? in
+                            let name = result.address.city ?? result.address.town ?? result.address.village ?? result.address.county ?? result.address.state ?? ""
+                            let country = result.address.country ?? ""
+                            guard !country.isEmpty else { return nil }
+                            let finalName = name.isEmpty ? result.display_name.components(separatedBy: ",")[0] : name
+                            return LocationSearchResult(name: finalName, country: country, coordinates: CLLocationCoordinate2D(latitude: result.lat, longitude: result.lon))
+                        }
+                        
+                        // 2. Gunakan Set untuk menghilangkan duplikat secara otomatis
+                        let uniqueResults = Array(Set(mappedResults))
+                        
+                        // 3. Urutkan hasilnya agar konsisten
+                        return uniqueResults.sorted { $0.name < $1.name }
+                    }
+                    .eraseToAnyPublisher()
+            }
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] results in
+                self?.isLocationSearching = false
+                self?.locationSearchResults = results
+            }
+            .store(in: &cancellables)
+    }
+    
     private func parseCoordinates(from string: String) -> LocationSearchResult? { let cleaned = string.replacingOccurrences(of: " ", with: ""); let components = cleaned.split(separator: ",").compactMap { Double($0) }; guard components.count == 2, let lat = components.first, let lon = components.last, (lat >= -90 && lat <= 90) && (lon >= -180 && lon <= 180) else { return nil }; return LocationSearchResult(name: "Custom Coordinate", country: String(format: "%.4f, %.4f", lat, lon), coordinates: CLLocationCoordinate2D(latitude: lat, longitude: lon)) }
     func setManualLocation(city: String, coordinates: CLLocationCoordinate2D) { let location = CLLocation(latitude: coordinates.latitude, longitude: coordinates.longitude); self.locationTimeZone = TimeZoneLocate.timeZoneWithLocation(location); var locationNameToSave = city; if city == "Custom Coordinate" { let geocoder = CLGeocoder(); geocoder.reverseGeocodeLocation(location) { (placemarks, _) in if let placemark = placemarks?.first, let cityName = placemark.locality { locationNameToSave = cityName; self.locationStatusText = cityName; let manualData: [String: Any] = ["name": locationNameToSave, "latitude": coordinates.latitude, "longitude": coordinates.longitude]; UserDefaults.standard.set(manualData, forKey: "manualLocationData") } else { self.locationStatusText = String(format: "Coord: %.2f, %.2f", coordinates.latitude, coordinates.longitude) } } } else { self.locationStatusText = city }; let manualLocationData: [String: Any] = ["name": locationNameToSave, "latitude": coordinates.latitude, "longitude": coordinates.longitude]; UserDefaults.standard.set(manualLocationData, forKey: "manualLocationData"); isUsingManualLocation = true; currentCoordinates = coordinates; authorizationStatus = .authorized; locationSearchQuery = ""; locationSearchResults = []; updateAndDisplayTimes() }
     
@@ -263,11 +344,4 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) { isRequestingLocation = false; self.locationStatusText = "Unable to determine location." }
     func requestLocationPermission() { if authorizationStatus == .notDetermined { isRequestingLocation = true; DispatchQueue.main.async { self.locMgr.requestWhenInUseAuthorization() } } }
     func openLocationSettings() { guard let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_LocationServices") else { return }; NSWorkspace.shared.open(url) }
-}
-
-extension Sequence {
-    func unique<T: Hashable>(by keyPath: KeyPath<Element, T>) -> [Element] {
-        var set = Set<T>()
-        return filter { set.insert($0[keyPath: keyPath]).inserted }
-    }
 }

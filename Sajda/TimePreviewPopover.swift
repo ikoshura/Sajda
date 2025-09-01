@@ -1,4 +1,4 @@
-// MARK: - GANTI SELURUH FILE: TimePreviewPopover.swift (VERSI SOLID COLOR & STABIL)
+// MARK: - BUAT FILE BARU: Sajda/TimePreviewPopover.swift
 
 import SwiftUI
 
@@ -11,12 +11,12 @@ struct TimePreviewPopover: View {
         HStack(spacing: 6) {
             Text(formatter.string(from: originalTime))
                 .font(.caption)
-                .foregroundColor(Color("SecondaryTextColor"))
-                .strikethrough(color: Color("SecondaryTextColor"))
+                .foregroundColor(.secondary)
+                .strikethrough(color: .secondary)
             
             Image(systemName: "arrow.right")
                 .font(.caption)
-                .foregroundColor(Color("SecondaryTextColor"))
+                .foregroundColor(.secondary)
             
             Text(formatter.string(from: adjustedTime))
                 .font(.caption.weight(.semibold))
@@ -24,11 +24,11 @@ struct TimePreviewPopover: View {
         }
         .padding(.vertical, 6)
         .padding(.horizontal, 10)
-        // PERBAIKAN: Gunakan background solid color yang native dan stabil
+        // Latar belakang solid yang native dan stabil
         .background(
             RoundedRectangle(cornerRadius: 8, style: .continuous)
                 .fill(Color(NSColor.windowBackgroundColor))
-                .shadow(color: .black.opacity(0.2), radius: 5, y: 2)
+                .shadow(color: .black.opacity(0.15), radius: 4, y: 1)
         )
     }
 }

@@ -1,4 +1,4 @@
-// MARK: - GANTI SELURUH FILE: Sajda/ContentView.swift (HAPUS BLUR REDUNDAN)
+// MARK: - GANTI SELURUH FILE: Sajda/ContentView.swift
 
 import SwiftUI
 import NavigationStack
@@ -6,13 +6,19 @@ import NavigationStack
 struct ContentView: View {
     static let id = "RootNavigationStack"
     
+    @EnvironmentObject var vm: PrayerTimeViewModel
     @EnvironmentObject var navigationModel: NavigationModel
     
     var body: some View {
-        // HAPUS ZStack dan VisualEffectView dari sini.
-        // Biarkan background blur ditangani oleh FluidMenuBarExtraWindow.
         NavigationStackView(Self.id) {
             MainView()
+        }
+        // --- PERBAIKAN DI SINI ---
+        // Menggunakan properti animationType yang baru, bukan disableAnimations yang sudah dihapus.
+        .transaction { transaction in
+            if vm.animationType == .none {
+                transaction.disablesAnimations = true
+            }
         }
         .onReceive(NotificationCenter.default.publisher(for: .popoverDidClose)) { _ in
             if navigationModel.hasAlternativeViewShowing {

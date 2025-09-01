@@ -16,3 +16,7 @@
 /* New Onboarding Strings */
 "Requesting Permission..." = "Meminta Izin...";
 "Skip for now" = "Lewati untuk saat ini";
+"Animation Style" = "Gaya Animasi";
+"None" = "Tidak Ada";
+"Fade" = "Memudar";
+"Slide" = "Geser";

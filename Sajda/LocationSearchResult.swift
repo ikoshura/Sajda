@@ -1,16 +1,22 @@
-// MARK: - BUAT FILE BARU: Sajda/LocationSearchResult.swift
-// Salin dan tempel SELURUH kode ini ke dalam file baru.
+// MARK: - GANTI SELURUH FILE: Sajda/LocationSearchResult.swift
 
 import Foundation
-import CoreLocation // Diperlukan untuk CLLocationCoordinate2D
+import CoreLocation
 
-struct LocationSearchResult: Identifiable, Equatable {
+struct LocationSearchResult: Identifiable, Hashable {
     let id = UUID()
     let name: String
     let country: String
     let coordinates: CLLocationCoordinate2D
 
+    // Memberitahu Swift cara menentukan keunikan: berdasarkan nama dan negara.
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(name)
+        hasher.combine(country)
+    }
+
+    // Memberitahu Swift cara membandingkan dua hasil lokasi.
     static func == (lhs: LocationSearchResult, rhs: LocationSearchResult) -> Bool {
-        return lhs.id == rhs.id
+        return lhs.name == rhs.name && lhs.country == rhs.country
     }
 }

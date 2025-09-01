@@ -1,8 +1,72 @@
-// MARK: - GANTI SELURUH FILE: PrayerTimeCorrectionView.swift (TANPA SCROLLVIEW)
+// MARK: - GANTI SELURUH FILE: PrayerTimeCorrectionView.swift
 
 import SwiftUI
 import Combine
 import NavigationStack
+
+struct CorrectionRow: View {
+    @EnvironmentObject var vm: PrayerTimeViewModel
+    let prayerName: String
+    @Binding var value: Double
+    
+    var body: some View {
+        let originalTime = getOriginalTime(prayerName, for: value)
+        let adjustedTime = getAdjustedTime(originalTime: originalTime, for: value)
+        let isDefaultValue = value == 0
+        
+        VStack(alignment: .leading, spacing: 2) {
+            HStack {
+                Text(LocalizedStringKey(prayerName))
+                    .font(.caption)
+                
+                Spacer()
+                
+                HStack(spacing: 6) {
+                    Button(action: {
+                        withAnimation(.spring()) { value = 0 }
+                    }) {
+                        Image(systemName: "arrow.counterclockwise")
+                            .font(.system(size: 12, weight: .semibold))
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(isDefaultValue)
+                    
+                    SajdaStepper(value: $value)
+                }
+            }
+            
+            // Pratinjau Inline
+            HStack {
+                Spacer()
+                if let original = originalTime, let adjusted = adjustedTime {
+                    Text(vm.dateFormatter.string(from: original))
+                        .strikethrough(color: .secondary)
+                    Image(systemName: "arrow.right")
+                        .font(.system(size: 11, weight: .semibold))
+                    Text(vm.dateFormatter.string(from: adjusted))
+                        .fontWeight(.semibold)
+                        .foregroundColor(.accentColor)
+                } else {
+                    Text("00:00 → 00:00").hidden()
+                }
+            }
+            .font(.caption2)
+            .foregroundColor(.secondary)
+            .opacity(isDefaultValue ? 0 : 1)
+            .animation(.easeInOut(duration: 0.2), value: isDefaultValue)
+        }
+    }
+    
+    private func getOriginalTime(_ prayer: String, for currentValue: Double) -> Date? {
+        guard let time = vm.todayTimes[prayer] else { return nil }
+        return time.addingTimeInterval(-currentValue * 60)
+    }
+    
+    private func getAdjustedTime(originalTime: Date?, for currentValue: Double) -> Date? {
+        return originalTime?.addingTimeInterval(currentValue * 60)
+    }
+}
+
 
 struct PrayerTimeCorrectionView: View {
     @EnvironmentObject var vm: PrayerTimeViewModel
@@ -19,24 +83,26 @@ struct PrayerTimeCorrectionView: View {
     
     @State private var isHeaderHovering = false
     @State private var isResetAllHovering = false
-    @State private var hoveredPrayer: String? = nil
 
     private var viewWidth: CGFloat {
-        return vm.useCompactLayout ? 220 : 260
+        return vm.useCompactLayout ? 200 : 240
     }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
+            // Header
             Button(action: {
-                navigationModel.popContent(LocationAndCalcSettingsView.id)
+                navigationModel.hideView(LocationAndCalcSettingsView.id, animation: vm.backwardAnimation())
             }) {
                 HStack {
-                    Image(systemName: "chevron.left").font(.body.weight(.semibold))
-                    Text("Time Correction").font(.body).fontWeight(.bold)
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 14, weight: .semibold))
+                    Text("Time Correction")
+                        .font(.subheadline).fontWeight(.bold)
                     Spacer()
                 }
-                .padding(.vertical, 5).padding(.horizontal, 8)
-                .background(isHeaderHovering ? Color("HoverColor") : .clear).cornerRadius(5)
+                .padding(.vertical, 4).padding(.horizontal, 6)
+                .background(isHeaderHovering ? Color("HoverColor") : .clear).cornerRadius(4)
             }
             .buttonStyle(.plain)
             .padding(.horizontal, 5).padding(.top, 2)
@@ -47,48 +113,48 @@ struct PrayerTimeCorrectionView: View {
                 .frame(height: 0.5)
                 .padding(.horizontal, 12)
 
-            // ScrollView telah dihapus dari sini.
-            VStack(spacing: 12) {
-                Text("Adjust prayer times to match your local mosque. Hover over the number to reset.")
-                    .font(.caption)
+            VStack(spacing: 8) {
+                Text("Adjust prayer times to match your local mosque.")
+                    .font(.caption2)
                     .foregroundColor(Color("SecondaryTextColor"))
                     .multilineTextAlignment(.center)
-                    .padding(.bottom, 4)
+                    .padding(.bottom, 2)
 
-                VStack(spacing: 12) {
-                    ForEach(["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"], id: \.self) { prayerName in
-                        correctionRow(for: prayerName)
-                    }
+                VStack(spacing: 8) {
+                    CorrectionRow(prayerName: "Fajr", value: $fajrValue)
+                    CorrectionRow(prayerName: "Dhuhr", value: $dhuhrValue)
+                    CorrectionRow(prayerName: "Asr", value: $asrValue)
+                    CorrectionRow(prayerName: "Maghrib", value: $maghribValue)
+                    CorrectionRow(prayerName: "Isha", value: $ishaValue)
                 }
                 
                 if hasCorrections() {
                     Rectangle()
                         .fill(Color("DividerColor"))
                         .frame(height: 0.5)
-                        .padding(.vertical, 4)
+                        .padding(.vertical, 2)
                     
                     Button(action: resetAll) {
                         Text("Reset All to Default")
-                            .font(.caption)
+                            .font(.caption2)
                             .foregroundColor(Color("SecondaryTextColor"))
-                            .padding(.vertical, 3).padding(.horizontal, 8)
+                            .padding(.vertical, 2).padding(.horizontal, 6)
                             .background(isResetAllHovering ? Color("HoverColor") : .clear)
-                            .cornerRadius(5)
+                            .cornerRadius(4)
                     }
                     .buttonStyle(.plain)
                     .onHover { hovering in isResetAllHovering = hovering }
                     .transition(.opacity.combined(with: .move(edge: .top)))
                 }
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 10)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
             .animation(.easeInOut(duration: 0.2), value: hasCorrections())
-            .controlSize(.small)
+            .controlSize(.mini)
             
-            // Spacer ditambahkan untuk mendorong konten ke atas.
             Spacer(minLength: 0)
         }
-        .padding(.vertical, 8)
+        .padding(.vertical, 6)
         .frame(width: viewWidth)
         .onAppear(perform: setupValues)
         .onDisappear(perform: { cancellable?.cancel() })
@@ -99,53 +165,8 @@ struct PrayerTimeCorrectionView: View {
         .onChange(of: ishaValue) { _ in updateSubject.send() }
     }
     
-    @ViewBuilder
-    private func correctionRow(for prayerName: String) -> some View {
-        let binding = binding(for: prayerName)
-        let originalTime = getOriginalTime(prayerName, for: binding.wrappedValue)
-        let adjustedTime = getAdjustedTime(originalTime: originalTime, for: binding.wrappedValue)
-
-        HStack {
-            Text(LocalizedStringKey(prayerName)).font(.subheadline).frame(width: 50, alignment: .leading)
-            Spacer()
-            InteractiveStepper(value: binding, onHover: { isHovering in
-                withAnimation(.easeInOut(duration: 0.1)) {
-                    hoveredPrayer = isHovering ? prayerName : nil
-                }
-            })
-        }
-        .overlay(
-            Group {
-                if hoveredPrayer == prayerName, let original = originalTime, let adjusted = adjustedTime, binding.wrappedValue != 0 {
-                    TimePreviewPopover(originalTime: original, adjustedTime: adjusted, formatter: vm.dateFormatter)
-                        .offset(y: -42)
-                }
-            }
-        )
-    }
-
-    private func binding(for prayerName: String) -> Binding<Double> {
-        switch prayerName {
-            case "Fajr": return $fajrValue
-            case "Dhuhr": return $dhuhrValue
-            case "Asr": return $asrValue
-            case "Maghrib": return $maghribValue
-            case "Isha": return $ishaValue
-            default: return .constant(0)
-        }
-    }
-
-    private func getOriginalTime(_ prayer: String, for currentValue: Double) -> Date? {
-        guard let time = vm.todayTimes[prayer] else { return nil }
-        return time.addingTimeInterval(-currentValue * 60)
-    }
-    
-    private func getAdjustedTime(originalTime: Date?, for currentValue: Double) -> Date? {
-        return originalTime?.addingTimeInterval(currentValue * 60)
-    }
-
     private func hasCorrections() -> Bool {
-        return fajrValue != 0 || dhuhrValue != 0 || asrValue != 0 || maghribValue != 0 || ishaValue != 0
+        fajrValue != 0 || dhuhrValue != 0 || asrValue != 0 || maghribValue != 0 || ishaValue != 0
     }
     
     private func setupValues() {
@@ -170,6 +191,8 @@ struct PrayerTimeCorrectionView: View {
     }
     
     private func resetAll() {
-        fajrValue = 0; dhuhrValue = 0; asrValue = 0; maghribValue = 0; ishaValue = 0
+        withAnimation {
+            fajrValue = 0; dhuhrValue = 0; asrValue = 0; maghribValue = 0; ishaValue = 0
+        }
     }
 }

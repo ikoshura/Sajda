@@ -19,7 +19,7 @@ struct LocationAndCalcSettingsView: View {
         NavigationStackView(Self.id) {
             VStack(alignment: .leading, spacing: 6) {
                 Button(action: {
-                    navigationModel.popContent(SettingsView.id)
+                    navigationModel.hideView(SettingsView.id, animation: vm.backwardAnimation())
                 }) {
                     HStack {
                         Image(systemName: "chevron.left").font(.body.weight(.semibold))
@@ -40,38 +40,14 @@ struct LocationAndCalcSettingsView: View {
                         Group {
                             Text("Calculation").font(.caption).foregroundColor(Color("SecondaryTextColor"))
                             HStack { Text("Method").font(.subheadline); Spacer(); Picker("", selection: $vm.method) { ForEach(SajdaCalculationMethod.allCases) { method in Text(method.name).tag(method) } }.frame(maxWidth: 140) }
-                            
-                            HStack {
-                                Text("Time Correction").font(.subheadline)
-                                Spacer()
-                                Button("Adjust") {
-                                    navigationModel.pushContent(Self.id) {
-                                        PrayerTimeCorrectionView()
-                                    }
-                                }.buttonStyle(.bordered)
-                            }
+                            HStack { Text("Time Correction").font(.subheadline); Spacer(); Button("Adjust") { navigationModel.showView(Self.id, animation: vm.forwardAnimation()) { PrayerTimeCorrectionView() } }.buttonStyle(.bordered) }
                             StyledToggle(label: "Hanafi Madhhab (for Asr)", isOn: $vm.useHanafiMadhhab)
                         }
-
-                        Rectangle()
-                            .fill(Color("DividerColor"))
-                            .frame(height: 0.5)
-                        
+                        Rectangle().fill(Color("DividerColor")).frame(height: 0.5)
                         Group {
                             Text("Location").font(.caption).foregroundColor(Color("SecondaryTextColor"))
                             HStack { Image(systemName: vm.isUsingManualLocation ? "pencil.circle.fill" : "location.circle.fill").foregroundColor(.secondary); Text(vm.isUsingManualLocation ? "\(NSLocalizedString("Manual:", comment: "")) \(vm.locationStatusText)" : "\(NSLocalizedString("Automatic:", comment: "")) \(vm.locationStatusText)") }.lineLimit(1).truncationMode(.tail)
-                            
-                            HStack {
-                                Button("Change Manual Location") {
-                                    navigationModel.pushContent(Self.id) {
-                                        ManualLocationView(isModal: false)
-                                    }
-                                }.buttonStyle(.bordered)
-                                Spacer()
-                                if vm.isUsingManualLocation {
-                                    Button("Use Automatic") { vm.switchToAutomaticLocation() }.buttonStyle(.bordered)
-                                }
-                            }
+                            HStack { Button("Change Manual Location") { navigationModel.showView(Self.id, animation: vm.forwardAnimation()) { ManualLocationView(isModal: false) } }.buttonStyle(.bordered); Spacer(); if vm.isUsingManualLocation { Button("Use Automatic") { vm.switchToAutomaticLocation() }.buttonStyle(.bordered) } }
                         }
                     }
                     .controlSize(.small)

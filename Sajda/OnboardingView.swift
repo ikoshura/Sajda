@@ -59,7 +59,6 @@ struct OnboardingView: View {
                             color: .secondary
                         )
                         Button("Change Manual Location", action: { showingManualLocationSheet = true })
-                            .underline(isHoveringChangeManual)
                             .onHover { hovering in isHoveringChangeManual = hovering }
                         Button("Switch to Automatic Location", action: vm.switchToAutomaticLocation)
                             .buttonStyle(.link)

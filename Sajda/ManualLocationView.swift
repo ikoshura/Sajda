@@ -1,4 +1,4 @@
-// MARK: - GANTI SELURUH FILE: ManualLocationView.swift (PERBAIKAN READABILITY)
+// MARK: - GANTI SELURUH FILE: ManualLocationView.swift
 
 import SwiftUI
 import MapKit
@@ -53,7 +53,6 @@ struct ManualLocationView: View {
                                 HStack {
                                     VStack(alignment: .leading) {
                                         Text(result.name).fontWeight(.semibold)
-                                        // PERBAIKAN: Gunakan Color Set kustom untuk readability
                                         Text(result.country).font(.caption).foregroundColor(Color("SecondaryTextColor"))
                                     }
                                     Spacer()
@@ -80,9 +79,9 @@ struct ManualLocationView: View {
     
     private func handleBackButton() {
         if isModal {
-            navigationModel.hideTopViewWithReverseAnimation()
+            navigationModel.hideView(ContentView.id, animation: vm.backwardAnimation())
         } else {
-            navigationModel.popContent(LocationAndCalcSettingsView.id)
+            navigationModel.hideView(LocationAndCalcSettingsView.id, animation: vm.backwardAnimation())
         }
     }
 }

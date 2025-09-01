@@ -16,3 +16,7 @@
 /* New Onboarding Strings */
 "Requesting Permission..." = "Requesting Permission...";
 "Skip for now" = "Skip for now";
+"Animation Style" = "Animation Style";
+"None" = "None";
+"Fade" = "Fade";
+"Slide" = "Slide";

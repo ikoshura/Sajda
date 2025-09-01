@@ -1,4 +1,4 @@
-// MARK: - GANTI SELURUH FILE: MainView.swift (DENGAN DIVIDER KUSTOM)
+// MARK: - GANTI SELURUH FILE: MainView.swift
 
 import SwiftUI
 import Adhan
@@ -40,17 +40,14 @@ struct MainView: View {
             
             VStack(alignment: .leading, spacing: 0) {
                 Rectangle()
-                    .fill(Color("NoneColor"))
-                    .frame(height: 0.5)
-                    .padding(.horizontal, 12)
-                    .padding(.bottom, 4)
-                Rectangle()
                     .fill(Color("DividerColor"))
-                    .frame(height: 0.5)
+                    .frame(height: 1)
                     .padding(.horizontal, 12)
                     .padding(.vertical, 2)
 
-                Button(action: { navigationModel.pushContent(ContentView.id) { SettingsView() } }) {
+                Button(action: {
+                    navigationModel.showView(ContentView.id, animation: vm.forwardAnimation()) { SettingsView() }
+                }) {
                     HStack { Text("Settings"); Spacer(); Image(systemName: "chevron.right").font(.caption.weight(.bold)).foregroundColor(.secondary) }
                         .padding(.vertical, 5).padding(.horizontal, 8)
                         .background(isSettingsHovering ? Color("HoverColor") : .clear)
@@ -58,23 +55,19 @@ struct MainView: View {
                 }.buttonStyle(.plain).padding(.horizontal, 5).onHover { hovering in isSettingsHovering = hovering }
                 
                 Button(action: {
-                    let presentFromTop = NavigationAnimation(animation: .spring(), defaultViewTransition: .static, alternativeViewTransition: .move(edge: .top))
-                    navigationModel.showView(ContentView.id, animation: presentFromTop) { AboutView() }
+                    navigationModel.showView(ContentView.id, animation: vm.forwardAnimation()) { AboutView() }
                 }) {
-                    HStack { Text("About"); Spacer() }
+                    // --- PERUBAHAN DI SINI ---
+                    // Menambahkan chevron arrow agar konsisten dengan tombol Settings.
+                    HStack { Text("About"); Spacer(); Image(systemName: "chevron.right").font(.caption.weight(.bold)).foregroundColor(.secondary) }
                         .padding(.vertical, 5).padding(.horizontal, 8)
                         .background(isAboutHovering ? Color("HoverColor") : .clear)
                         .cornerRadius(5)
                 }.buttonStyle(.plain).padding(.horizontal, 5).onHover { hovering in isAboutHovering = hovering }
 
                 Rectangle()
-                    .fill(Color("NoneColor"))
-                    .frame(height: 0.5)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 2)
-                Rectangle()
                     .fill(Color("DividerColor"))
-                    .frame(height: 0.5)
+                    .frame(height: 1)
                     .padding(.horizontal, 12)
                     .padding(.vertical, 2)
 
@@ -157,8 +150,7 @@ struct PermissionRequestView: View {
                     Button("Allow Location Access", action: vm.requestLocationPermission).buttonStyle(.borderedProminent).controlSize(.regular)
                 }
                 Button(action: {
-                    let presentFromTop = NavigationAnimation(animation: .spring(), defaultViewTransition: .static, alternativeViewTransition: .move(edge: .top))
-                    navigationModel.showView(ContentView.id, animation: presentFromTop) { ManualLocationView(isModal: true) }
+                    navigationModel.showView(ContentView.id, animation: vm.forwardAnimation()) { ManualLocationView(isModal: true) }
                 }) {
                     Text("Or, set location manually")
                         .padding(.vertical, 3).padding(.horizontal, 8)
