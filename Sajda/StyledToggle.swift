@@ -1,12 +1,13 @@
-// Salin dan tempel SELURUH kode ini ke dalam file StyledToggle.swift
+// MARK: - GANTI SELURUH FILE: StyledToggle.swift (PERBAIKAN WARNA BACKGROUND 'OFF')
 
 import SwiftUI
 
 struct StyledToggle: View {
-    var label: String
+    var label: LocalizedStringKey
     @Binding var isOn: Bool
+    
+    @Environment(\.isEnabled) private var isEnabled
 
-    // PERBAIKAN: Ukuran diperkecil lagi agar sangat-sangat kompak
     private let toggleWidth: CGFloat = 32
     private let toggleHeight: CGFloat = 18
     private let thumbSize: CGFloat = 14
@@ -18,7 +19,9 @@ struct StyledToggle: View {
             
             ZStack {
                 Capsule()
-                    .fill(isOn ? Color.accentColor : Color.secondary.opacity(0.3))
+                    // --- PERBAIKAN UTAMA DI SINI ---
+                    // Gunakan "HoverColor" untuk state 'off' agar terlihat di Light Mode
+                    .fill(isOn ? Color.accentColor : Color("HoverColor"))
                     .frame(width: toggleWidth, height: toggleHeight)
 
                 Circle()
@@ -29,11 +32,17 @@ struct StyledToggle: View {
                     .padding(.horizontal, 2)
             }
             .frame(width: toggleWidth, height: toggleHeight)
-            .onTapGesture {
+        }
+        // Membuat seluruh baris dapat diklik untuk usability yang lebih baik
+        .contentShape(Rectangle())
+        .onTapGesture {
+            if isEnabled {
                 withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                     isOn.toggle()
                 }
             }
         }
+        .saturation(isEnabled ? 1.0 : 0.0)
+        .opacity(isEnabled ? 1.0 : 0.5)
     }
 }

@@ -1,10 +1,7 @@
-// Salin dan tempel SELURUH kode ini ke dalam file FluidMenuBar/FluidMenuBarExtra.swift
 import SwiftUI
 
 public final class FluidMenuBarExtra {
-    // PERBAIKAN: Mengubah 'private let' menjadi 'public let' agar bisa diakses dari luar
     public let statusItem: FluidMenuBarExtraStatusItem
-
     public init(title: String, @ViewBuilder content: @escaping () -> some View) {
         let window = FluidMenuBarExtraWindow(title: title, content: content)
         statusItem = FluidMenuBarExtraStatusItem(title: title, window: window)
@@ -17,7 +14,9 @@ public final class FluidMenuBarExtra {
         let window = FluidMenuBarExtraWindow(title: title, content: content)
         statusItem = FluidMenuBarExtraStatusItem(title: title, systemImage: systemImage, window: window)
     }
-    public func updateTitle(to newTitle: String) {
+    
+    // --- PERUBAHAN: Overload fungsi untuk menerima NSAttributedString ---
+    public func updateTitle(to newTitle: NSAttributedString) {
         statusItem.updateTitle(to: newTitle)
     }
 }

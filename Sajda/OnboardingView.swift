@@ -1,117 +1,164 @@
-// MARK: - GANTI FILE: Sajda/OnboardingView.swift
-// Salin dan tempel SELURUH kode ini. Error 'NSViewRepresentable' sudah diperbaiki.
+// MARK: - GANTI SELURUH FILE: OnboardingView.swift (DENGAN EFEK HOVER UNDERLINE)
 
 import SwiftUI
 
 struct OnboardingView: View {
     @EnvironmentObject var vm: PrayerTimeViewModel
+    @EnvironmentObject var languageManager: LanguageManager
+    
     @AppStorage("showOnboardingAtLaunch") private var showOnboardingAtLaunch = true
-
     @State private var showingManualLocationSheet = false
+    
+    // State untuk efek hover
     @State private var isSkipHovering = false
+    @State private var isHoveringChangeManual = false
+    @State private var isHoveringSwitchToAuto = false
+    @State private var isHoveringSetManually = false
 
     var body: some View {
         ZStack {
-            VisualEffectView()
+            VisualEffectView(material: .underWindowBackground).ignoresSafeArea()
 
-            VStack(spacing: 20) {
-                Spacer()
-                
+            VStack(spacing: 0) {
+                Spacer(minLength: 20)
+
                 Image(nsImage: NSImage(named: "AppIcon") ?? NSImage())
-                    .resizable().scaledToFit().frame(width: 90, height: 90)
-                    .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+                    .resizable().scaledToFit().frame(width: 80, height: 80)
+                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                
+                Text("Welcome to Sajda Pro")
+                    .font(.system(size: 24, weight: .bold))
+                    .padding(.top, 15)
+                
+                Text("To get started, please provide your location for accurate prayer times.")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 40)
+                    .padding(.top, 4)
 
-                VStack(spacing: 5) {
-                    Text("Welcome to Sajda").font(.system(size: 32, weight: .bold))
-                    Text("A beautiful prayer times app for your menu bar.").font(.headline)
-                        .foregroundColor(Color("SecondaryTextColor"))
-                }
-                .multilineTextAlignment(.center)
-                
-                Divider().padding(.horizontal, 10)
-                
-                VStack(spacing: 15) {
-                    Image(systemName: "location.circle.fill").font(.system(size: 40)).foregroundColor(.accentColor)
-                    Text("Location Required").font(.title).fontWeight(.semibold)
-                    
-                    Text("To provide accurate prayer times, Sajda needs to know your location.")
-                        .font(.body).multilineTextAlignment(.center)
-                        .foregroundColor(Color("SecondaryTextColor"))
-                        .fixedSize(horizontal: false, vertical: true)
-                    
-                    VStack(spacing: 12) {
-                        if vm.isUsingManualLocation {
-                            Text("You are using a manual location: **\(vm.locationStatusText)**")
-                                .font(.footnote).multilineTextAlignment(.center)
-                            Button("Switch to Automatic Location", action: vm.switchToAutomaticLocation)
-                                .buttonStyle(.borderedProminent)
-                                .controlSize(.large)
-                        } else if vm.authorizationStatus == .authorized {
-                             Button("Allow Location Access", action: {})
-                                .buttonStyle(.borderedProminent).controlSize(.large)
-                                .disabled(true)
-                             Text("Location access is already enabled.")
-                                .font(.footnote).foregroundColor(Color("SecondaryTextColor"))
-                             Button("Or, Set Location Manually", action: { showingManualLocationSheet = true })
-                        } else {
-                            Button("Allow Location Access", action: vm.requestLocationPermission)
-                                .buttonStyle(.borderedProminent).controlSize(.large)
-                                .disabled(vm.authorizationStatus == .denied)
-                            
-                            if vm.authorizationStatus == .denied {
-                                Text("Please grant location access in System Settings.")
-                                    .font(.footnote).foregroundColor(.red)
-                            }
-                            Button("Or, Set Location Manually", action: { showingManualLocationSheet = true })
+                Spacer(minLength: 25)
+
+                VStack {
+                    if vm.isRequestingLocation {
+                        ProgressView().controlSize(.small)
+                        Text("Requesting Permission...")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            .padding(.top, 8)
+                        
+                        Button("Or, Set Location Manually", action: { showingManualLocationSheet = true })
+                            .underline(isHoveringSetManually)
+                            .onHover { hovering in isHoveringSetManually = hovering }
+                            .padding(.top, 20)
+
+                    } else if vm.isUsingManualLocation {
+                        InfoStatusView(
+                            text: LocalizedStringKey("Using manual location: **\(vm.locationStatusText)**"),
+                            icon: "pencil.circle.fill",
+                            color: .secondary
+                        )
+                        Button("Change Manual Location", action: { showingManualLocationSheet = true })
+                            .underline(isHoveringChangeManual)
+                            .onHover { hovering in isHoveringChangeManual = hovering }
+                        Button("Switch to Automatic Location", action: vm.switchToAutomaticLocation)
+                            .buttonStyle(.link)
+                            .underline(isHoveringSwitchToAuto)
+                            .onHover { hovering in isHoveringSwitchToAuto = hovering }
+                    } else if vm.authorizationStatus == .authorized {
+                        InfoStatusView(
+                            text: "Location access is enabled.",
+                            icon: "checkmark.circle.fill",
+                            color: .green
+                        )
+                        if !vm.isPrayerDataAvailable {
+                            Text("Fetching Location...")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                                .padding(.top, 2)
                         }
+                        Button("Or, Set Location Manually", action: { showingManualLocationSheet = true })
+                            .buttonStyle(.link)
+                            .underline(isHoveringSetManually)
+                            .onHover { hovering in isHoveringSetManually = hovering }
+                    } else {
+                        Button("Allow Location Access", action: vm.requestLocationPermission)
+                            .controlSize(.large)
+                            .tint(.accentColor)
+                            .disabled(vm.authorizationStatus == .denied)
+                        
+                        if vm.authorizationStatus == .denied {
+                            Text("Please grant access in System Settings.")
+                                .font(.caption).foregroundColor(.red).padding(.top, 5)
+                        }
+                        
+                        Button("Or, Set Location Manually", action: { showingManualLocationSheet = true })
+                            .underline(isHoveringSetManually)
+                            .onHover { hovering in isHoveringSetManually = hovering }
+                            .padding(.top, 8)
                     }
-                    .padding(.top, 10)
                 }
-                
-                Spacer()
+                .padding(.horizontal, 40)
+                .frame(minHeight: 120)
+                .animation(.easeInOut, value: vm.isRequestingLocation)
+                .animation(.easeInOut, value: vm.authorizationStatus)
 
-                VStack(spacing: 8) {
-                    Button(action: { NSApp.keyWindow?.close() }) {
-                        Text("Done").font(.headline).frame(maxWidth: 200)
-                    }
-                    .controlSize(.large).buttonStyle(.borderedProminent).tint(.accentColor)
-                    .disabled(!vm.isPrayerDataAvailable)
-                    
-                    if !vm.isPrayerDataAvailable {
-                        Button("Skip for now", action: { NSApp.keyWindow?.close() })
-                            .buttonStyle(.plain)
-                            .padding(.vertical, 4).padding(.horizontal, 10)
-                            .background(isSkipHovering ? Color.secondary.opacity(0.2) : .clear)
-                            .cornerRadius(8)
-                            .onHover { hovering in isSkipHovering = hovering }
-                    }
-                }
+                Spacer(minLength: 25)
                 
-                Toggle("Show this window on launch", isOn: $showOnboardingAtLaunch)
-                    .toggleStyle(.checkbox).padding(.top, 15)
-                    .foregroundColor(Color("SecondaryTextColor"))
+                VStack(spacing: 12) {
+                    Toggle("Show this window on launch", isOn: $showOnboardingAtLaunch)
+                        .toggleStyle(.checkbox)
+                    
+                    Button(action: { NSApp.keyWindow?.close() }) {
+                        Text("Done").frame(maxWidth: .infinity)
+                    }
+                    .controlSize(.large)
+                    .buttonStyle(.borderedProminent)
+                    .tint(.accentColor)
+                    .disabled(!vm.isPrayerDataAvailable)
+                    .keyboardShortcut(.defaultAction)
+
+                    Button(action: {
+                        NSApp.keyWindow?.close()
+                    }) {
+                        Text("Skip for now")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            .underline(isSkipHovering)
+                    }
+                    .buttonStyle(.plain)
+                    .onHover { hovering in
+                        isSkipHovering = hovering
+                    }
+                    .padding(.top, 4)
+                }
+                .padding(.horizontal, 40)
+                .padding(.bottom, 30)
             }
-            .padding(.horizontal, 40)
-            .padding(.top, 40)
-            .padding(.bottom, 60)
         }
-        .frame(width: 520, height: 620)
+        .frame(width: 380, height: 490)
         .sheet(isPresented: $showingManualLocationSheet) {
-            ManualLocationSheetView().environmentObject(vm)
+            LanguageManagerView(manager: languageManager) {
+                ManualLocationSheetView().environmentObject(vm)
+            }
         }
     }
 }
 
-struct VisualEffectView: NSViewRepresentable {
-    func makeNSView(context: Context) -> NSVisualEffectView {
-        let view = NSVisualEffectView()
-        view.blendingMode = .behindWindow
-        view.state = .active
-        view.material = .sidebar
-        return view
+struct InfoStatusView: View {
+    let text: LocalizedStringKey
+    let icon: String
+    let color: Color
+
+    var body: some View {
+        Label {
+            Text(text)
+        } icon: {
+            Image(systemName: icon)
+        }
+        .font(.callout)
+        .foregroundColor(color)
+        .multilineTextAlignment(.center)
+        .padding(.vertical, 5)
     }
-    
-    // --- PERBAIKAN PENTING DI SINI ---
-    // Tipe parameter pertama harus `NSVisualEffectView`, sesuai dengan `makeNSView`.
-    func updateNSView(_ nsView: NSVisualEffectView, context: Context) {}
 }

@@ -9,7 +9,7 @@ struct PrayerTimerAlertView: View {
 
     var body: some View {
         ZStack {
-            VisualEffectView().ignoresSafeArea()
+            VisualEffectView(material: .sidebar).ignoresSafeArea()
 
             VStack(spacing: 20) {
                 Image(systemName: "timer")

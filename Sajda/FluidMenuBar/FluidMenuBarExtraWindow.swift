@@ -1,4 +1,4 @@
-// Salin dan tempel SELURUH kode ini ke dalam file FluidMenuBar/FluidMenuBarExtraWindow.swift
+// MARK: - GANTI FILE: Sajda/FluidMenuBar/FluidMenuBarExtraWindow.swift (MENGGUNAKAN WARNA BORDER BARU)
 
 import AppKit
 import SwiftUI
@@ -12,6 +12,17 @@ final class FluidMenuBarExtraWindow<Content: View>: NSPanel {
         view.state = .active
         view.material = .popover
         view.translatesAutoresizingMaskIntoConstraints = true
+        
+        // --- TAMBAHAN UNTUK BORDER NATIVE ---
+        view.wantsLayer = true
+        view.layer?.cornerRadius = 10.0
+        view.layer?.masksToBounds = true
+        view.layer?.borderWidth = 0.5
+        // --- PERUBAHAN DI SINI ---
+        // Mengganti "SecondaryTextColor" dengan "BorderColor" yang baru dan lebih subtle.
+        view.layer?.borderColor = NSColor(named: "BorderColor")?.cgColor
+        // --- AKHIR PERUBAHAN ---
+        
         return view
     }()
 
@@ -45,20 +56,8 @@ final class FluidMenuBarExtraWindow<Content: View>: NSPanel {
         )
 
         self.title = title
-        
-        // ==========================================================
-        // PERBAIKAN ANTI-GLITCH DIMULAI DI SINI
-        // ==========================================================
-        
-        // 1. Memerintahkan jendela agar TIDAK menggambar latar belakangnya sendiri.
-        // Ini memaksa jendela untuk selalu transparan dari dasarnya.
         isOpaque = false
         backgroundColor = .clear
-        
-        // ==========================================================
-        // PERBAIKAN ANTI-GLITCH SELESAI
-        // ==========================================================
-
         isMovable = false
         isMovableByWindowBackground = false
         isFloatingPanel = true
