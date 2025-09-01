@@ -16,3 +16,7 @@
 /* New Onboarding Strings */
 "Requesting Permission..." = "جارٍ طلب الإذن...";
 "Skip for now" = "تخطٍ في الوقت الحالي";
+"Animation Style" = "نمط التحريك";
+"None" = "بدون";
+"Fade" = "تلاشي";
+"Slide" = "انزلاق";

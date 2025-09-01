@@ -1,4 +1,4 @@
-// MARK: - GANTI SELURUH FILE: Sajda/AboutView.swift (PERBAIKAN PADDING TOMBOL)
+// MARK: - GANTI SELURUH FILE: Sajda/AboutView.swift
 
 import SwiftUI
 import NavigationStack
@@ -9,7 +9,8 @@ struct AboutView: View {
     
     @AppStorage("showOnboardingAtLaunch") private var showOnboardingAtLaunch = true
     @State private var isHeaderHovering = false
-    @State private var isDoneHovering = false
+    // State isDoneHovering sudah dihapus karena tidak lagi diperlukan.
+    
     private var viewWidth: CGFloat {
         return vm.useCompactLayout ? 220 : 260
     }
@@ -48,9 +49,12 @@ struct AboutView: View {
                         Text("A simple and beautiful prayer times app for your menu bar.").font(.subheadline)
                             .multilineTextAlignment(.center).padding(.horizontal)
                     }
-                    
-                    Spacer(minLength: 0)
-
+                    // --- PERUBAHAN DI SINI ---
+                    // Mengganti tombol kustom dengan tombol native macOS.
+                    Rectangle()
+                        .fill(Color("DividerColor"))
+                        .frame(height: 1)
+                        .padding(.horizontal, 12)
                     VStack(spacing: 16) {
                         Toggle("Show Welcome Guide on Launch", isOn: $showOnboardingAtLaunch)
                             .toggleStyle(.checkbox)
@@ -58,13 +62,12 @@ struct AboutView: View {
 
                         Button(action: handleBackButton) {
                             Text("Done")
-                                .padding(.vertical, 3).padding(.horizontal, 8).frame(minWidth: 80)
-                                .background(isDoneHovering ? Color("HoverColor") : .clear)
-                                .cornerRadius(5)
-                        }.buttonStyle(.plain).onHover { hovering in isDoneHovering = hovering }
+                                .frame(maxWidth: 100) // Memberikan lebar yang cukup
+                        }
+                        .buttonStyle(.borderedProminent) // Gaya native yang menonjol
+                        .controlSize(.regular) // Ukuran tombol standar
+                        .keyboardShortcut(.defaultAction) // Menjadikannya aksi default (Enter)
                     }
-                    // --- PERBAIKAN DI SINI ---
-                    // Menambahkan padding di bagian bawah untuk memberikan ruang.
                     .padding(.bottom, 12)
                     
                 }.frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -74,7 +77,6 @@ struct AboutView: View {
     }
 
     private func handleBackButton() {
-        let dismissToTop = NavigationAnimation(animation: .spring(), defaultViewTransition: .static, alternativeViewTransition: .move(edge: .top))
-        navigationModel.hideView(ContentView.id, animation: dismissToTop)
+        navigationModel.hideView(ContentView.id, animation: vm.backwardAnimation())
     }
 }
