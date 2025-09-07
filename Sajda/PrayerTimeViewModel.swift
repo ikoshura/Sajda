@@ -75,6 +75,8 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
     private var adhanPlayer: NSSound?
     private var locationTimeZone: TimeZone = .current
     private var locationDisplayTimer: Timer?
+    private var lastCalculationDate: Date?
+
 
     override init() {
         let savedMethodName = UserDefaults.standard.string(forKey: "calculationMethodName") ?? "Muslim World League"
@@ -113,7 +115,6 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
         let city: String?, town: String?, village: String?, state: String?, county: String?, country: String?
     }
     
-    // --- PERUBAHAN UTAMA DI FUNGSI INI ---
     private func setupSearchPublisher() {
         $locationSearchQuery
             .debounce(for: .milliseconds(400), scheduler: RunLoop.main)
@@ -138,7 +139,7 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
                     URLQueryItem(name: "format", value: "json"),
                     URLQueryItem(name: "addressdetails", value: "1"),
                     URLQueryItem(name: "accept-language", value: "en"),
-                    URLQueryItem(name: "limit", value: "20") // Ambil lebih banyak untuk di-filter
+                    URLQueryItem(name: "limit", value: "20")
                 ]
                 guard let url = components.url else { return Just([]).eraseToAnyPublisher() }
                 var request = URLRequest(url: url)
@@ -152,7 +153,6 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
                         return Just([])
                     }
                     .map { results -> [LocationSearchResult] in
-                        // 1. Ubah semua hasil mentah menjadi LocationSearchResult
                         let mappedResults = results.compactMap { result -> LocationSearchResult? in
                             let name = result.address.city ?? result.address.town ?? result.address.village ?? result.address.county ?? result.address.state ?? ""
                             let country = result.address.country ?? ""
@@ -160,11 +160,7 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
                             let finalName = name.isEmpty ? result.display_name.components(separatedBy: ",")[0] : name
                             return LocationSearchResult(name: finalName, country: country, coordinates: CLLocationCoordinate2D(latitude: result.lat, longitude: result.lon))
                         }
-                        
-                        // 2. Gunakan Set untuk menghilangkan duplikat secara otomatis
                         let uniqueResults = Array(Set(mappedResults))
-                        
-                        // 3. Urutkan hasilnya agar konsisten
                         return uniqueResults.sorted { $0.name < $1.name }
                     }
                     .eraseToAnyPublisher()
@@ -203,6 +199,9 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
     
     func updatePrayerTimes() {
         guard let coord = currentCoordinates else { return }
+        
+        lastCalculationDate = Date()
+        
         var locationCalendar = Calendar(identifier: .gregorian); locationCalendar.timeZone = self.locationTimeZone
         let todayInLocation = locationCalendar.dateComponents([.year, .month, .day], from: Date())
         let tomorrowInLocation = Calendar.current.date(byAdding: .day, value: 1, to: Date())!
@@ -338,10 +337,30 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
     
     func selectCustomAdhanSound() { let openPanel = NSOpenPanel(); openPanel.canChooseFiles = true; openPanel.canChooseDirectories = false; openPanel.allowsMultipleSelection = false; openPanel.allowedContentTypes = [.audio]; if openPanel.runModal() == .OK { self.customAdhanSoundPath = openPanel.url?.absoluteString ?? "" } }
     var isPrayerDataAvailable: Bool { !todayTimes.isEmpty }
-    func startTimer() { timer?.invalidate(); timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in self?.updateCountdown() } }
+    
+    func startTimer() {
+        timer?.invalidate()
+        timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
+            guard let self = self else { return }
+            
+            if let lastDate = self.lastCalculationDate,
+               !Calendar.current.isDate(lastDate, inSameDayAs: Date()) {
+                self.updatePrayerTimes()
+            } else {
+                self.updateCountdown()
+            }
+        }
+    }
+    
     private func handleAuthorizationStatus(status: CLAuthorizationStatus) { self.authorizationStatus = status; switch status { case .authorized: if automaticLocationCache == nil { locationStatusText = "Fetching Location..." }; locMgr.requestLocation(); case .denied, .restricted: locationStatusText = "Location access denied."; isRequestingLocation = false; todayTimes = [:]; case .notDetermined: isRequestingLocation = false; locationStatusText = "Location access needed"; @unknown default: isRequestingLocation = false; break } }
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) { if !isUsingManualLocation { handleAuthorizationStatus(status: manager.authorizationStatus) } }
-    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) { isRequestingLocation = false; self.locationStatusText = "Unable to determine location." }
+    
+    // --- PERBAIKAN TYPO DI SINI ---
+    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        self.isRequestingLocation = false
+        self.locationStatusText = "Unable to determine location."
+    }
+    
     func requestLocationPermission() { if authorizationStatus == .notDetermined { isRequestingLocation = true; DispatchQueue.main.async { self.locMgr.requestWhenInUseAuthorization() } } }
     func openLocationSettings() { guard let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_LocationServices") else { return }; NSWorkspace.shared.open(url) }
 }

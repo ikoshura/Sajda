@@ -27,9 +27,20 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
             self.showOnboardingWindow()
         }
         
-        // Baris ini sekarang ditambahkan untuk secara eksplisit menjalankan aplikasi
-        // SETELAH semua setup selesai.
+        // --- PERBAIKAN UNTUK BUG WAKE-FROM-SLEEP ---
+        // Menambahkan observer untuk mendeteksi saat Mac bangun dari mode sleep.
+        NSWorkspace.shared.notificationCenter.addObserver(self, selector: #selector(systemDidWake), name: NSWorkspace.didWakeNotification, object: nil)
+        
         NSApp.run()
+    }
+    
+    // --- FUNGSI BARU UNTUK MENANGANI WAKE-FROM-SLEEP ---
+    // Fungsi ini dipanggil saat Mac bangun, memaksa pembaruan waktu shalat.
+    @objc private func systemDidWake() {
+        // Tunggu sebentar untuk memastikan koneksi jaringan sudah siap jika diperlukan
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+            self.vm.updatePrayerTimes()
+        }
     }
     
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
@@ -120,4 +131,4 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
             menuBarExtra?.statusItem.button?.image = isIconOnly ? NSImage(systemSymbolName: "moon.zzz.fill", accessibilityDescription: "Sajda Pro") : nil
         }
     }
-}
+}	
