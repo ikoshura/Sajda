@@ -52,18 +52,26 @@ struct MainView: View {
                         .padding(.vertical, 5).padding(.horizontal, 8)
                         .background(isSettingsHovering ? Color("HoverColor") : .clear)
                         .cornerRadius(5)
-                }.buttonStyle(.plain).padding(.horizontal, 5).onHover { hovering in isSettingsHovering = hovering }
+                }
+                .buttonStyle(.plain)
+                .padding(.horizontal, 5)
+                .onHover { hovering in isSettingsHovering = hovering }
+                // --- PERBAIKAN DI SINI ---
+                .focusable(false)
                 
                 Button(action: {
                     navigationModel.showView(ContentView.id, animation: vm.forwardAnimation()) { AboutView() }
                 }) {
-                    // --- PERUBAHAN DI SINI ---
-                    // Menambahkan chevron arrow agar konsisten dengan tombol Settings.
                     HStack { Text("About"); Spacer(); Image(systemName: "chevron.right").font(.caption.weight(.bold)).foregroundColor(.secondary) }
                         .padding(.vertical, 5).padding(.horizontal, 8)
                         .background(isAboutHovering ? Color("HoverColor") : .clear)
                         .cornerRadius(5)
-                }.buttonStyle(.plain).padding(.horizontal, 5).onHover { hovering in isAboutHovering = hovering }
+                }
+                .buttonStyle(.plain)
+                .padding(.horizontal, 5)
+                .onHover { hovering in isAboutHovering = hovering }
+                // --- PERBAIKAN DI SINI ---
+                .focusable(false)
 
                 Rectangle()
                     .fill(Color("DividerColor"))
@@ -76,7 +84,12 @@ struct MainView: View {
                         .padding(.vertical, 5).padding(.horizontal, 8)
                         .background(isQuitHovering ? Color("HoverColor") : .clear)
                         .cornerRadius(5)
-                }.buttonStyle(.plain).padding(.horizontal, 5).onHover { hovering in isQuitHovering = hovering }
+                }
+                .buttonStyle(.plain)
+                .padding(.horizontal, 5)
+                .onHover { hovering in isQuitHovering = hovering }
+                // --- PERBAIKAN DI SINI ---
+                .focusable(false)
             }
         }.padding(.vertical, 8).frame(width: viewWidth)
     }
