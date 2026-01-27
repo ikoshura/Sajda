@@ -60,7 +60,7 @@ class DiyanetLookup {
     
     /// Find matching province for a location name
     private func findProvince(for locationName: String) -> String? {
-        let upperLocation = locationName.uppercased(with: Locale(identifier: "tr_TR"))
+        let upperLocation = locationName.uppercased(with: Locale(identifier: "en_US"))
         
         // Direct match
         if turkishProvinces.contains(upperLocation) {
