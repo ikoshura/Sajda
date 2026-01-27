@@ -56,6 +56,8 @@
 		CCED21862E65F9770066D0EB /* NavigationAnimation+Custom.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCED21852E65F9770066D0EB /* NavigationAnimation+Custom.swift */; };
 		CCED21882E65FE650066D0EB /* AnimationType.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCED21872E65FE650066D0EB /* AnimationType.swift */; };
 		CCFD21DA2E62BEEB00A80402 /* PrayerTimeCorrectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCFD21D92E62BEEB00A80402 /* PrayerTimeCorrectionView.swift */; };
+		AA000001DIYANET00000001 /* DiyanetLookup.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000002DIYANET00000002 /* DiyanetLookup.swift */; };
+		AA000003DIYANET00000003 /* TurkeyPrayerTimes.json in Resources */ = {isa = PBXBuildFile; fileRef = AA000004DIYANET00000004 /* TurkeyPrayerTimes.json */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -129,6 +131,8 @@
 		CCED21852E65F9770066D0EB /* NavigationAnimation+Custom.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NavigationAnimation+Custom.swift"; sourceTree = "<group>"; };
 		CCED21872E65FE650066D0EB /* AnimationType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnimationType.swift; sourceTree = "<group>"; };
 		CCFD21D92E62BEEB00A80402 /* PrayerTimeCorrectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrayerTimeCorrectionView.swift; sourceTree = "<group>"; };
+		AA000002DIYANET00000002 /* DiyanetLookup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiyanetLookup.swift; sourceTree = "<group>"; };
+		AA000004DIYANET00000004 /* TurkeyPrayerTimes.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = TurkeyPrayerTimes.json; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -229,6 +233,8 @@
 				CCED21872E65FE650066D0EB /* AnimationType.swift */,
 				CC4659602E661CC400159A83 /* TextFieldStepper.swift */,
 				CC4659642E6629C000159A83 /* SajdaStepper.swift */,
+				AA000002DIYANET00000002 /* DiyanetLookup.swift */,
+				AA000004DIYANET00000004 /* TurkeyPrayerTimes.json */,
 			);
 			path = Sajda;
 			sourceTree = "<group>";
@@ -390,6 +396,7 @@
 				CC969C7F2E60857D00C8630A /* Preview Assets.xcassets in Resources */,
 				CC969C7C2E60857D00C8630A /* Assets.xcassets in Resources */,
 				CC969CA32E6085F200C8630A /* Info.plist in Resources */,
+				AA000003DIYANET00000003 /* TurkeyPrayerTimes.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -453,6 +460,7 @@
 				CCE1BA3B2E61852B003AF03C /* RootViewModifier.swift in Sources */,
 				CC786E522E6353F1007299F3 /* ManualLocationSheetView.swift in Sources */,
 				CC786E562E635ADA007299F3 /* AlertWindowManager.swift in Sources */,
+				AA000001DIYANET00000001 /* DiyanetLookup.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -623,12 +631,12 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Sajda/Sajda.entitlements;
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Sajda/Preview Content\"";
-				DEVELOPMENT_TEAM = R9K95P32SA;
+				DEVELOPMENT_TEAM = "";
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -652,12 +660,12 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Sajda/Sajda.entitlements;
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Sajda/Preview Content\"";
-				DEVELOPMENT_TEAM = R9K95P32SA;
+				DEVELOPMENT_TEAM = "";
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;

@@ -210,25 +210,66 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
         guard let prayersToday = PrayerTimes(coordinates: Coordinates(latitude: coord.latitude, longitude: coord.longitude), date: todayInLocation, calculationParameters: params),
               let prayersTomorrow = PrayerTimes(coordinates: Coordinates(latitude: coord.latitude, longitude: coord.longitude), date: tomorrowDC, calculationParameters: params) else { return }
         
-        let correctedFajr = prayersToday.fajr.addingTimeInterval(fajrCorrection * 60)
-        let correctedDhuhr = prayersToday.dhuhr.addingTimeInterval(dhuhrCorrection * 60)
-        let correctedAsr = prayersToday.asr.addingTimeInterval(asrCorrection * 60)
-        let correctedMaghrib = prayersToday.maghrib.addingTimeInterval(maghribCorrection * 60)
-        let correctedIsha = prayersToday.isha.addingTimeInterval(ishaCorrection * 60)
+        // Check if we should use Diyanet lookup for Turkish cities
+        let isDiyanet = method.name == "Diyanet (Turkey)"
+        let hasDiyanetData = DiyanetLookup.shared.hasData(for: locationStatusText)
         
-        var allPrayerTimes: [(name: String, time: Date)] = [("Fajr", correctedFajr), ("Dhuhr", correctedDhuhr), ("Asr", correctedAsr), ("Maghrib", correctedMaghrib), ("Isha", correctedIsha)]
+        var allPrayerTimes: [(name: String, time: Date)]
+        var correctedFajrTomorrow: Date
         
-        if showSunnahPrayers {
-            let correctedFajrTomorrow = prayersTomorrow.fajr.addingTimeInterval(fajrCorrection * 60)
-            let nightDuration = correctedFajrTomorrow.timeIntervalSince(correctedIsha)
-            let lastThirdOfNightStart = correctedIsha.addingTimeInterval(nightDuration * (2/3.0))
-            allPrayerTimes.append(("Tahajud", lastThirdOfNightStart))
+        if isDiyanet && hasDiyanetData,
+           let diyanetTimes = DiyanetLookup.shared.getPrayerTimes(for: Date(), locationName: locationStatusText, timezone: self.locationTimeZone),
+           let diyanetTomorrowTimes = DiyanetLookup.shared.getPrayerTimes(for: tomorrowInLocation, locationName: locationStatusText, timezone: self.locationTimeZone) {
+            // Use official Diyanet lookup times for supported Turkish cities
+            // Apply user's manual corrections on top of official times
+            allPrayerTimes = [
+                ("Fajr", diyanetTimes["Fajr"]!.addingTimeInterval(fajrCorrection * 60)),
+                ("Sunrise", diyanetTimes["Sunrise"]!),
+                ("Dhuhr", diyanetTimes["Dhuhr"]!.addingTimeInterval(dhuhrCorrection * 60)),
+                ("Asr", diyanetTimes["Asr"]!.addingTimeInterval(asrCorrection * 60)),
+                ("Maghrib", diyanetTimes["Maghrib"]!.addingTimeInterval(maghribCorrection * 60)),
+                ("Isha", diyanetTimes["Isha"]!.addingTimeInterval(ishaCorrection * 60))
+            ]
+            correctedFajrTomorrow = diyanetTomorrowTimes["Fajr"]!.addingTimeInterval(fajrCorrection * 60)
+        } else if isDiyanet {
+            // Diyanet method but not Istanbul - use calculated times with Sunrise (Turkish style)
+            let correctedFajr = prayersToday.fajr.addingTimeInterval(fajrCorrection * 60)
+            let correctedDhuhr = prayersToday.dhuhr.addingTimeInterval(dhuhrCorrection * 60)
+            let correctedAsr = prayersToday.asr.addingTimeInterval(asrCorrection * 60)
+            let correctedMaghrib = prayersToday.maghrib.addingTimeInterval(maghribCorrection * 60)
+            let correctedIsha = prayersToday.isha.addingTimeInterval(ishaCorrection * 60)
             
-            let dhuhaTime = prayersToday.sunrise.addingTimeInterval(20 * 60)
-            allPrayerTimes.append(("Dhuha", dhuhaTime))
+            allPrayerTimes = [
+                ("Fajr", correctedFajr),
+                ("Sunrise", prayersToday.sunrise),
+                ("Dhuhr", correctedDhuhr),
+                ("Asr", correctedAsr),
+                ("Maghrib", correctedMaghrib),
+                ("Isha", correctedIsha)
+            ]
+            correctedFajrTomorrow = prayersTomorrow.fajr.addingTimeInterval(fajrCorrection * 60)
+        } else {
+            // Use calculated times with manual corrections
+            let correctedFajr = prayersToday.fajr.addingTimeInterval(fajrCorrection * 60)
+            let correctedDhuhr = prayersToday.dhuhr.addingTimeInterval(dhuhrCorrection * 60)
+            let correctedAsr = prayersToday.asr.addingTimeInterval(asrCorrection * 60)
+            let correctedMaghrib = prayersToday.maghrib.addingTimeInterval(maghribCorrection * 60)
+            let correctedIsha = prayersToday.isha.addingTimeInterval(ishaCorrection * 60)
+            
+            allPrayerTimes = [("Fajr", correctedFajr), ("Dhuhr", correctedDhuhr), ("Asr", correctedAsr), ("Maghrib", correctedMaghrib), ("Isha", correctedIsha)]
+            
+            if showSunnahPrayers {
+                correctedFajrTomorrow = prayersTomorrow.fajr.addingTimeInterval(fajrCorrection * 60)
+                let nightDuration = correctedFajrTomorrow.timeIntervalSince(correctedIsha)
+                let lastThirdOfNightStart = correctedIsha.addingTimeInterval(nightDuration * (2/3.0))
+                allPrayerTimes.append(("Tahajud", lastThirdOfNightStart))
+                
+                let dhuhaTime = prayersToday.sunrise.addingTimeInterval(20 * 60)
+                allPrayerTimes.append(("Dhuha", dhuhaTime))
+            }
+            
+            correctedFajrTomorrow = prayersTomorrow.fajr.addingTimeInterval(fajrCorrection * 60)
         }
-        
-        let correctedFajrTomorrow = prayersTomorrow.fajr.addingTimeInterval(fajrCorrection * 60)
         
         DispatchQueue.main.async {
             self.todayTimes = Dictionary(uniqueKeysWithValues: allPrayerTimes.map { ($0.name, $0.time) })

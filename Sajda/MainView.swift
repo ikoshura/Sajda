@@ -98,9 +98,20 @@ struct MainView: View {
 struct PrayerListView: View {
     @EnvironmentObject var vm: PrayerTimeViewModel
     private var prayerOrder: [String] {
+        // Turkish style: shows Sunrise instead of Sunnah prayers
+        let turkishOrder = ["Fajr", "Sunrise", "Dhuhr", "Asr", "Maghrib", "Isha"]
         let defaultOrder = ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"]
         let sunnahOrder = ["Tahajud", "Fajr", "Dhuha", "Dhuhr", "Asr", "Maghrib", "Isha"]
-        let baseOrder = vm.showSunnahPrayers ? sunnahOrder : defaultOrder
+        
+        // Use Turkish order if Sunrise is available (Diyanet method)
+        let baseOrder: [String]
+        if vm.todayTimes.keys.contains("Sunrise") {
+            baseOrder = turkishOrder
+        } else if vm.showSunnahPrayers {
+            baseOrder = sunnahOrder
+        } else {
+            baseOrder = defaultOrder
+        }
         return baseOrder.filter { vm.todayTimes.keys.contains($0) }
     }
     var body: some View {
