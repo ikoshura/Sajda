@@ -64,5 +64,6 @@ playground.xcworkspace
 
 # Misc
 diff.txt
+*.profraw
 *.swp
 *~

@@ -31,7 +31,7 @@ struct AboutView: View {
             VStack(alignment: .leading, spacing: 6) {
                 Button(action: handleBackButton) {
                     HStack {
-                        Image(systemName: "chevron.left").font(.body.weight(.semibold))
+                        Image(systemName: vm.backChevron).font(.body.weight(.semibold))
                         Text("About Sajda Pro").font(.body).fontWeight(.bold)
                         Spacer()
                     }

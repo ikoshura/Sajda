@@ -30,7 +30,7 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
     @Published var todayTimes: [String: Date] = [:]
     @Published var nextPrayerName: String = ""
     @Published var countdown: String = "--:--"
-    @Published var locationStatusText: String = "Preparing prayer schedule..."
+    @Published var locationStatusText: String = NSLocalizedString("Preparing prayer schedule...", comment: "")
     @Published var authorizationStatus: CLAuthorizationStatus
     @Published var locationSearchQuery: String = ""
     @Published var locationSearchResults: [LocationSearchResult] = []
@@ -79,9 +79,12 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
     private var locationDisplayTimer: Timer?
     private var lastCalculationDate: Date?
     private var locationRequestTimeoutTask: DispatchWorkItem?
+    private var locationProgressUpdateTask: DispatchWorkItem?
     private var isAutomaticLocationUpdateActive = false
     private var preserveExistingAutomaticLocationOnFailure = false
-    private let automaticLocationTimeout: TimeInterval = 25
+    private var manualLocationFallbackForAutomaticSwitch: (name: String, coordinates: CLLocationCoordinate2D)?
+    private let automaticLocationProgressDelay: TimeInterval = 12
+    private let automaticLocationTimeout: TimeInterval = 45
     private let maximumCachedLocationAge: TimeInterval = 15 * 60
 
 
@@ -236,6 +239,20 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
             DispatchQueue.main.async {
                 self.updateAndDisplayTimes()
             }
+        } else if let automaticData = loadAutomaticLocation() {
+            logger.info("Loaded saved automatic location while refreshing provider in the background. Name: \(automaticData.name, privacy: .public)")
+            currentCoordinates = automaticData.coordinates
+            locationStatusText = automaticData.name
+            let location = CLLocation(latitude: automaticData.coordinates.latitude, longitude: automaticData.coordinates.longitude)
+            self.locationTimeZone = TimeZoneLocate.timeZoneWithLocation(location)
+            self.authorizationStatus = locMgr.authorizationStatus
+            DispatchQueue.main.async {
+                self.updateAndDisplayTimes()
+                self.requestAutomaticLocation(
+                    allowCachedLocation: false,
+                    preserveExistingLocationOnFailure: true
+                )
+            }
         } else {
             self.locationTimeZone = .current
             handleAuthorizationStatus(status: locMgr.authorizationStatus)
@@ -243,12 +260,18 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
     }
 
     private func loadManualLocation() -> (name: String, coordinates: CLLocationCoordinate2D)? { guard let data = UserDefaults.standard.dictionary(forKey: "manualLocationData"), let name = data["name"] as? String, let lat = data["latitude"] as? CLLocationDegrees, let lon = data["longitude"] as? CLLocationDegrees else { return nil }; return (name, CLLocationCoordinate2D(latitude: lat, longitude: lon)) }
+    private func loadAutomaticLocation() -> (name: String, coordinates: CLLocationCoordinate2D)? { guard let data = UserDefaults.standard.dictionary(forKey: "automaticLocationData"), let name = data["name"] as? String, let lat = data["latitude"] as? CLLocationDegrees, let lon = data["longitude"] as? CLLocationDegrees else { return nil }; return (name, CLLocationCoordinate2D(latitude: lat, longitude: lon)) }
+    private func saveAutomaticLocation(name: String, coordinates: CLLocationCoordinate2D) {
+        let data: [String: Any] = ["name": name, "latitude": coordinates.latitude, "longitude": coordinates.longitude]
+        UserDefaults.standard.set(data, forKey: "automaticLocationData")
+    }
+
     func switchToAutomaticLocation() {
         completeLocationRequest()
         logger.info("Switching from manual location to automatic location.")
 
+        manualLocationFallbackForAutomaticSwitch = loadManualLocation()
         isUsingManualLocation = false
-        UserDefaults.standard.removeObject(forKey: "manualLocationData")
 
         currentCoordinates = nil
         todayTimes = [:]
@@ -256,9 +279,11 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
         lastCalculationDate = nil
         locationInfoText = ""
         locationTimeZone = .current
-        locationStatusText = "Finding your location..."
+        locationStatusText = NSLocalizedString("Finding your location...", comment: "")
 
         if let cache = automaticLocationCache {
+            UserDefaults.standard.removeObject(forKey: "manualLocationData")
+            manualLocationFallbackForAutomaticSwitch = nil
             currentCoordinates = cache.coordinates
             locationStatusText = cache.name
             let location = CLLocation(latitude: cache.coordinates.latitude, longitude: cache.coordinates.longitude)
@@ -288,11 +313,14 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
     private func handleAutomaticLocation(_ location: CLLocation, source: String) {
         completeLocationRequest()
         preserveExistingAutomaticLocationOnFailure = false
+        manualLocationFallbackForAutomaticSwitch = nil
+        UserDefaults.standard.removeObject(forKey: "manualLocationData")
 
         let coordinates = location.coordinate
         let fallbackName = String(format: "Coord: %.2f, %.2f", coordinates.latitude, coordinates.longitude)
         locationTimeZone = TimeZoneLocate.timeZoneWithLocation(location)
         automaticLocationCache = (name: fallbackName, coordinates: coordinates)
+        saveAutomaticLocation(name: fallbackName, coordinates: coordinates)
         logger.info("Accepted \(source, privacy: .public) location. Accuracy: \(location.horizontalAccuracy, privacy: .public)m")
 
         if !isUsingManualLocation {
@@ -318,6 +346,7 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
                 let placemark = placemarks?.first
                 let locationName = placemark?.locality ?? placemark?.name ?? fallbackName
                 self.automaticLocationCache = (name: locationName, coordinates: coordinates)
+                self.saveAutomaticLocation(name: locationName, coordinates: coordinates)
                 self.logger.info("Reverse geocode resolved automatic location name: \(locationName, privacy: .public)")
 
                 if !self.isUsingManualLocation {
@@ -420,12 +449,12 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
             let formattedM = numberFormatter.string(from: NSNumber(value: m + 1)) ?? "\(m + 1)"
             if h > 0 {
                 let formattedH = numberFormatter.string(from: NSNumber(value: h)) ?? "\(h)"
-                countdown = "\(formattedH)h \(formattedM)m"
+                countdown = String(format: NSLocalizedString("countdown_hm", comment: ""), formattedH, formattedM)
             } else {
-                countdown = "\(formattedM)m"
+                countdown = String(format: NSLocalizedString("countdown_m", comment: ""), formattedM)
             }
         } else {
-            countdown = "Now"
+            countdown = NSLocalizedString("Now", comment: "")
             if adhanSound == .custom, let soundPath = customAdhanSoundPath.removingPercentEncoding, let soundURL = URL(string: soundPath), FileManager.default.fileExists(atPath: soundURL.path) {
                 adhanPlayer = NSSound(contentsOf: soundURL, byReference: true)
                 adhanPlayer?.play()
@@ -435,14 +464,16 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
         updateMenuTitle()
     }
 
-    func updateMenuTitle() { guard isPrayerDataAvailable else { self.menuTitle = NSAttributedString(string: "Sajda Pro"); return }; var textToShow = ""; let localizedPrayerName = NSLocalizedString(nextPrayerName, comment: ""); switch menuBarTextMode { case .hidden: textToShow = ""; case .countdown: if useMinimalMenuBarText { textToShow = "\(localizedPrayerName) -\(countdown)" } else { textToShow = String(format: NSLocalizedString("prayer_in_countdown", comment: ""), localizedPrayerName, countdown) }; case .exactTime: var nextPrayerDate: Date?; if nextPrayerName == "Fajr" && todayTimes["Fajr"] ?? Date() < Date() { nextPrayerDate = tomorrowFajrTime } else { nextPrayerDate = todayTimes[nextPrayerName] }; guard let nextDate = nextPrayerDate else { textToShow = "Sajda Pro"; break }; if useMinimalMenuBarText { textToShow = "\(localizedPrayerName) \(dateFormatter.string(from: nextDate))" } else { textToShow = String(format: NSLocalizedString("prayer_at_time", comment: ""), localizedPrayerName, dateFormatter.string(from: nextDate)) } }; let attributes: [NSAttributedString.Key: Any] = isPrayerImminent ? [.foregroundColor: NSColor.systemRed] : [:]; self.menuTitle = NSAttributedString(string: textToShow, attributes: attributes) }
+    func updateMenuTitle() { guard isPrayerDataAvailable else { self.menuTitle = NSAttributedString(string: "Sajda Pro"); return }; var textToShow = ""; let localizedPrayerName = NSLocalizedString(nextPrayerName, comment: ""); switch menuBarTextMode { case .hidden: textToShow = ""; case .countdown: if useMinimalMenuBarText { textToShow = String(format: NSLocalizedString("prayer_minimal_countdown", comment: ""), localizedPrayerName, countdown) } else { textToShow = String(format: NSLocalizedString("prayer_in_countdown", comment: ""), localizedPrayerName, countdown) }; case .exactTime: var nextPrayerDate: Date?; if nextPrayerName == "Fajr" && todayTimes["Fajr"] ?? Date() < Date() { nextPrayerDate = tomorrowFajrTime } else { nextPrayerDate = todayTimes[nextPrayerName] }; guard let nextDate = nextPrayerDate else { textToShow = "Sajda Pro"; break }; if useMinimalMenuBarText { textToShow = String(format: NSLocalizedString("prayer_minimal_exact", comment: ""), localizedPrayerName, dateFormatter.string(from: nextDate)) } else { textToShow = String(format: NSLocalizedString("prayer_at_time", comment: ""), localizedPrayerName, dateFormatter.string(from: nextDate)) } }; let attributes: [NSAttributedString.Key: Any] = isPrayerImminent ? [.foregroundColor: NSColor.systemRed] : [:]; self.menuTitle = NSAttributedString(string: textToShow, attributes: attributes) }
 
     var dateFormatter: DateFormatter {
         let formatter = DateFormatter()
         formatter.timeZone = self.locationTimeZone
         formatter.locale = Locale(identifier: languageManager.language)
-        if useMinimalMenuBarText {
-            formatter.dateFormat = use24HourFormat ? "H.mm" : "h.mm"
+        if use24HourFormat {
+            formatter.dateFormat = "HH:mm"
+        } else if useMinimalMenuBarText {
+            formatter.dateFormat = "h:mm"
         } else {
             formatter.timeStyle = .short
         }
@@ -468,6 +499,10 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
 
     func selectCustomAdhanSound() { let openPanel = NSOpenPanel(); openPanel.canChooseFiles = true; openPanel.canChooseDirectories = false; openPanel.allowsMultipleSelection = false; openPanel.allowedContentTypes = [.audio]; if openPanel.runModal() == .OK { self.customAdhanSoundPath = openPanel.url?.absoluteString ?? "" } }
     var isPrayerDataAvailable: Bool { !todayTimes.isEmpty }
+    var isRTL: Bool { languageManager.language == "ar" }
+    var backChevron: String { isRTL ? "chevron.right" : "chevron.left" }
+    var forwardChevron: String { isRTL ? "chevron.left" : "chevron.right" }
+    var forwardArrow: String { isRTL ? "arrow.left" : "arrow.right" }
 
     func startTimer() {
         timer?.invalidate()
@@ -491,12 +526,17 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
         case .authorized, .authorizedAlways:
             requestAutomaticLocation()
         case .denied, .restricted:
-            failAutomaticLocation("Location access denied.")
+            failAutomaticLocation(NSLocalizedString("Location access denied.", comment: ""))
         case .notDetermined:
+            if isRequestingLocation || isAutomaticLocationUpdateActive {
+                locationStatusText = NSLocalizedString("Requesting Permission...", comment: "")
+                logger.info("Location authorization is still not determined while a prompt/update request is active; keeping the request alive.")
+                return
+            }
             completeLocationRequest()
-            locationStatusText = "Location access needed"
+            locationStatusText = NSLocalizedString("Location access needed", comment: "")
         @unknown default:
-            failAutomaticLocation("Unsupported location permission state.")
+            failAutomaticLocation(NSLocalizedString("Unsupported location permission state.", comment: ""))
         }
     }
 
@@ -508,6 +548,7 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
 
         isUsingManualLocation = false
         UserDefaults.standard.removeObject(forKey: "manualLocationData")
+        manualLocationFallbackForAutomaticSwitch = nil
 
         if !shouldPreserveExistingLocation {
             currentCoordinates = nil
@@ -516,7 +557,7 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
             lastCalculationDate = nil
             locationInfoText = ""
             locationTimeZone = .current
-            locationStatusText = "Refreshing location..."
+            locationStatusText = NSLocalizedString("Refreshing location...", comment: "")
         }
 
         authorizationStatus = locMgr.authorizationStatus
@@ -530,9 +571,9 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
         case .notDetermined:
             requestLocationPermission()
         case .denied, .restricted:
-            failAutomaticLocation("Location access denied.", preserveExistingLocation: shouldPreserveExistingLocation)
+            failAutomaticLocation(NSLocalizedString("Location access denied.", comment: ""), preserveExistingLocation: shouldPreserveExistingLocation)
         @unknown default:
-            failAutomaticLocation("Unsupported location permission state.", preserveExistingLocation: shouldPreserveExistingLocation)
+            failAutomaticLocation(NSLocalizedString("Unsupported location permission state.", comment: ""), preserveExistingLocation: shouldPreserveExistingLocation)
         }
     }
 
@@ -549,9 +590,15 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
 
         guard servicesEnabled else {
             failAutomaticLocation(
-                "Location Services are off. Enable Location Services in System Settings or set location manually.",
+                NSLocalizedString("Location Services are off. Enable Location Services in System Settings or set location manually.", comment: ""),
                 preserveExistingLocation: preserveExistingLocationOnFailure
             )
+            return
+        }
+
+        if isAutomaticLocationUpdateActive {
+            preserveExistingAutomaticLocationOnFailure = preserveExistingAutomaticLocationOnFailure || preserveExistingLocationOnFailure
+            logger.info("Automatic CoreLocation request is already active; keeping existing update and timeout.")
             return
         }
 
@@ -571,13 +618,10 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
         }
 
         if currentCoordinates == nil {
-            locationStatusText = "Finding your location..."
+            locationStatusText = NSLocalizedString("Finding your location...", comment: "")
         }
         isRequestingLocation = true
 
-        if isAutomaticLocationUpdateActive {
-            locMgr.stopUpdatingLocation()
-        }
         isAutomaticLocationUpdateActive = true
 
         locationRequestTimeoutTask?.cancel()
@@ -586,12 +630,23 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
 
             self.logger.error("Automatic location timed out after \(self.automaticLocationTimeout, privacy: .public)s before CoreLocation returned a usable coordinate.")
             self.failAutomaticLocation(
-                "Location request timed out. Set location manually or check Wi-Fi and Location Services.",
+                NSLocalizedString("Location request timed out. Set location manually or check Wi-Fi and Location Services.", comment: ""),
                 preserveExistingLocation: preserveExistingLocationOnFailure
             )
         }
 
         locationRequestTimeoutTask = timeoutTask
+        let progressTask = DispatchWorkItem { [weak self] in
+            guard let self, !self.isUsingManualLocation, self.isAutomaticLocationUpdateActive else { return }
+            if self.currentCoordinates == nil {
+                self.locationStatusText = NSLocalizedString("Still finding your location...", comment: "")
+            }
+            self.logger.warning("Automatic location is still pending after \(self.automaticLocationProgressDelay, privacy: .public)s; keeping CoreLocation active until hard timeout.")
+        }
+        locationProgressUpdateTask = progressTask
+
+        logger.info("Scheduling automatic CoreLocation progress notice in \(self.automaticLocationProgressDelay, privacy: .public)s and timeout in \(self.automaticLocationTimeout, privacy: .public)s.")
+        DispatchQueue.main.asyncAfter(deadline: .now() + automaticLocationProgressDelay, execute: progressTask)
         DispatchQueue.main.asyncAfter(deadline: .now() + automaticLocationTimeout, execute: timeoutTask)
 
         logger.info("Starting continuous CoreLocation updates.")
@@ -602,6 +657,19 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
         completeLocationRequest()
 
         guard !isUsingManualLocation else { return }
+
+        if let fallback = manualLocationFallbackForAutomaticSwitch {
+            logger.error("Automatic location failed while switching from manual mode; restoring manual location \(fallback.name, privacy: .public).")
+            manualLocationFallbackForAutomaticSwitch = nil
+            preserveExistingAutomaticLocationOnFailure = false
+            isUsingManualLocation = true
+            currentCoordinates = fallback.coordinates
+            locationStatusText = fallback.name
+            let location = CLLocation(latitude: fallback.coordinates.latitude, longitude: fallback.coordinates.longitude)
+            locationTimeZone = TimeZoneLocate.timeZoneWithLocation(location)
+            updateAndDisplayTimes()
+            return
+        }
 
         if !preserveExistingLocation {
             currentCoordinates = nil
@@ -617,6 +685,8 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
     }
 
     private func completeLocationRequest() {
+        locationProgressUpdateTask?.cancel()
+        locationProgressUpdateTask = nil
         locationRequestTimeoutTask?.cancel()
         locationRequestTimeoutTask = nil
         if isAutomaticLocationUpdateActive {
@@ -654,7 +724,7 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
         if let clError = error as? CLError, clError.code == .locationUnknown {
             if isAutomaticLocationUpdateActive {
                 if currentCoordinates == nil {
-                    locationStatusText = "Still finding your location..."
+                    locationStatusText = NSLocalizedString("Still finding your location...", comment: "")
                 }
                 logger.warning("CoreLocation location is temporarily unknown; continuing continuous updates until timeout.")
                 return
@@ -666,7 +736,7 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
 
         if !isUsingManualLocation {
             failAutomaticLocation(
-                "Unable to determine location. Try setting it manually.",
+                NSLocalizedString("Unable to determine location. Try setting it manually.", comment: ""),
                 preserveExistingLocation: shouldPreserveExistingLocation
             )
         }
@@ -675,8 +745,12 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
     func requestLocationPermission() {
         if authorizationStatus == .notDetermined {
             isRequestingLocation = true
-            logger.info("Requesting when-in-use location authorization.")
-            DispatchQueue.main.async { self.locMgr.requestWhenInUseAuthorization() }
+            locationStatusText = NSLocalizedString("Requesting Permission...", comment: "")
+            logger.info("Requesting when-in-use location authorization and starting location updates to trigger the macOS prompt.")
+            DispatchQueue.main.async {
+                self.locMgr.requestWhenInUseAuthorization()
+                self.requestAutomaticLocation(allowCachedLocation: false)
+            }
         } else {
             handleAuthorizationStatus(status: locMgr.authorizationStatus)
         }

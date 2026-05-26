@@ -24,7 +24,7 @@ struct SystemAndNotificationsSettingsView: View {
                     navigationModel.hideView(SettingsView.id, animation: vm.backwardAnimation())
                 }) {
                     HStack {
-                        Image(systemName: "chevron.left").font(.body.weight(.semibold))
+                        Image(systemName: vm.backChevron).font(.body.weight(.semibold))
                         Text("System & Notifications").font(.body).fontWeight(.bold)
                         Spacer()
                     }
@@ -64,7 +64,7 @@ struct SystemAndNotificationsSettingsView: View {
                             StyledToggle(label: "Prayer Notifications", isOn: $vm.isNotificationsEnabled)
 
                             VStack(alignment: .leading, spacing: 10) {
-                                HStack { Text("Notification Sound").font(.subheadline); Spacer(); Picker("", selection: $vm.adhanSound) { ForEach(AdhanSound.allCases) { sound in Text(sound.rawValue).tag(sound) } }.fixedSize() }
+                                HStack { Text("Notification Sound").font(.subheadline); Spacer(); Picker("", selection: $vm.adhanSound) { ForEach(AdhanSound.allCases) { sound in Text(LocalizedStringKey(sound.rawValue)).tag(sound) } }.fixedSize() }
                                 if vm.adhanSound == .custom {
                                     HStack { Text("Custom File").font(.subheadline); Spacer(); Button("Browse...") { vm.selectCustomAdhanSound() } }
                                     Text(URL(string: vm.customAdhanSoundPath)?.lastPathComponent ?? NSLocalizedString("No file selected", comment: ""))

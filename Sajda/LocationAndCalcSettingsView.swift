@@ -22,7 +22,7 @@ struct LocationAndCalcSettingsView: View {
                     navigationModel.hideView(SettingsView.id, animation: vm.backwardAnimation())
                 }) {
                     HStack {
-                        Image(systemName: "chevron.left").font(.body.weight(.semibold))
+                        Image(systemName: vm.backChevron).font(.body.weight(.semibold))
                         Text("Calculation & Location").font(.body).fontWeight(.bold)
                         Spacer()
                     }
