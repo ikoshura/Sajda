@@ -16,6 +16,10 @@
 /* New Onboarding Strings */
 "Requesting Permission..." = "Requesting Permission...";
 "Skip for now" = "Skip for now";
+"Current location: %@" = "Current location: %@";
+"Finding your location..." = "Finding your location...";
+"Refreshing location..." = "Refreshing location...";
+"Resolving city..." = "Resolving city...";
 "Animation Style" = "Animation Style";
 "None" = "None";
 "Fade" = "Fade";

@@ -16,6 +16,10 @@
 /* New Onboarding Strings */
 "Requesting Permission..." = "جارٍ طلب الإذن...";
 "Skip for now" = "تخطٍ في الوقت الحالي";
+"Current location: %@" = "الموقع الحالي: %@";
+"Finding your location..." = "جارٍ تحديد موقعك...";
+"Refreshing location..." = "جارٍ تحديث الموقع...";
+"Resolving city..." = "جارٍ تحديد المدينة...";
 "Animation Style" = "نمط التحريك";
 "None" = "بدون";
 "Fade" = "تلاشي";
