@@ -34,15 +34,27 @@ struct OnboardingView: View {
     }
 
     private var automaticLocationTitle: String {
-        if vm.isRequestingLocation && !vm.isPrayerDataAvailable {
+        if vm.isRequestingLocation && vm.isPrayerDataAvailable {
+            return NSLocalizedString("Refreshing location...", comment: "")
+        }
+
+        if vm.isRequestingLocation {
             return NSLocalizedString("Finding your location...", comment: "")
         }
 
-        return NSLocalizedString("Location access is enabled.", comment: "")
+        if vm.isPrayerDataAvailable {
+            return NSLocalizedString("Location access is enabled.", comment: "")
+        }
+
+        return NSLocalizedString("Location needs attention", comment: "")
     }
 
     private var automaticLocationStatusColor: Color {
-        vm.isRequestingLocation ? .accentColor : .green
+        if vm.isRequestingLocation {
+            return .accentColor
+        }
+
+        return vm.isPrayerDataAvailable ? .green : .orange
     }
 
     var body: some View {
@@ -163,7 +175,7 @@ struct OnboardingView: View {
     private var automaticLocationStatusView: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .center, spacing: 10) {
-                Image(systemName: vm.isPrayerDataAvailable ? "checkmark.circle.fill" : "location.circle.fill")
+                Image(systemName: vm.isPrayerDataAvailable ? "checkmark.circle.fill" : (vm.isRequestingLocation ? "location.circle.fill" : "exclamationmark.triangle.fill"))
                     .font(.system(size: 16, weight: .semibold))
                     .foregroundColor(automaticLocationStatusColor)
                     .frame(width: 18, height: 18)
@@ -239,7 +251,7 @@ struct LocationRefreshButton: View {
         .background(isHovering ? Color("HoverColor") : .clear)
         .cornerRadius(4)
         .opacity(isDisabled && !isRefreshing ? 0.45 : 1)
-        .help("Refresh Location")
+        .help(Text("Refresh Location"))
         .accessibilityLabel(Text("Refresh Location"))
         .onHover { hovering in
             isHovering = hovering
