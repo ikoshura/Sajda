@@ -33,7 +33,6 @@
 		CC969C8A2E60857E00C8630A /* SajdaTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC969C892E60857E00C8630A /* SajdaTests.swift */; };
 		CC969C942E60857E00C8630A /* SajdaUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC969C932E60857E00C8630A /* SajdaUITests.swift */; };
 		CC969C962E60857E00C8630A /* SajdaUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC969C952E60857E00C8630A /* SajdaUITestsLaunchTests.swift */; };
-		CC969CA32E6085F200C8630A /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = CC969CA22E6085F200C8630A /* Info.plist */; };
 		CC969CA72E60989F00C8630A /* PrayerTimeViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC969CA62E60989F00C8630A /* PrayerTimeViewModel.swift */; };
 		CC969CA92E6098C600C8630A /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC969CA82E6098C500C8630A /* SettingsView.swift */; };
 		CC9C2F012E61385B00BAE49A /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC9C2F002E61385B00BAE49A /* AppDelegate.swift */; };
@@ -389,7 +388,6 @@
 				CC786E5D2E636A58007299F3 /* timezones.json in Resources */,
 				CC969C7F2E60857D00C8630A /* Preview Assets.xcassets in Resources */,
 				CC969C7C2E60857D00C8630A /* Assets.xcassets in Resources */,
-				CC969CA32E6085F200C8630A /* Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -635,11 +633,13 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSLocationUsageDescription = "Sajda needs your location to accurately calculate prayer times.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Sajda needs your location to accurately calculate prayer times.";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 3.1;
+				MARKETING_VERSION = 3.1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.madda.Sajda;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -665,11 +665,13 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSLocationUsageDescription = "Sajda needs your location to accurately calculate prayer times.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Sajda needs your location to accurately calculate prayer times.";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 3.1;
+				MARKETING_VERSION = 3.1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.madda.Sajda;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -803,8 +805,8 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/batoulapps/adhan-swift";
 			requirement = {
-				branch = main;
-				kind = branch;
+				kind = revision;
+				revision = 127280c27c303f7898f59070580f4789a75df628;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
