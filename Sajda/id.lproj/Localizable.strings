@@ -16,6 +16,10 @@
 /* New Onboarding Strings */
 "Requesting Permission..." = "Meminta Izin...";
 "Skip for now" = "Lewati untuk saat ini";
+"Current location: %@" = "Lokasi saat ini: %@";
+"Finding your location..." = "Mencari lokasi Anda...";
+"Refreshing location..." = "Memperbarui lokasi...";
+"Resolving city..." = "Mencari nama kota...";
 "Animation Style" = "Gaya Animasi";
 "None" = "Tidak Ada";
 "Fade" = "Memudar";
