@@ -30,8 +30,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
         // --- PERBAIKAN UNTUK BUG WAKE-FROM-SLEEP ---
         // Menambahkan observer untuk mendeteksi saat Mac bangun dari mode sleep.
         NSWorkspace.shared.notificationCenter.addObserver(self, selector: #selector(systemDidWake), name: NSWorkspace.didWakeNotification, object: nil)
-        
-        NSApp.run()
     }
     
     // --- FUNGSI BARU UNTUK MENANGANI WAKE-FROM-SLEEP ---
