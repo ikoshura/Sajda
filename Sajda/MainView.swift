@@ -159,6 +159,8 @@ struct PermissionRequestView: View {
                     Text("Requesting Permission...").font(.caption).foregroundColor(.secondary)
                 } else if vm.authorizationStatus == .denied {
                     Button("Open System Settings", action: vm.openLocationSettings).buttonStyle(.borderedProminent).controlSize(.regular)
+                } else if vm.authorizationStatus == .authorized {
+                    Button("Retry Location", action: vm.retryLocation).buttonStyle(.borderedProminent).controlSize(.regular)
                 } else {
                     Button("Allow Location Access", action: vm.requestLocationPermission).buttonStyle(.borderedProminent).controlSize(.regular)
                 }

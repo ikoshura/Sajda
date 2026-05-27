@@ -86,6 +86,7 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
         self.authorizationStatus = locMgr.authorizationStatus
         super.init()
         locMgr.delegate = self
+        locMgr.desiredAccuracy = kCLLocationAccuracyHundredMeters
         startTimer()
         setupSearchPublisher()
     }
@@ -194,7 +195,7 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
     
     private func loadManualLocation() -> (name: String, coordinates: CLLocationCoordinate2D)? { guard let data = UserDefaults.standard.dictionary(forKey: "manualLocationData"), let name = data["name"] as? String, let lat = data["latitude"] as? CLLocationDegrees, let lon = data["longitude"] as? CLLocationDegrees else { return nil }; return (name, CLLocationCoordinate2D(latitude: lat, longitude: lon)) }
     func switchToAutomaticLocation() { isUsingManualLocation = false; UserDefaults.standard.removeObject(forKey: "manualLocationData"); if let cache = automaticLocationCache { currentCoordinates = cache.coordinates; locationStatusText = cache.name; updateAndDisplayTimes() } else { handleAuthorizationStatus(status: locMgr.authorizationStatus) } }
-    func locationManager(_ manager: CLLocationManager, didUpdateLocations locs: [CLLocation]) { guard let location = locs.last else { return }; let geocoder = CLGeocoder(); geocoder.reverseGeocodeLocation(location) { (placemarks, _) in DispatchQueue.main.async { guard let locality = placemarks?.first?.locality else { self.isRequestingLocation = false; return }; self.automaticLocationCache = (name: locality, coordinates: location.coordinate); if !self.isUsingManualLocation { self.currentCoordinates = location.coordinate; self.locationStatusText = locality; self.updateAndDisplayTimes() }; if self.isRequestingLocation { self.isRequestingLocation = false } } } }
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locs: [CLLocation]) { locMgr.stopUpdatingLocation(); guard let location = locs.last else { return }; if !self.isUsingManualLocation { self.currentCoordinates = location.coordinate; self.updateAndDisplayTimes() }; let geocoder = CLGeocoder(); geocoder.reverseGeocodeLocation(location) { (placemarks, error) in DispatchQueue.main.async { let locality = placemarks?.first?.locality ?? String(format: "%.2f, %.2f", location.coordinate.latitude, location.coordinate.longitude); self.automaticLocationCache = (name: locality, coordinates: location.coordinate); if !self.isUsingManualLocation { self.locationStatusText = locality }; if self.isRequestingLocation { self.isRequestingLocation = false } } } }
     private func updateAndDisplayTimes() { updatePrayerTimes(); if isUsingManualLocation { startLocationDisplayTimer() } else { stopLocationDisplayTimer() } }
     
     func updatePrayerTimes() {
@@ -352,15 +353,26 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
         }
     }
     
-    private func handleAuthorizationStatus(status: CLAuthorizationStatus) { self.authorizationStatus = status; switch status { case .authorized: if automaticLocationCache == nil { locationStatusText = "Fetching Location..." }; locMgr.requestLocation(); case .denied, .restricted: locationStatusText = "Location access denied."; isRequestingLocation = false; todayTimes = [:]; case .notDetermined: isRequestingLocation = false; locationStatusText = "Location access needed"; @unknown default: isRequestingLocation = false; break } }
+    private func handleAuthorizationStatus(status: CLAuthorizationStatus) { self.authorizationStatus = status; switch status { case .authorized: self.isRequestingLocation = false; if automaticLocationCache == nil { locationStatusText = "Fetching Location..." }; DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in guard let self = self else { return }; self.locMgr.startUpdatingLocation(); DispatchQueue.main.asyncAfter(deadline: .now() + 15) { [weak self] in guard let self = self, !self.isPrayerDataAvailable else { return }; self.locMgr.stopUpdatingLocation(); self.locMgr.requestLocation() } }; case .denied, .restricted: locationStatusText = "Location access denied."; isRequestingLocation = false; todayTimes = [:]; case .notDetermined: isRequestingLocation = false; locationStatusText = "Location access needed"; @unknown default: isRequestingLocation = false; break } }
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) { if !isUsingManualLocation { handleAuthorizationStatus(status: manager.authorizationStatus) } }
     
     // --- PERBAIKAN TYPO DI SINI ---
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
-        self.isRequestingLocation = false
-        self.locationStatusText = "Unable to determine location."
+        locMgr.stopUpdatingLocation()
+        let clError = error as? CLError
+        if clError?.code == .denied {
+            self.isRequestingLocation = false
+            self.locationStatusText = "Location access denied."
+        } else {
+            self.locationStatusText = "Retrying location..."
+            DispatchQueue.main.asyncAfter(deadline: .now() + 3) { [weak self] in
+                guard let self = self, self.authorizationStatus == .authorized else { return }
+                self.locMgr.startUpdatingLocation()
+            }
+        }
     }
     
     func requestLocationPermission() { if authorizationStatus == .notDetermined { isRequestingLocation = true; DispatchQueue.main.async { self.locMgr.requestWhenInUseAuthorization() } } }
+    func retryLocation() { if authorizationStatus == .authorized { locationStatusText = "Fetching Location..."; locMgr.stopUpdatingLocation(); DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { self.locMgr.startUpdatingLocation() } } else { requestLocationPermission() } }
     func openLocationSettings() { guard let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_LocationServices") else { return }; NSWorkspace.shared.open(url) }
 }
