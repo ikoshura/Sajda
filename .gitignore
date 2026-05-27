@@ -1,0 +1,32 @@
+# Xcode
+*.xcodeproj/xcuserdata/
+*.xcodeproj/project.xcworkspace/xcuserdata/
+*.xcuserstate
+xcuserdata/
+
+# Build artifacts
+DerivedData/
+build/
+*.xcarchive
+*.dSYM/
+
+# macOS
+.DS_Store
+
+# AI config (private)
+.claude/
+
+# Swift Package Manager
+.swiftpm/xcode/xcuserdata/
+.build/
+
+# CocoaPods
+Pods/
+
+# Misc
+*.swp
+*~
+*.moved-aside
+*.hmap
+*.ipa
+*.dSYM.zip
