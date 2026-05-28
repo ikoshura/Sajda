@@ -62,6 +62,9 @@ playground.xcworkspace
 *.pem
 *.key
 
+# AI tooling
+.claude/
+
 # Misc
 diff.txt
 *.profraw
