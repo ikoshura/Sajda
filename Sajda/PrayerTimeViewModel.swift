@@ -56,8 +56,9 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
     @AppStorage("asrCorrection") var asrCorrection: Double = 0 { didSet { updatePrayerTimes() } }
     @AppStorage("maghribCorrection") var maghribCorrection: Double = 0 { didSet { updatePrayerTimes() } }
     @AppStorage("ishaCorrection") var ishaCorrection: Double = 0 { didSet { updatePrayerTimes() } }
-    @AppStorage("adhanSound") var adhanSound: AdhanSound = .defaultBeep { didSet { updateNotifications() } }
+    @AppStorage("adhanSound") var adhanSound: String = "Default Beep" { didSet { updateNotifications() } }
     @AppStorage("customAdhanSoundPath") var customAdhanSoundPath: String = "" { didSet { updateNotifications() } }
+    @AppStorage("prayerSoundConfigs") var prayerSoundConfigsJSON: String = "{}" { didSet { updateNotifications() } }
 
     @Published var menuBarTextMode: MenuBarTextMode {
         didSet {
@@ -72,7 +73,6 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
     private var cancellables = Set<AnyCancellable>()
     private let locMgr = CLLocationManager()
     private var timer: Timer?
-    private var adhanPlayer: NSSound?
     private var locationTimeZone: TimeZone = .current
     private var locationDisplayTimer: Timer?
     private var lastCalculationDate: Date?
@@ -85,12 +85,29 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
         self.menuBarTextMode = MenuBarTextMode(rawValue: savedTextMode ?? "") ?? .countdown
         self.authorizationStatus = locMgr.authorizationStatus
         super.init()
+        migratePrayerSoundConfigs()
         locMgr.delegate = self
         locMgr.desiredAccuracy = kCLLocationAccuracyHundredMeters
         startTimer()
         setupSearchPublisher()
     }
     
+    private func migratePrayerSoundConfigs() {
+        guard prayerSoundConfigsJSON == "{}", adhanSound != "Default Beep" else { return }
+        let allPrayers = ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha", "Tahajud", "Dhuha"]
+        var configs: [String: PrayerSoundConfig] = [:]
+        let newType: AdhanType
+        switch adhanSound {
+        case "None": newType = .none
+        case "Custom Sound": newType = .custom
+        default: newType = .defaultBeep
+        }
+        for prayer in allPrayers {
+            configs[prayer] = PrayerSoundConfig(adhanType: newType, customFilePath: customAdhanSoundPath)
+        }
+        prayerSoundConfigs = configs
+    }
+
     func forwardAnimation() -> NavigationAnimation? {
         switch animationType {
         case .none: return nil
@@ -200,8 +217,9 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
     
     func updatePrayerTimes() {
         guard let coord = currentCoordinates else { return }
-        
+
         lastCalculationDate = Date()
+        AdhanAudioPlayer.shared.resetPlayedPrayers()
         
         var locationCalendar = Calendar(identifier: .gregorian); locationCalendar.timeZone = self.locationTimeZone
         let todayInLocation = locationCalendar.dateComponents([.year, .month, .day], from: Date())
@@ -296,10 +314,8 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
             }
         } else {
             countdown = "Now"
-            if adhanSound == .custom, let soundPath = customAdhanSoundPath.removingPercentEncoding, let soundURL = URL(string: soundPath), FileManager.default.fileExists(atPath: soundURL.path) {
-                adhanPlayer = NSSound(contentsOf: soundURL, byReference: true)
-                adhanPlayer?.play()
-            }
+            let config = soundConfig(for: nextPrayerName)
+            AdhanAudioPlayer.shared.play(adhanType: config.adhanType, customFilePath: config.customFilePath, prayerName: nextPrayerName)
             DispatchQueue.main.asyncAfter(deadline: .now() + 2) { self.updateNextPrayer() }
         }
         updateMenuTitle()
@@ -333,10 +349,33 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
             if todayTimes.keys.contains("Tahajud") { prayersToNotify.append("Tahajud") }
             if todayTimes.keys.contains("Dhuha") { prayersToNotify.append("Dhuha") }
         }
-        NotificationManager.scheduleNotifications(for: todayTimes, prayerOrder: prayersToNotify, adhanSound: self.adhanSound, customSoundPath: self.customAdhanSoundPath)
+        NotificationManager.scheduleNotifications(for: todayTimes, prayerOrder: prayersToNotify, prayerConfigs: prayerSoundConfigs)
     }
     
     func selectCustomAdhanSound() { let openPanel = NSOpenPanel(); openPanel.canChooseFiles = true; openPanel.canChooseDirectories = false; openPanel.allowsMultipleSelection = false; openPanel.allowedContentTypes = [.audio]; if openPanel.runModal() == .OK { self.customAdhanSoundPath = openPanel.url?.absoluteString ?? "" } }
+
+    var prayerSoundConfigs: [String: PrayerSoundConfig] {
+        get {
+            guard let data = prayerSoundConfigsJSON.data(using: .utf8),
+                  let dict = try? JSONDecoder().decode([String: PrayerSoundConfig].self, from: data)
+            else { return [:] }
+            return dict
+        }
+        set {
+            guard let data = try? JSONEncoder().encode(newValue) else { return }
+            prayerSoundConfigsJSON = String(data: data, encoding: .utf8) ?? "{}"
+        }
+    }
+
+    func soundConfig(for prayerName: String) -> PrayerSoundConfig {
+        prayerSoundConfigs[prayerName] ?? PrayerSoundConfig()
+    }
+
+    func setSoundConfig(_ config: PrayerSoundConfig, for prayerName: String) {
+        var configs = prayerSoundConfigs
+        configs[prayerName] = config
+        prayerSoundConfigs = configs
+    }
     var isPrayerDataAvailable: Bool { !todayTimes.isEmpty }
     
     func startTimer() {

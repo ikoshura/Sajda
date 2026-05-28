@@ -20,3 +20,16 @@
 "None" = "بدون";
 "Fade" = "تلاشي";
 "Slide" = "انزلاق";
+
+/* Azan Settings */
+"Azan Sound" = "صوت الأذان";
+"All Prayers" = "كل الصلوات";
+"Apply" = "تطبيق";
+"none" = "بدون";
+"defaultBeep" = "صوت افتراضي";
+"fajrAzan1" = "أذان الفجر ١";
+"fajrAzan2" = "أذان الفجر ٢";
+"standardAzan1" = "أذان عادي ١";
+"standardAzan2" = "أذان عادي ٢";
+"standardAzan3" = "أذان عادي ٣";
+"custom" = "صوت مخصص";

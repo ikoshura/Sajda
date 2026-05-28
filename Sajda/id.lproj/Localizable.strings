@@ -20,3 +20,16 @@
 "None" = "Tidak Ada";
 "Fade" = "Memudar";
 "Slide" = "Geser";
+
+/* Azan Settings */
+"Azan Sound" = "Suara Azan";
+"All Prayers" = "Semua Shalat";
+"Apply" = "Terapkan";
+"none" = "Tidak Ada";
+"defaultBeep" = "Bawaan";
+"fajrAzan1" = "Azan Subuh 1";
+"fajrAzan2" = "Azan Subuh 2";
+"standardAzan1" = "Azan Standar 1";
+"standardAzan2" = "Azan Standar 2";
+"standardAzan3" = "Azan Standar 3";
+"custom" = "Suara Kustom";

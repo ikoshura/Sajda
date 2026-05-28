@@ -1,5 +1,3 @@
-// MARK: - GANTI SELURUH FILE: SystemAndNotificationsSettingsView.swift
-
 import SwiftUI
 import NavigationStack
 
@@ -8,9 +6,10 @@ struct SystemAndNotificationsSettingsView: View {
 
     @EnvironmentObject var vm: PrayerTimeViewModel
     @EnvironmentObject var navigationModel: NavigationModel
-    
+
     @AppStorage("launchAtLogin") private var launchAtLogin = false
     @State private var isHeaderHovering = false
+    @State private var isAzanHovering = false
 
     private var viewWidth: CGFloat {
         return vm.useCompactLayout ? 220 : 260
@@ -30,7 +29,7 @@ struct SystemAndNotificationsSettingsView: View {
                     .padding(.vertical, 5).padding(.horizontal, 8)
                     .background(isHeaderHovering ? Color("HoverColor") : .clear).cornerRadius(5)
                 }.buttonStyle(.plain).padding(.horizontal, 5).padding(.top, 2).onHover { hovering in isHeaderHovering = hovering }
-                
+
                 Rectangle()
                     .fill(Color("DividerColor"))
                     .frame(height: 0.5)
@@ -41,8 +40,7 @@ struct SystemAndNotificationsSettingsView: View {
                         Group {
                             Text("System").font(.caption).foregroundColor(Color("SecondaryTextColor"))
                             StyledToggle(label: "Run at Login", isOn: $launchAtLogin)
-                            
-                            // --- PENGGANTIAN TOGGLE DENGAN PICKER ---
+
                             HStack {
                                 Text("Animation Style").font(.subheadline)
                                 Spacer()
@@ -57,21 +55,28 @@ struct SystemAndNotificationsSettingsView: View {
                         Rectangle()
                             .fill(Color("DividerColor"))
                             .frame(height: 0.5)
-                        
+
                         Group {
                             Text("Notifications").font(.caption).foregroundColor(Color("SecondaryTextColor"))
                             StyledToggle(label: "Prayer Notifications", isOn: $vm.isNotificationsEnabled)
-                            
-                            VStack(alignment: .leading, spacing: 10) {
-                                HStack { Text("Notification Sound").font(.subheadline); Spacer(); Picker("", selection: $vm.adhanSound) { ForEach(AdhanSound.allCases) { sound in Text(sound.rawValue).tag(sound) } }.fixedSize() }
-                                if vm.adhanSound == .custom {
-                                    HStack { Text("Custom File").font(.subheadline); Spacer(); Button("Browse...") { vm.selectCustomAdhanSound() } }
-                                    Text(URL(string: vm.customAdhanSoundPath)?.lastPathComponent ?? NSLocalizedString("No file selected", comment: ""))
-                                        .font(.caption)
-                                        .foregroundColor(Color("SecondaryTextColor"))
-                                        .frame(maxWidth: .infinity, alignment: .trailing)
+
+                            Button(action: {
+                                navigationModel.showView(Self.id, animation: vm.forwardAnimation()) { AzanSettingsView() }
+                            }) {
+                                HStack {
+                                    Text("Azan Sound").font(.subheadline)
+                                    Spacer()
+                                    Image(systemName: "chevron.right")
+                                        .font(.caption.weight(.bold))
+                                        .foregroundColor(.secondary)
                                 }
-                            }.disabled(!vm.isNotificationsEnabled)
+                                .padding(.vertical, 5).padding(.horizontal, 8)
+                                .background(isAzanHovering ? Color("HoverColor") : .clear)
+                                .cornerRadius(5)
+                            }
+                            .buttonStyle(.plain)
+                            .onHover { hovering in isAzanHovering = hovering }
+                            .disabled(!vm.isNotificationsEnabled)
                         }
                     }
                     .controlSize(.small)

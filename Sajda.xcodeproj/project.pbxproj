@@ -56,6 +56,13 @@
 		CCED21862E65F9770066D0EB /* NavigationAnimation+Custom.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCED21852E65F9770066D0EB /* NavigationAnimation+Custom.swift */; };
 		CCED21882E65FE650066D0EB /* AnimationType.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCED21872E65FE650066D0EB /* AnimationType.swift */; };
 		CCFD21DA2E62BEEB00A80402 /* PrayerTimeCorrectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCFD21D92E62BEEB00A80402 /* PrayerTimeCorrectionView.swift */; };
+		A1B3068783F31CB16A0B04E4 /* AdhanAudioPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B220C2AC258F390A192FF3 /* AdhanAudioPlayer.swift */; };
+		A1B31A00F8BE4170E2A4ED1E /* AzanSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B208BFAD847F8447BD71FA /* AzanSettingsView.swift */; };
+			39B248740F3F44C79F7C58DB /* adhan_fajr_1.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 614E52E4530544649D5E23A5 /* adhan_fajr_1.mp3 */; };
+			A701CB0D56524D99966EEEF5 /* adhan_fajr_2.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 8EC21837D56C444099321269 /* adhan_fajr_2.mp3 */; };
+			2EE3E0D407EE44B9B54CB95F /* adhan_standard_1.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 3CCC0D3788264DEB8A04D9F0 /* adhan_standard_1.mp3 */; };
+			A968AFE0EEF74D1AAB38A901 /* adhan_standard_2.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 6EC09AE0F1AF49579B0CC328 /* adhan_standard_2.mp3 */; };
+			BC9BB43FAE8D4823A2C04723 /* adhan_standard_3.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = C4AEE64F5AD1475988135E94 /* adhan_standard_3.mp3 */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -129,6 +136,13 @@
 		CCED21852E65F9770066D0EB /* NavigationAnimation+Custom.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NavigationAnimation+Custom.swift"; sourceTree = "<group>"; };
 		CCED21872E65FE650066D0EB /* AnimationType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnimationType.swift; sourceTree = "<group>"; };
 		CCFD21D92E62BEEB00A80402 /* PrayerTimeCorrectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrayerTimeCorrectionView.swift; sourceTree = "<group>"; };
+		A1B220C2AC258F390A192FF3 /* AdhanAudioPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdhanAudioPlayer.swift; sourceTree = "<group>"; };
+		A1B208BFAD847F8447BD71FA /* AzanSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AzanSettingsView.swift; sourceTree = "<group>"; };
+			614E52E4530544649D5E23A5 /* adhan_fajr_1.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = adhan_fajr_1.mp3; path = adhan_fajr_1.mp3; sourceTree = "<group>"; };
+			8EC21837D56C444099321269 /* adhan_fajr_2.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = adhan_fajr_2.mp3; path = adhan_fajr_2.mp3; sourceTree = "<group>"; };
+			3CCC0D3788264DEB8A04D9F0 /* adhan_standard_1.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = adhan_standard_1.mp3; path = adhan_standard_1.mp3; sourceTree = "<group>"; };
+			6EC09AE0F1AF49579B0CC328 /* adhan_standard_2.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = adhan_standard_2.mp3; path = adhan_standard_2.mp3; sourceTree = "<group>"; };
+			C4AEE64F5AD1475988135E94 /* adhan_standard_3.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = adhan_standard_3.mp3; path = adhan_standard_3.mp3; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -191,6 +205,7 @@
 			isa = PBXGroup;
 			children = (
 				CC786E592E6369EA007299F3 /* TimeZoneLocate */,
+				8AA22B02554C4B9D85933DAF /* Audio */,
 				CC969C772E60857A00C8630A /* SajdaApp.swift */,
 				CC969C792E60857A00C8630A /* ContentView.swift */,
 				CCE1BA442E6198C1003AF03C /* ManualLocationView.swift */,
@@ -229,7 +244,9 @@
 				CCED21872E65FE650066D0EB /* AnimationType.swift */,
 				CC4659602E661CC400159A83 /* TextFieldStepper.swift */,
 				CC4659642E6629C000159A83 /* SajdaStepper.swift */,
-			);
+			
+				A1B220C2AC258F390A192FF3 /* AdhanAudioPlayer.swift */,
+				A1B208BFAD847F8447BD71FA /* AzanSettingsView.swift */,);
 			path = Sajda;
 			sourceTree = "<group>";
 		};
@@ -271,6 +288,18 @@
 			path = FluidMenuBar;
 			sourceTree = "<group>";
 		};
+			8AA22B02554C4B9D85933DAF /* Audio */ = {
+				isa = PBXGroup;
+				children = (
+				614E52E4530544649D5E23A5 /* adhan_fajr_1.mp3 */,
+				8EC21837D56C444099321269 /* adhan_fajr_2.mp3 */,
+				3CCC0D3788264DEB8A04D9F0 /* adhan_standard_1.mp3 */,
+				6EC09AE0F1AF49579B0CC328 /* adhan_standard_2.mp3 */,
+				C4AEE64F5AD1475988135E94 /* adhan_standard_3.mp3 */,
+				);
+				path = Resources/Audio;
+				sourceTree = "<group>";
+			};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -390,6 +419,11 @@
 				CC969C7F2E60857D00C8630A /* Preview Assets.xcassets in Resources */,
 				CC969C7C2E60857D00C8630A /* Assets.xcassets in Resources */,
 				CC969CA32E6085F200C8630A /* Info.plist in Resources */,
+				39B248740F3F44C79F7C58DB /* adhan_fajr_1.mp3 in Resources */,
+				A701CB0D56524D99966EEEF5 /* adhan_fajr_2.mp3 in Resources */,
+				2EE3E0D407EE44B9B54CB95F /* adhan_standard_1.mp3 in Resources */,
+				A968AFE0EEF74D1AAB38A901 /* adhan_standard_2.mp3 in Resources */,
+				BC9BB43FAE8D4823A2C04723 /* adhan_standard_3.mp3 in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -453,7 +487,9 @@
 				CCE1BA3B2E61852B003AF03C /* RootViewModifier.swift in Sources */,
 				CC786E522E6353F1007299F3 /* ManualLocationSheetView.swift in Sources */,
 				CC786E562E635ADA007299F3 /* AlertWindowManager.swift in Sources */,
-			);
+			
+				A1B3068783F31CB16A0B04E4 /* AdhanAudioPlayer.swift in Sources */,
+				A1B31A00F8BE4170E2A4ED1E /* AzanSettingsView.swift in Sources */,);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		CC969C812E60857E00C8630A /* Sources */ = {

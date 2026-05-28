@@ -20,3 +20,16 @@
 "None" = "None";
 "Fade" = "Fade";
 "Slide" = "Slide";
+
+/* Azan Settings */
+"Azan Sound" = "Azan Sound";
+"All Prayers" = "All Prayers";
+"Apply" = "Apply";
+"none" = "None";
+"defaultBeep" = "Default Beep";
+"fajrAzan1" = "Fajr Azan 1";
+"fajrAzan2" = "Fajr Azan 2";
+"standardAzan1" = "Standard Azan 1";
+"standardAzan2" = "Standard Azan 2";
+"standardAzan3" = "Standard Azan 3";
+"custom" = "Custom Sound";

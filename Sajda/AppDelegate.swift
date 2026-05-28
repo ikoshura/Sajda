@@ -3,8 +3,9 @@
 import SwiftUI
 import Combine
 import NavigationStack
+import UserNotifications
 
-class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDelegate {
+class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDelegate, UNUserNotificationCenterDelegate {
     let vm = PrayerTimeViewModel()
     let languageManager = LanguageManager()
     
@@ -16,7 +17,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         Bundle.setLanguage(languageManager.language)
-        
+
+        UNUserNotificationCenter.current().delegate = self
+
         setupMenuBar()
         vm.startLocationProcess()
 
@@ -41,6 +44,13 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
         }
     }
     
+    func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+        let prayerName = notification.request.identifier
+        let config = vm.soundConfig(for: prayerName)
+        AdhanAudioPlayer.shared.play(adhanType: config.adhanType, customFilePath: config.customFilePath, prayerName: prayerName)
+        completionHandler([.banner, .sound])
+    }
+
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         return false
     }
