@@ -17,8 +17,8 @@ struct NotificationManager {
             
             if prayerTime > Date() {
                 let content = UNMutableNotificationContent()
-                content.title = prayerName
-                content.body = "It's time for the \(prayerName) prayer."
+                content.title = NSLocalizedString(prayerName, comment: "")
+                content.body = String(format: NSLocalizedString("notification_body", comment: ""), NSLocalizedString(prayerName, comment: ""))
                 
                 switch adhanSound {
                 case .none:

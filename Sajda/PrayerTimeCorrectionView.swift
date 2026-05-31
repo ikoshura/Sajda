@@ -41,7 +41,7 @@ struct CorrectionRow: View {
                 if let original = originalTime, let adjusted = adjustedTime {
                     Text(vm.dateFormatter.string(from: original))
                         .strikethrough(color: .secondary)
-                    Image(systemName: "arrow.right")
+                    Image(systemName: vm.forwardArrow)
                         .font(.system(size: 11, weight: .semibold))
                     Text(vm.dateFormatter.string(from: adjusted))
                         .fontWeight(.semibold)
@@ -95,7 +95,7 @@ struct PrayerTimeCorrectionView: View {
                 navigationModel.hideView(LocationAndCalcSettingsView.id, animation: vm.backwardAnimation())
             }) {
                 HStack {
-                    Image(systemName: "chevron.left")
+                    Image(systemName: vm.backChevron)
                         .font(.system(size: 14, weight: .semibold))
                     Text("Time Correction")
                         .font(.subheadline).fontWeight(.bold)
