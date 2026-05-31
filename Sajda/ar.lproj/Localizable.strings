@@ -16,20 +16,50 @@
 /* New Onboarding Strings */
 "Requesting Permission..." = "جارٍ طلب الإذن...";
 "Skip for now" = "تخطٍ في الوقت الحالي";
+"Current location: %@" = "الموقع الحالي: %@";
+"Finding your location..." = "جارٍ تحديد موقعك...";
+"Refreshing location..." = "جارٍ تحديث الموقع...";
+"Resolving city..." = "جارٍ تحديد المدينة...";
 "Animation Style" = "نمط التحريك";
 "None" = "بدون";
 "Fade" = "تلاشي";
 "Slide" = "انزلاق";
 
-/* Azan Settings */
-"Azan Sound" = "صوت الأذان";
-"All Prayers" = "كل الصلوات";
-"Apply" = "تطبيق";
-"none" = "بدون";
-"defaultBeep" = "صوت افتراضي";
-"fajrAzan1" = "أذان الفجر ١";
-"fajrAzan2" = "أذان الفجر ٢";
-"standardAzan1" = "أذان عادي ١";
-"standardAzan2" = "أذان عادي ٢";
-"standardAzan3" = "أذان عادي ٣";
-"custom" = "صوت مخصص";
+/* Countdown */
+"countdown_hm" = "%@س %@د";
+"countdown_m" = "%@د";
+"Now" = "الآن";
+"prayer_minimal_countdown" = "%@ -%@";
+"prayer_minimal_exact" = "%@ %@";
+
+/* Menu Bar Modes */
+"Countdown" = "عد تنازلي";
+"Exact Time" = "الوقت المحدد";
+"Icon Only" = "الأيقونة فقط";
+
+/* Notification Sound */
+"Default Beep" = "صوت افتراضي";
+"Custom Sound" = "صوت مخصص";
+
+/* Notifications */
+"notification_body" = "حان وقت صلاة %@.";
+
+/* About */
+"A simple and beautiful prayer times app for your menu bar." = "تطبيق بسيط وجميل لأوقات الصلاة في شريط القوائم.";
+
+/* Prayer Timer Alert */
+"Break Time is Over" = "انتهى وقت الاستراحة";
+"Time to begin your next activity." = "حان الوقت لبدء نشاطك التالي.";
+"Dismiss" = "تم";
+
+/* Status */
+"Preparing prayer schedule..." = "جارٍ تحضير جدول الصلاة...";
+"Still finding your location..." = "ما زال يتم تحديد موقعك...";
+"Location request timed out. Set location manually or check Wi-Fi and Location Services." = "انتهت مهلة طلب الموقع. حدد الموقع يدويًا أو تحقق من Wi-Fi وخدمات الموقع.";
+"Location Services are off. Enable Location Services in System Settings or set location manually." = "خدمات الموقع متوقفة. فعّل خدمات الموقع في إعدادات النظام أو حدد الموقع يدويًا.";
+"Location access needed" = "الوصول إلى الموقع مطلوب";
+"Location access denied." = "تم رفض الوصول إلى الموقع.";
+"Unsupported location permission state." = "حالة إذن الموقع غير مدعومة.";
+"Unable to determine location. Try setting it manually." = "تعذر تحديد الموقع. جرب تحديده يدويًا.";
+"Location needs attention" = "الموقع يحتاج إلى انتباه";
+"Refresh Location" = "تحديث الموقع";

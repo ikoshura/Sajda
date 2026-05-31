@@ -52,8 +52,10 @@ Sajda is designed to be simple on the surface but powerful and deeply customizab
 **➡️ [Download Sajda Pro on Gumroad](https://ikoshura.gumroad.com/l/sajda)**
 Or check out the [Releases page on GitHub](https://github.com/ikoshura/Sajda/releases).
 
+For public distribution, Sajda should be signed with a Developer ID certificate and notarized by Apple. If a build is unsigned or only ad-hoc signed, recent macOS versions may block it before the app can run.
+
 #### Important: First-Time Launch Instructions
-Because this app is built by a solo developer and isn't on the App Store yet, it isn't "signed." This is perfectly safe, but it means you must give macOS permission to open it the first time.
+For older unsigned builds or personal source builds, you may need to give macOS permission to open it the first time.
 
 The easiest way is to **right-click** (or Control-click) the **Sajda** app icon in your Applications folder and select **Open**.
 
@@ -117,8 +119,36 @@ The quarantine flag is now removed. You can close the Terminal and open **Sajda*
 
 ---
 
+## Build From Source
+
+Requirements:
+*   macOS Ventura 13.3 or later.
+*   Xcode with the macOS SDK installed.
+
+Build a local Debug app without a Developer ID certificate:
+
+```bash
+xcodebuild \
+  -project Sajda.xcodeproj \
+  -scheme Sajda \
+  -configuration Debug \
+  -derivedDataPath build/DerivedData \
+  CODE_SIGNING_ALLOWED=NO \
+  build
+```
+
+Run it:
+
+```bash
+open build/DerivedData/Build/Products/Debug/Sajda.app
+```
+
+For production signing and notarization, see [docs/RELEASE.md](docs/RELEASE.md).
+
+---
+
 ## System Requirements
-*   **macOS Ventura (13.0) or later.**
+*   **macOS Ventura (13.3) or later.**
 *   Compatible with both **Apple Silicon** (M1, M2, etc.) and **Intel-based** Macs.
 
 As a testament to its efficiency, Sajda was developed and tested on a 2012 MacBook Pro (using Ventura OCLP) . It is designed to be extremely lightweight and will not slow down your machine.

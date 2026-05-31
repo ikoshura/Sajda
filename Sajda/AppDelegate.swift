@@ -120,8 +120,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
     }
 
     func windowShouldClose(_ sender: NSWindow) -> Bool {
-        sender.close()
-        return false
+        return true
     }
     
     func windowWillClose(_ notification: Notification) {
