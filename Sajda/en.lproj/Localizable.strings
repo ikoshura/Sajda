@@ -16,7 +16,50 @@
 /* New Onboarding Strings */
 "Requesting Permission..." = "Requesting Permission...";
 "Skip for now" = "Skip for now";
+"Current location: %@" = "Current location: %@";
+"Finding your location..." = "Finding your location...";
+"Refreshing location..." = "Refreshing location...";
+"Resolving city..." = "Resolving city...";
 "Animation Style" = "Animation Style";
 "None" = "None";
 "Fade" = "Fade";
 "Slide" = "Slide";
+
+/* Countdown */
+"countdown_hm" = "%@h %@m";
+"countdown_m" = "%@m";
+"Now" = "Now";
+"prayer_minimal_countdown" = "%@ -%@";
+"prayer_minimal_exact" = "%@ %@";
+
+/* Menu Bar Modes */
+"Countdown" = "Countdown";
+"Exact Time" = "Exact Time";
+"Icon Only" = "Icon Only";
+
+/* Notification Sound */
+"Default Beep" = "Default Beep";
+"Custom Sound" = "Custom Sound";
+
+/* Notifications */
+"notification_body" = "It's time for %@ prayer.";
+
+/* About */
+"A simple and beautiful prayer times app for your menu bar." = "A simple and beautiful prayer times app for your menu bar.";
+
+/* Prayer Timer Alert */
+"Break Time is Over" = "Break Time is Over";
+"Time to begin your next activity." = "Time to begin your next activity.";
+"Dismiss" = "Dismiss";
+
+/* Status */
+"Preparing prayer schedule..." = "Preparing prayer schedule...";
+"Still finding your location..." = "Still finding your location...";
+"Location request timed out. Set location manually or check Wi-Fi and Location Services." = "Location request timed out. Set location manually or check Wi-Fi and Location Services.";
+"Location Services are off. Enable Location Services in System Settings or set location manually." = "Location Services are off. Enable Location Services in System Settings or set location manually.";
+"Location access needed" = "Location access needed";
+"Location access denied." = "Location access denied.";
+"Unsupported location permission state." = "Unsupported location permission state.";
+"Unable to determine location. Try setting it manually." = "Unable to determine location. Try setting it manually.";
+"Location needs attention" = "Location needs attention";
+"Refresh Location" = "Refresh Location";

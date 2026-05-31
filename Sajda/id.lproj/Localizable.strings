@@ -16,7 +16,50 @@
 /* New Onboarding Strings */
 "Requesting Permission..." = "Meminta Izin...";
 "Skip for now" = "Lewati untuk saat ini";
+"Current location: %@" = "Lokasi saat ini: %@";
+"Finding your location..." = "Mencari lokasi Anda...";
+"Refreshing location..." = "Memperbarui lokasi...";
+"Resolving city..." = "Mencari nama kota...";
 "Animation Style" = "Gaya Animasi";
 "None" = "Tidak Ada";
 "Fade" = "Memudar";
 "Slide" = "Geser";
+
+/* Countdown */
+"countdown_hm" = "%@j %@m";
+"countdown_m" = "%@m";
+"Now" = "Sekarang";
+"prayer_minimal_countdown" = "%@ -%@";
+"prayer_minimal_exact" = "%@ %@";
+
+/* Menu Bar Modes */
+"Countdown" = "Hitung Mundur";
+"Exact Time" = "Waktu Tepat";
+"Icon Only" = "Ikon Saja";
+
+/* Notification Sound */
+"Default Beep" = "Bunyi Bawaan";
+"Custom Sound" = "Suara Kustom";
+
+/* Notifications */
+"notification_body" = "Waktunya shalat %@.";
+
+/* About */
+"A simple and beautiful prayer times app for your menu bar." = "Aplikasi waktu shalat yang sederhana dan indah untuk menu bar Anda.";
+
+/* Prayer Timer Alert */
+"Break Time is Over" = "Waktu Istirahat Selesai";
+"Time to begin your next activity." = "Waktunya memulai aktivitas berikutnya.";
+"Dismiss" = "Tutup";
+
+/* Status */
+"Preparing prayer schedule..." = "Menyiapkan jadwal shalat...";
+"Still finding your location..." = "Masih mencari lokasi Anda...";
+"Location request timed out. Set location manually or check Wi-Fi and Location Services." = "Permintaan lokasi habis waktu. Atur lokasi manual atau periksa Wi-Fi dan Layanan Lokasi.";
+"Location Services are off. Enable Location Services in System Settings or set location manually." = "Layanan Lokasi mati. Aktifkan Layanan Lokasi di Pengaturan Sistem atau atur lokasi manual.";
+"Location access needed" = "Akses lokasi diperlukan";
+"Location access denied." = "Akses lokasi ditolak.";
+"Unsupported location permission state." = "Status izin lokasi tidak didukung.";
+"Unable to determine location. Try setting it manually." = "Tidak dapat menentukan lokasi. Coba atur secara manual.";
+"Location needs attention" = "Lokasi perlu diperiksa";
+"Refresh Location" = "Segarkan Lokasi";
