@@ -6,32 +6,23 @@ import NavigationStack
 struct AboutView: View {
     @EnvironmentObject var vm: PrayerTimeViewModel
     @EnvironmentObject var navigationModel: NavigationModel
-
+    
     @AppStorage("showOnboardingAtLaunch") private var showOnboardingAtLaunch = true
     @State private var isHeaderHovering = false
     // State isDoneHovering sudah dihapus karena tidak lagi diperlukan.
-
+    
     private var viewWidth: CGFloat {
         return vm.useCompactLayout ? 220 : 260
-    }
-
-    private var appVersionText: String {
-        let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "3.1.1"
-        let build = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String
-        if let build, !build.isEmpty {
-            return "Version \(version) (\(build))"
-        }
-        return "Version \(version)"
     }
 
     var body: some View {
         ZStack {
             VisualEffectView(material: .popover).ignoresSafeArea()
-
+            
             VStack(alignment: .leading, spacing: 6) {
                 Button(action: handleBackButton) {
                     HStack {
-                        Image(systemName: vm.backChevron).font(.body.weight(.semibold))
+                        Image(systemName: "chevron.left").font(.body.weight(.semibold))
                         Text("About Sajda Pro").font(.body).fontWeight(.bold)
                         Spacer()
                     }
@@ -39,12 +30,12 @@ struct AboutView: View {
                     .background(isHeaderHovering ? Color("HoverColor") : .clear)
                     .cornerRadius(5)
                 }.buttonStyle(.plain).padding(.horizontal, 5).onHover { hovering in isHeaderHovering = hovering }
-
+                
                 Rectangle()
                     .fill(Color("DividerColor"))
                     .frame(height: 0.5)
                     .padding(.horizontal, 12)
-
+                
                 VStack(spacing: 12) {
                     VStack(spacing: 12) {
                         Image(nsImage: NSImage(named: "AppIcon") ?? NSImage())
@@ -52,7 +43,7 @@ struct AboutView: View {
                             .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                         VStack(spacing: 2) {
                             Text("Sajda Pro").font(.title2).fontWeight(.bold)
-                            Text(verbatim: appVersionText).font(.caption).foregroundColor(Color("SecondaryTextColor"))
+                            Text("Version 3.1.1").font(.caption).foregroundColor(Color("SecondaryTextColor"))
                             Text("by Abrar Zha").font(.caption).foregroundColor(Color("SecondaryTextColor"))
                         }
                         Text("A simple and beautiful prayer times app for your menu bar.").font(.subheadline)
@@ -78,7 +69,7 @@ struct AboutView: View {
                         .keyboardShortcut(.defaultAction) // Menjadikannya aksi default (Enter)
                     }
                     .padding(.bottom, 12)
-
+                    
                 }.frame(maxWidth: .infinity, maxHeight: .infinity)
             }.padding(.vertical, 8)
             .frame(width: viewWidth)

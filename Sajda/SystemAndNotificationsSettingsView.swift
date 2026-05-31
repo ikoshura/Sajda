@@ -8,10 +8,9 @@ struct SystemAndNotificationsSettingsView: View {
 
     @EnvironmentObject var vm: PrayerTimeViewModel
     @EnvironmentObject var navigationModel: NavigationModel
-
+    
     @AppStorage("launchAtLogin") private var launchAtLogin = false
     @State private var isHeaderHovering = false
-    @State private var isSyncingLaunchAtLogin = false
 
     private var viewWidth: CGFloat {
         return vm.useCompactLayout ? 220 : 260
@@ -24,14 +23,14 @@ struct SystemAndNotificationsSettingsView: View {
                     navigationModel.hideView(SettingsView.id, animation: vm.backwardAnimation())
                 }) {
                     HStack {
-                        Image(systemName: vm.backChevron).font(.body.weight(.semibold))
+                        Image(systemName: "chevron.left").font(.body.weight(.semibold))
                         Text("System & Notifications").font(.body).fontWeight(.bold)
                         Spacer()
                     }
                     .padding(.vertical, 5).padding(.horizontal, 8)
                     .background(isHeaderHovering ? Color("HoverColor") : .clear).cornerRadius(5)
                 }.buttonStyle(.plain).padding(.horizontal, 5).padding(.top, 2).onHover { hovering in isHeaderHovering = hovering }
-
+                
                 Rectangle()
                     .fill(Color("DividerColor"))
                     .frame(height: 0.5)
@@ -42,7 +41,7 @@ struct SystemAndNotificationsSettingsView: View {
                         Group {
                             Text("System").font(.caption).foregroundColor(Color("SecondaryTextColor"))
                             StyledToggle(label: "Run at Login", isOn: $launchAtLogin)
-
+                            
                             // --- PENGGANTIAN TOGGLE DENGAN PICKER ---
                             HStack {
                                 Text("Animation Style").font(.subheadline)
@@ -58,13 +57,13 @@ struct SystemAndNotificationsSettingsView: View {
                         Rectangle()
                             .fill(Color("DividerColor"))
                             .frame(height: 0.5)
-
+                        
                         Group {
                             Text("Notifications").font(.caption).foregroundColor(Color("SecondaryTextColor"))
                             StyledToggle(label: "Prayer Notifications", isOn: $vm.isNotificationsEnabled)
-
+                            
                             VStack(alignment: .leading, spacing: 10) {
-                                HStack { Text("Notification Sound").font(.subheadline); Spacer(); Picker("", selection: $vm.adhanSound) { ForEach(AdhanSound.allCases) { sound in Text(LocalizedStringKey(sound.rawValue)).tag(sound) } }.fixedSize() }
+                                HStack { Text("Notification Sound").font(.subheadline); Spacer(); Picker("", selection: $vm.adhanSound) { ForEach(AdhanSound.allCases) { sound in Text(sound.rawValue).tag(sound) } }.fixedSize() }
                                 if vm.adhanSound == .custom {
                                     HStack { Text("Custom File").font(.subheadline); Spacer(); Button("Browse...") { vm.selectCustomAdhanSound() } }
                                     Text(URL(string: vm.customAdhanSoundPath)?.lastPathComponent ?? NSLocalizedString("No file selected", comment: ""))
@@ -83,22 +82,6 @@ struct SystemAndNotificationsSettingsView: View {
             }
             .padding(.vertical, 8)
             .frame(width: viewWidth)
-            .onAppear(perform: syncLaunchAtLoginState)
-            .onChange(of: launchAtLogin) { newValue in
-                guard !isSyncingLaunchAtLogin else { return }
-                StartupManager.toggleLaunchAtLogin(isEnabled: newValue)
-            }
-        }
-    }
-
-    private func syncLaunchAtLoginState() {
-        let currentSystemState = StartupManager.isLaunchAtLoginEnabled
-        guard launchAtLogin != currentSystemState else { return }
-
-        isSyncingLaunchAtLogin = true
-        launchAtLogin = currentSystemState
-        DispatchQueue.main.async {
-            isSyncingLaunchAtLogin = false
         }
     }
 }

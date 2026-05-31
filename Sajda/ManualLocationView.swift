@@ -21,7 +21,7 @@ struct ManualLocationView: View {
         VStack(alignment: .leading, spacing: 6) {
             Button(action: handleBackButton) {
                 HStack {
-                    Image(systemName: vm.backChevron).font(.body.weight(.semibold))
+                    Image(systemName: "chevron.left").font(.body.weight(.semibold))
                     Text(LocalizedStringKey("Set Location")).font(.body).fontWeight(.bold)
                     Spacer()
                 }

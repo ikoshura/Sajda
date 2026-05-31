@@ -25,7 +25,7 @@ struct SettingsView: View {
                     navigationModel.hideView(ContentView.id, animation: vm.backwardAnimation())
                 }) {
                     HStack {
-                        Image(systemName: vm.backChevron).font(.body.weight(.semibold))
+                        Image(systemName: "chevron.left").font(.body.weight(.semibold))
                         Text("Settings").font(.body).fontWeight(.bold)
                         Spacer()
                     }
@@ -57,12 +57,12 @@ struct SettingsView: View {
                 
                 VStack(alignment: .leading, spacing: 0) {
                     Button(action: { navigationModel.showView(Self.id, animation: vm.forwardAnimation()) { LocationAndCalcSettingsView() } }) {
-                        HStack { Text("Calculation & Location").font(.subheadline); Spacer(); Image(systemName: vm.forwardChevron).font(.caption.weight(.bold)).foregroundColor(.secondary) }
+                        HStack { Text("Calculation & Location").font(.subheadline); Spacer(); Image(systemName: "chevron.right").font(.caption.weight(.bold)).foregroundColor(.secondary) }
                         .padding(.vertical, 5).padding(.horizontal, 8).background(isCalcHovering ? Color("HoverColor") : .clear).cornerRadius(5)
                     }.buttonStyle(.plain).padding(.horizontal, 5).onHover { hovering in isCalcHovering = hovering }
                     
                     Button(action: { navigationModel.showView(Self.id, animation: vm.forwardAnimation()) { SystemAndNotificationsSettingsView() } }) {
-                        HStack { Text("System & Notifications").font(.subheadline); Spacer(); Image(systemName: vm.forwardChevron).font(.caption.weight(.bold)).foregroundColor(.secondary) }
+                        HStack { Text("System & Notifications").font(.subheadline); Spacer(); Image(systemName: "chevron.right").font(.caption.weight(.bold)).foregroundColor(.secondary) }
                         .padding(.vertical, 5).padding(.horizontal, 8).background(isNotifHovering ? Color("HoverColor") : .clear).cornerRadius(5)
                     }.buttonStyle(.plain).padding(.horizontal, 5).onHover { hovering in isNotifHovering = hovering }
                 }

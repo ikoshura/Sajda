@@ -33,7 +33,7 @@ struct LanguageManagerView<Content: View>: View {
 
 // Ekstensi untuk Bundle (tetap di file yang sama)
 var bundleKey: UInt8 = 0
-class AnyLanguageBundle: Bundle, @unchecked Sendable {
+class AnyLanguageBundle: Bundle {
     override func localizedString(forKey key: String, value: String?, table tableName: String?) -> String {
         guard let path = objc_getAssociatedObject(self, &bundleKey) as? String,
               let bundle = Bundle(path: path) else {

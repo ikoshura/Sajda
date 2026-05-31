@@ -4,8 +4,6 @@
 <dict>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Sajda needs your location to accurately calculate prayer times.</string>
-	<key>NSLocationUsageDescription</key>
-	<string>Sajda needs your location to accurately calculate prayer times.</string>
 	<key>LSUIElement</key>
 	<true/>
 	<key>RunAtLogin</key>

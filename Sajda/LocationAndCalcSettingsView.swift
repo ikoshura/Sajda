@@ -22,7 +22,7 @@ struct LocationAndCalcSettingsView: View {
                     navigationModel.hideView(SettingsView.id, animation: vm.backwardAnimation())
                 }) {
                     HStack {
-                        Image(systemName: vm.backChevron).font(.body.weight(.semibold))
+                        Image(systemName: "chevron.left").font(.body.weight(.semibold))
                         Text("Calculation & Location").font(.body).fontWeight(.bold)
                         Spacer()
                     }
@@ -46,24 +46,7 @@ struct LocationAndCalcSettingsView: View {
                         Rectangle().fill(Color("DividerColor")).frame(height: 0.5)
                         Group {
                             Text("Location").font(.caption).foregroundColor(Color("SecondaryTextColor"))
-                            HStack(spacing: 6) {
-                                Image(systemName: vm.isUsingManualLocation ? "pencil.circle.fill" : "location.circle.fill")
-                                    .foregroundColor(.secondary)
-
-                                Text(vm.isUsingManualLocation ? "\(NSLocalizedString("Manual:", comment: "")) \(vm.locationStatusText)" : "\(NSLocalizedString("Automatic:", comment: "")) \(vm.locationStatusText)")
-                                    .lineLimit(1)
-                                    .truncationMode(.tail)
-
-                                Spacer(minLength: 4)
-
-                                if !vm.isUsingManualLocation {
-                                    LocationRefreshButton(
-                                        action: vm.refetchAutomaticLocation,
-                                        isDisabled: vm.isRequestingLocation,
-                                        isRefreshing: vm.isRequestingLocation
-                                    )
-                                }
-                            }
+                            HStack { Image(systemName: vm.isUsingManualLocation ? "pencil.circle.fill" : "location.circle.fill").foregroundColor(.secondary); Text(vm.isUsingManualLocation ? "\(NSLocalizedString("Manual:", comment: "")) \(vm.locationStatusText)" : "\(NSLocalizedString("Automatic:", comment: "")) \(vm.locationStatusText)") }.lineLimit(1).truncationMode(.tail)
                             HStack { Button("Change Manual Location") { navigationModel.showView(Self.id, animation: vm.forwardAnimation()) { ManualLocationView(isModal: false) } }.buttonStyle(.bordered); Spacer(); if vm.isUsingManualLocation { Button("Use Automatic") { vm.switchToAutomaticLocation() }.buttonStyle(.bordered) } }
                         }
                     }
