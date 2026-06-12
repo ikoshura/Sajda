@@ -63,3 +63,9 @@
 "Unable to determine location. Try setting it manually." = "تعذر تحديد الموقع. جرب تحديده يدويًا.";
 "Location needs attention" = "الموقع يحتاج إلى انتباه";
 "Refresh Location" = "تحديث الموقع";
+
+/* Adhan Settings */
+"Azan Sound" = "صوت الأذان";
+"All Prayers" = "جميع الصلوات";
+"Apply" = "تطبيق";
+"Stop Adhan" = "إيقاف الأذان";

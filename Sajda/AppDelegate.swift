@@ -3,20 +3,24 @@
 import SwiftUI
 import Combine
 import NavigationStack
+import UserNotifications
 
-class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDelegate {
+class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDelegate, UNUserNotificationCenterDelegate {
     let vm = PrayerTimeViewModel()
     let languageManager = LanguageManager()
     
     var menuBarExtra: FluidMenuBarExtra?
     private var cancellables = Set<AnyCancellable>()
+    private var stopAdhanMenuItem: NSMenuItem?
     @AppStorage("showOnboardingAtLaunch") private var showOnboardingAtLaunch = true
     
     private var onboardingWindow: NSWindow?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         Bundle.setLanguage(languageManager.language)
-        
+
+        UNUserNotificationCenter.current().delegate = self
+
         setupMenuBar()
         vm.startLocationProcess()
 
@@ -41,6 +45,13 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
         }
     }
     
+    func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+        let prayerName = notification.request.identifier
+        let config = vm.soundConfig(for: prayerName)
+        AdhanAudioPlayer.shared.play(adhanType: config.adhanType, customFilePath: config.customFilePath, prayerName: prayerName)
+        completionHandler([.banner])
+    }
+
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         return false
     }
@@ -67,9 +78,30 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
         welcomeItem.target = self
         menu.addItem(welcomeItem)
         menu.addItem(NSMenuItem.separator())
+        let stopAdhanItem = NSMenuItem(title: NSLocalizedString("Stop Adhan", comment: ""), action: #selector(stopAdhan), keyEquivalent: "")
+        stopAdhanItem.target = self
+        stopAdhanItem.isEnabled = false
+        menu.addItem(stopAdhanItem)
+        self.stopAdhanMenuItem = stopAdhanItem
+        menu.addItem(NSMenuItem.separator())
         let quitItem = NSMenuItem(title: NSLocalizedString("Quit Sajda Pro", comment: ""), action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
         menu.addItem(quitItem)
         button.menu = menu
+
+        NotificationCenter.default.addObserver(self, selector: #selector(adhanDidStart(_:)), name: .adhanDidStart, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(adhanDidStop(_:)), name: .adhanDidStop, object: nil)
+    }
+
+    @objc private func adhanDidStart(_ notification: Notification) {
+        stopAdhanMenuItem?.isEnabled = true
+    }
+
+    @objc private func adhanDidStop(_ notification: Notification) {
+        stopAdhanMenuItem?.isEnabled = false
+    }
+
+    @objc private func stopAdhan() {
+        AdhanAudioPlayer.shared.stop()
     }
 
     @objc func showOnboardingWindow() {
