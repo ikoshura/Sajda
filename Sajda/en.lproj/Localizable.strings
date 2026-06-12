@@ -63,3 +63,9 @@
 "Unable to determine location. Try setting it manually." = "Unable to determine location. Try setting it manually.";
 "Location needs attention" = "Location needs attention";
 "Refresh Location" = "Refresh Location";
+
+/* Adhan Settings */
+"Azan Sound" = "Adhan Sound";
+"All Prayers" = "All Prayers";
+"Apply" = "Apply";
+"Stop Adhan" = "Stop Adhan";

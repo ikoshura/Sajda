@@ -1,5 +1,3 @@
-// MARK: - GANTI SELURUH FILE: SystemAndNotificationsSettingsView.swift
-
 import SwiftUI
 import NavigationStack
 
@@ -9,12 +7,23 @@ struct SystemAndNotificationsSettingsView: View {
     @EnvironmentObject var vm: PrayerTimeViewModel
     @EnvironmentObject var navigationModel: NavigationModel
 
-    @AppStorage("launchAtLogin") private var launchAtLogin = false
     @State private var isHeaderHovering = false
-    @State private var isSyncingLaunchAtLogin = false
+    @State private var applyToAllAdhanType: AdhanType = .defaultBeep
+    @State private var previewingPrayer: String? = nil
+
+    private let obligatoryPrayers = ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"]
+    private let sunnahPrayers = ["Tahajud", "Dhuha"]
 
     private var viewWidth: CGFloat {
         return vm.useCompactLayout ? 220 : 260
+    }
+
+    private var allPrayers: [String] {
+        var prayers = obligatoryPrayers
+        if vm.showSunnahPrayers {
+            prayers.append(contentsOf: sunnahPrayers)
+        }
+        return prayers
     }
 
     var body: some View {
@@ -25,12 +34,14 @@ struct SystemAndNotificationsSettingsView: View {
                 }) {
                     HStack {
                         Image(systemName: vm.backChevron).font(.body.weight(.semibold))
-                        Text("System & Notifications").font(.body).fontWeight(.bold)
+                        Text("Adhan Sound").font(.body).fontWeight(.bold)
                         Spacer()
                     }
                     .padding(.vertical, 5).padding(.horizontal, 8)
                     .background(isHeaderHovering ? Color("HoverColor") : .clear).cornerRadius(5)
-                }.buttonStyle(.plain).padding(.horizontal, 5).padding(.top, 2).onHover { hovering in isHeaderHovering = hovering }
+                }
+                .buttonStyle(.plain).padding(.horizontal, 5).padding(.top, 2)
+                .onHover { hovering in isHeaderHovering = hovering }
 
                 Rectangle()
                     .fill(Color("DividerColor"))
@@ -39,40 +50,80 @@ struct SystemAndNotificationsSettingsView: View {
 
                 ScrollView {
                     VStack(alignment: .leading, spacing: 12) {
-                        Group {
-                            Text("System").font(.caption).foregroundColor(Color("SecondaryTextColor"))
-                            StyledToggle(label: "Run at Login", isOn: $launchAtLogin)
-
-                            // --- PENGGANTIAN TOGGLE DENGAN PICKER ---
-                            HStack {
-                                Text("Animation Style").font(.subheadline)
-                                Spacer()
-                                Picker("", selection: $vm.animationType) {
-                                    ForEach(AnimationType.allCases) { type in
-                                        Text(type.localized).tag(type)
-                                    }
-                                }.fixedSize()
-                            }
-                        }
+                        StyledToggle(label: "Prayer Notifications", isOn: $vm.isNotificationsEnabled)
 
                         Rectangle()
                             .fill(Color("DividerColor"))
                             .frame(height: 0.5)
 
-                        Group {
-                            Text("Notifications").font(.caption).foregroundColor(Color("SecondaryTextColor"))
-                            StyledToggle(label: "Prayer Notifications", isOn: $vm.isNotificationsEnabled)
+                        Text("All Prayers").font(.caption).foregroundColor(Color("SecondaryTextColor"))
 
-                            VStack(alignment: .leading, spacing: 10) {
-                                HStack { Text("Notification Sound").font(.subheadline); Spacer(); Picker("", selection: $vm.adhanSound) { ForEach(AdhanSound.allCases) { sound in Text(LocalizedStringKey(sound.rawValue)).tag(sound) } }.fixedSize() }
-                                if vm.adhanSound == .custom {
-                                    HStack { Text("Custom File").font(.subheadline); Spacer(); Button("Browse...") { vm.selectCustomAdhanSound() } }
-                                    Text(URL(string: vm.customAdhanSoundPath)?.lastPathComponent ?? NSLocalizedString("No file selected", comment: ""))
-                                        .font(.caption)
-                                        .foregroundColor(Color("SecondaryTextColor"))
-                                        .frame(maxWidth: .infinity, alignment: .trailing)
+                        HStack {
+                            Picker("", selection: $applyToAllAdhanType) {
+                                ForEach(AdhanType.allCases) { type in
+                                    Text(type.displayName).tag(type)
                                 }
-                            }.disabled(!vm.isNotificationsEnabled)
+                            }
+                            .fixedSize()
+
+                            Button("Apply") {
+                                for prayer in allPrayers {
+                                    vm.setSoundConfig(PrayerSoundConfig(adhanType: applyToAllAdhanType), for: prayer)
+                                }
+                            }
+                            .buttonStyle(.bordered)
+                            .controlSize(.small)
+                        }
+                        .disabled(!vm.isNotificationsEnabled)
+
+                        Rectangle()
+                            .fill(Color("DividerColor"))
+                            .frame(height: 0.5)
+
+                        ForEach(allPrayers, id: \.self) { prayerName in
+                            PrayerSoundRow(
+                                prayerName: prayerName,
+                                config: vm.soundConfig(for: prayerName),
+                                isPreviewing: previewingPrayer == prayerName,
+                                isEnabled: vm.isNotificationsEnabled,
+                                onUpdateConfig: { newConfig in
+                                    vm.setSoundConfig(newConfig, for: prayerName)
+                                },
+                                onPreview: {
+                                    if previewingPrayer == prayerName {
+                                        AdhanAudioPlayer.shared.stop()
+                                        previewingPrayer = nil
+                                    } else {
+                                        AdhanAudioPlayer.shared.stop()
+                                        let config = vm.soundConfig(for: prayerName)
+                                        AdhanAudioPlayer.shared.preview(
+                                            adhanType: config.adhanType,
+                                            customFilePath: config.customFilePath
+                                        )
+                                        previewingPrayer = prayerName
+                                        DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
+                                            if previewingPrayer == prayerName {
+                                                previewingPrayer = nil
+                                            }
+                                        }
+                                    }
+                                },
+                                onBrowse: {
+                                    NSApp.activate(ignoringOtherApps: true)
+                                    let openPanel = NSOpenPanel()
+                                    openPanel.canChooseFiles = true
+                                    openPanel.canChooseDirectories = false
+                                    openPanel.allowsMultipleSelection = false
+                                    openPanel.allowedContentTypes = [.audio]
+                                    if openPanel.runModal() == .OK {
+                                        let config = PrayerSoundConfig(
+                                            adhanType: .custom,
+                                            customFilePath: openPanel.url?.absoluteString ?? ""
+                                        )
+                                        vm.setSoundConfig(config, for: prayerName)
+                                    }
+                                }
+                            )
                         }
                     }
                     .controlSize(.small)
@@ -83,22 +134,73 @@ struct SystemAndNotificationsSettingsView: View {
             }
             .padding(.vertical, 8)
             .frame(width: viewWidth)
-            .onAppear(perform: syncLaunchAtLoginState)
-            .onChange(of: launchAtLogin) { newValue in
-                guard !isSyncingLaunchAtLogin else { return }
-                StartupManager.toggleLaunchAtLogin(isEnabled: newValue)
-            }
         }
     }
+}
 
-    private func syncLaunchAtLoginState() {
-        let currentSystemState = StartupManager.isLaunchAtLoginEnabled
-        guard launchAtLogin != currentSystemState else { return }
+// MARK: - PrayerSoundRow
 
-        isSyncingLaunchAtLogin = true
-        launchAtLogin = currentSystemState
-        DispatchQueue.main.async {
-            isSyncingLaunchAtLogin = false
+struct PrayerSoundRow: View {
+    let prayerName: String
+    let config: PrayerSoundConfig
+    let isPreviewing: Bool
+    let isEnabled: Bool
+    let onUpdateConfig: (PrayerSoundConfig) -> Void
+    let onPreview: () -> Void
+    let onBrowse: () -> Void
+
+    private var options: [AdhanType] {
+        AdhanType.availableOptions(for: prayerName)
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack {
+                Text(LocalizedStringKey(prayerName))
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+
+                Spacer()
+
+                if config.adhanType.isAzan || config.adhanType == .custom {
+                    Button(action: onPreview) {
+                        Image(systemName: isPreviewing ? "speaker.wave.3.fill" : "speaker.fill")
+                            .font(.system(size: 12))
+                            .foregroundColor(isPreviewing ? .accentColor : .secondary)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+
+            HStack {
+                Spacer()
+                Picker("", selection: Binding(
+                    get: { config.adhanType },
+                    set: { newType in
+                        var newConfig = config
+                        newConfig.adhanType = newType
+                        if newType != .custom { newConfig.customFilePath = "" }
+                        onUpdateConfig(newConfig)
+                    }
+                )) {
+                    ForEach(options) { type in
+                        Text(type.displayName).tag(type)
+                    }
+                }
+                .fixedSize()
+            }
+
+            if config.adhanType == .custom {
+                HStack {
+                    Spacer()
+                    Button(NSLocalizedString("Browse...", comment: "")) { onBrowse() }
+                        .font(.caption)
+                    Text(URL(string: config.customFilePath)?.lastPathComponent ?? NSLocalizedString("No file selected", comment: ""))
+                        .font(.caption)
+                        .foregroundColor(Color("SecondaryTextColor"))
+                }
+            }
         }
+        .disabled(!isEnabled)
     }
 }
