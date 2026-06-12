@@ -107,9 +107,6 @@ struct PrayerListView: View {
         VStack(alignment: .leading, spacing: 4) {
             HStack { Image(systemName: "location.fill"); Text(vm.locationStatusText); Spacer() }
                 .font(.caption).foregroundColor(Color("SecondaryTextColor")).padding(.horizontal, 12)
-            if vm.isUsingManualLocation && !vm.locationInfoText.isEmpty {
-                Text(vm.locationInfoText).font(.caption2).foregroundColor(Color("SecondaryTextColor")).padding(.horizontal, 12).lineLimit(2).fixedSize(horizontal: false, vertical: true)
-            }
             VStack(spacing: 0) {
                 ForEach(prayerOrder, id: \.self) { prayerName in
                     if let prayerTime = vm.todayTimes[prayerName] {
@@ -133,6 +130,15 @@ struct PrayerListView: View {
                         }()
                         HStack {
                             Text(LocalizedStringKey(prayerName)); Spacer()
+                            if vm.isAdhanPlaying && prayerName == vm.activeAdhanPrayerName {
+                                Button(action: { vm.stopAdhan() }) {
+                                    Image(systemName: "speaker.slash.fill")
+                                        .font(.caption)
+                                        .foregroundColor(textColor)
+                                }
+                                .buttonStyle(.plain)
+                                .help("Stop Adhan")
+                            }
                             if prayerName == "Tahajud" || prayerName == "Dhuha" { Text("Around").font(.caption).foregroundColor(isNextPrayer ? textColor.opacity(0.8) : Color("SecondaryTextColor")) }
                             Text(vm.dateFormatter.string(from: prayerTime)).font(.system(.body, design: .monospaced))
                         }
@@ -159,6 +165,8 @@ struct PermissionRequestView: View {
                     Text("Requesting Permission...").font(.caption).foregroundColor(.secondary)
                 } else if vm.authorizationStatus == .denied {
                     Button("Open System Settings", action: vm.openLocationSettings).buttonStyle(.borderedProminent).controlSize(.regular)
+                } else if vm.authorizationStatus == .authorized {
+                    Button("Retry Location", action: vm.refetchAutomaticLocation).buttonStyle(.borderedProminent).controlSize(.regular)
                 } else {
                     Button("Allow Location Access", action: vm.requestLocationPermission).buttonStyle(.borderedProminent).controlSize(.regular)
                 }
