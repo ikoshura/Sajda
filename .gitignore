@@ -64,6 +64,7 @@ playground.xcworkspace
 
 # AI tooling
 .claude/
+.antigravitycli/
 
 # Misc
 diff.txt

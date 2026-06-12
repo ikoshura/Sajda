@@ -63,3 +63,9 @@
 "Unable to determine location. Try setting it manually." = "Tidak dapat menentukan lokasi. Coba atur secara manual.";
 "Location needs attention" = "Lokasi perlu diperiksa";
 "Refresh Location" = "Segarkan Lokasi";
+
+/* Adhan Settings */
+"Adhan Sound" = "Suara Azan";
+"All Prayers" = "Semua Shalat";
+"Apply" = "Terapkan";
+"Stop Adhan" = "Hentikan Azan";
