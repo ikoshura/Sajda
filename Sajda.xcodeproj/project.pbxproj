@@ -7,12 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		2EE3E0D407EE44B9B54CB95F /* adhan_standard_1.caf in Resources */ = {isa = PBXBuildFile; fileRef = 3CCC0D3788264DEB8A04D9F0 /* adhan_standard_1.caf */; };
-		39B248740F3F44C79F7C58DB /* adhan_fajr_1.caf in Resources */ = {isa = PBXBuildFile; fileRef = 614E52E4530544649D5E23A5 /* adhan_fajr_1.caf */; };
 		A1B3068783F31CB16A0B04E4 /* AdhanAudioPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B220C2AC258F390A192FF3 /* AdhanAudioPlayer.swift */; };
-		A701CB0D56524D99966EEEF5 /* adhan_fajr_2.caf in Resources */ = {isa = PBXBuildFile; fileRef = 8EC21837D56C444099321269 /* adhan_fajr_2.caf */; };
-		A968AFE0EEF74D1AAB38A901 /* adhan_standard_2.caf in Resources */ = {isa = PBXBuildFile; fileRef = 6EC09AE0F1AF49579B0CC328 /* adhan_standard_2.caf */; };
-		BC9BB43FAE8D4823A2C04723 /* adhan_standard_3.caf in Resources */ = {isa = PBXBuildFile; fileRef = C4AEE64F5AD1475988135E94 /* adhan_standard_3.caf */; };
 		CC07FC602E63FD5800924451 /* LocationAndCalcSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC07FC5F2E63FD5800924451 /* LocationAndCalcSettingsView.swift */; };
 		CC07FC622E63FF5100924451 /* SystemAndNotificationsSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC07FC612E63FF5100924451 /* SystemAndNotificationsSettingsView.swift */; };
 		CC07FC662E64122F00924451 /* NavigationStack in Frameworks */ = {isa = PBXBuildFile; productRef = CC07FC652E64122F00924451 /* NavigationStack */; };
@@ -62,11 +57,11 @@
 		CCED21882E65FE650066D0EB /* AnimationType.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCED21872E65FE650066D0EB /* AnimationType.swift */; };
 		CCFD21DA2E62BEEB00A80402 /* PrayerTimeCorrectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCFD21D92E62BEEB00A80402 /* PrayerTimeCorrectionView.swift */; };
 		A1B3068783F31CB16A0B04E4 /* AdhanAudioPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B220C2AC258F390A192FF3 /* AdhanAudioPlayer.swift */; };
-			39B248740F3F44C79F7C58DB /* adhan_fajr_1.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 614E52E4530544649D5E23A5 /* adhan_fajr_1.mp3 */; };
-			A701CB0D56524D99966EEEF5 /* adhan_fajr_2.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 8EC21837D56C444099321269 /* adhan_fajr_2.mp3 */; };
-			2EE3E0D407EE44B9B54CB95F /* adhan_standard_1.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 3CCC0D3788264DEB8A04D9F0 /* adhan_standard_1.mp3 */; };
-			A968AFE0EEF74D1AAB38A901 /* adhan_standard_2.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 6EC09AE0F1AF49579B0CC328 /* adhan_standard_2.mp3 */; };
-			BC9BB43FAE8D4823A2C04723 /* adhan_standard_3.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = C4AEE64F5AD1475988135E94 /* adhan_standard_3.mp3 */; };
+		7BFBE565A1E84CA2915AE0C8 /* Mishary_Rashid_al_Afasy_Fajr_Adhan.caf in Resources */ = {isa = PBXBuildFile; fileRef = EBC237DE638145FF832C3A24 /* Mishary_Rashid_al_Afasy_Fajr_Adhan.caf */; };
+		6A326937AAE44E87A4E5A9AF /* Doha_Qatar_Fajr_Adhan.caf in Resources */ = {isa = PBXBuildFile; fileRef = 92B2809E4FE34952864F8FAA /* Doha_Qatar_Fajr_Adhan.caf */; };
+		1A5E348006064D5289CB8958 /* Ahmed_al_Imadi_Adhan.caf in Resources */ = {isa = PBXBuildFile; fileRef = 31A16021B4874CD3875B3BEE /* Ahmed_al_Imadi_Adhan.caf */; };
+		2EC288450C9E4866AEB5C87A /* Majed_al_Hamathani_Adhan.caf in Resources */ = {isa = PBXBuildFile; fileRef = BF69CA7ABB1744C09E1798ED /* Majed_al_Hamathani_Adhan.caf */; };
+		7E7D402BCC8044B9AB70C508 /* Nasser_al_Qatami_Adhan.caf in Resources */ = {isa = PBXBuildFile; fileRef = C545EF0A5D474B7A869E963A /* Nasser_al_Qatami_Adhan.caf */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -87,12 +82,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		3CCC0D3788264DEB8A04D9F0 /* adhan_standard_1.caf */ = {isa = PBXFileReference; lastKnownFileType = audio.caf; path = adhan_standard_1.caf; sourceTree = "<group>"; };
-		614E52E4530544649D5E23A5 /* adhan_fajr_1.caf */ = {isa = PBXFileReference; lastKnownFileType = audio.caf; path = adhan_fajr_1.caf; sourceTree = "<group>"; };
-		6EC09AE0F1AF49579B0CC328 /* adhan_standard_2.caf */ = {isa = PBXFileReference; lastKnownFileType = audio.caf; path = adhan_standard_2.caf; sourceTree = "<group>"; };
-		8EC21837D56C444099321269 /* adhan_fajr_2.caf */ = {isa = PBXFileReference; lastKnownFileType = audio.caf; path = adhan_fajr_2.caf; sourceTree = "<group>"; };
 		A1B220C2AC258F390A192FF3 /* AdhanAudioPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdhanAudioPlayer.swift; sourceTree = "<group>"; };
-		C4AEE64F5AD1475988135E94 /* adhan_standard_3.caf */ = {isa = PBXFileReference; lastKnownFileType = audio.caf; path = adhan_standard_3.caf; sourceTree = "<group>"; };
 		CC07FC5F2E63FD5800924451 /* LocationAndCalcSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationAndCalcSettingsView.swift; sourceTree = "<group>"; };
 		CC07FC612E63FF5100924451 /* SystemAndNotificationsSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemAndNotificationsSettingsView.swift; sourceTree = "<group>"; };
 		CC4659602E661CC400159A83 /* TextFieldStepper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextFieldStepper.swift; sourceTree = "<group>"; };
@@ -147,11 +137,11 @@
 		CCED21872E65FE650066D0EB /* AnimationType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnimationType.swift; sourceTree = "<group>"; };
 		CCFD21D92E62BEEB00A80402 /* PrayerTimeCorrectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrayerTimeCorrectionView.swift; sourceTree = "<group>"; };
 		A1B220C2AC258F390A192FF3 /* AdhanAudioPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdhanAudioPlayer.swift; sourceTree = "<group>"; };
-			614E52E4530544649D5E23A5 /* adhan_fajr_1.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = adhan_fajr_1.mp3; path = adhan_fajr_1.mp3; sourceTree = "<group>"; };
-			8EC21837D56C444099321269 /* adhan_fajr_2.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = adhan_fajr_2.mp3; path = adhan_fajr_2.mp3; sourceTree = "<group>"; };
-			3CCC0D3788264DEB8A04D9F0 /* adhan_standard_1.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = adhan_standard_1.mp3; path = adhan_standard_1.mp3; sourceTree = "<group>"; };
-			6EC09AE0F1AF49579B0CC328 /* adhan_standard_2.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = adhan_standard_2.mp3; path = adhan_standard_2.mp3; sourceTree = "<group>"; };
-			C4AEE64F5AD1475988135E94 /* adhan_standard_3.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = adhan_standard_3.mp3; path = adhan_standard_3.mp3; sourceTree = "<group>"; };
+		EBC237DE638145FF832C3A24 /* Mishary_Rashid_al_Afasy_Fajr_Adhan.caf */ = {isa = PBXFileReference; lastKnownFileType = audio.caf; path = Mishary_Rashid_al_Afasy_Fajr_Adhan.caf; sourceTree = "<group>"; };
+		92B2809E4FE34952864F8FAA /* Doha_Qatar_Fajr_Adhan.caf */ = {isa = PBXFileReference; lastKnownFileType = audio.caf; path = Doha_Qatar_Fajr_Adhan.caf; sourceTree = "<group>"; };
+		31A16021B4874CD3875B3BEE /* Ahmed_al_Imadi_Adhan.caf */ = {isa = PBXFileReference; lastKnownFileType = audio.caf; path = Ahmed_al_Imadi_Adhan.caf; sourceTree = "<group>"; };
+		BF69CA7ABB1744C09E1798ED /* Majed_al_Hamathani_Adhan.caf */ = {isa = PBXFileReference; lastKnownFileType = audio.caf; path = Majed_al_Hamathani_Adhan.caf; sourceTree = "<group>"; };
+		C545EF0A5D474B7A869E963A /* Nasser_al_Qatami_Adhan.caf */ = {isa = PBXFileReference; lastKnownFileType = audio.caf; path = Nasser_al_Qatami_Adhan.caf; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -184,11 +174,11 @@
 		8AA22B02554C4B9D85933DAF /* Resources/Audio */ = {
 			isa = PBXGroup;
 			children = (
-				614E52E4530544649D5E23A5 /* adhan_fajr_1.caf */,
-				8EC21837D56C444099321269 /* adhan_fajr_2.caf */,
-				3CCC0D3788264DEB8A04D9F0 /* adhan_standard_1.caf */,
-				6EC09AE0F1AF49579B0CC328 /* adhan_standard_2.caf */,
-				C4AEE64F5AD1475988135E94 /* adhan_standard_3.caf */,
+				EBC237DE638145FF832C3A24 /* Mishary_Rashid_al_Afasy_Fajr_Adhan.caf */,
+				92B2809E4FE34952864F8FAA /* Doha_Qatar_Fajr_Adhan.caf */,
+				31A16021B4874CD3875B3BEE /* Ahmed_al_Imadi_Adhan.caf */,
+				BF69CA7ABB1744C09E1798ED /* Majed_al_Hamathani_Adhan.caf */,
+				C545EF0A5D474B7A869E963A /* Nasser_al_Qatami_Adhan.caf */,
 			);
 			path = Resources/Audio;
 			sourceTree = "<group>";
@@ -308,19 +298,7 @@
 			path = FluidMenuBar;
 			sourceTree = "<group>";
 		};
-			8AA22B02554C4B9D85933DAF /* Audio */ = {
-				isa = PBXGroup;
-				children = (
-				614E52E4530544649D5E23A5 /* adhan_fajr_1.mp3 */,
-				8EC21837D56C444099321269 /* adhan_fajr_2.mp3 */,
-				3CCC0D3788264DEB8A04D9F0 /* adhan_standard_1.mp3 */,
-				6EC09AE0F1AF49579B0CC328 /* adhan_standard_2.mp3 */,
-				C4AEE64F5AD1475988135E94 /* adhan_standard_3.mp3 */,
-				);
-				path = Resources/Audio;
-				sourceTree = "<group>";
-			};
-/* End PBXGroup section */
+			/* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
 		CC969C732E60857A00C8630A /* Sajda */ = {
@@ -434,173 +412,170 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				39B248740F3F44C79F7C58DB /* adhan_fajr_1.caf in Resources */,
-				A701CB0D56524D99966EEEF5 /* adhan_fajr_2.caf in Resources */,
-				2EE3E0D407EE44B9B54CB95F /* adhan_standard_1.caf in Resources */,
-				A968AFE0EEF74D1AAB38A901 /* adhan_standard_2.caf in Resources */,
-				BC9BB43FAE8D4823A2C04723 /* adhan_standard_3.caf in Resources */,
-				CC786E6C2E63B1CB007299F3 /* Localizable.strings in Resources */,
-				CC786E5D2E636A58007299F3 /* timezones.json in Resources */,
-				CC969C7F2E60857D00C8630A /* Preview Assets.xcassets in Resources */,
-				CC969C7C2E60857D00C8630A /* Assets.xcassets in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		CC969C832E60857E00C8630A /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		CC969C8D2E60857E00C8630A /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
+				7BFBE565A1E84CA2915AE0C8 /* Mishary_Rashid_al_Afasy_Fajr_Adhan.caf in Resources */,
+				6A326937AAE44E87A4E5A9AF /* Doha_Qatar_Fajr_Adhan.caf in Resources */,
+				1A5E348006064D5289CB8958 /* Ahmed_al_Imadi_Adhan.caf in Resources */,
+				2EC288450C9E4866AEB5C87A /* Majed_al_Hamathani_Adhan.caf in Resources */,
+				7E7D402BCC8044B9AB70C508 /* Nasser_al_Qatami_Adhan.caf in Resources */,
+CC786E6C2E63B1CB007299F3 /* Localizable.strings in Resources */,
+CC786E5D2E636A58007299F3 /* timezones.json in Resources */,
+CC969C7F2E60857D00C8630A /* Preview Assets.xcassets in Resources */,
+CC969C7C2E60857D00C8630A /* Assets.xcassets in Resources */,
+);
+runOnlyForDeploymentPostprocessing = 0;
+};
+CC969C832E60857E00C8630A /* Resources */ = {
+isa = PBXResourcesBuildPhase;
+buildActionMask = 2147483647;
+files = (
+);
+runOnlyForDeploymentPostprocessing = 0;
+};
+CC969C8D2E60857E00C8630A /* Resources */ = {
+isa = PBXResourcesBuildPhase;
+buildActionMask = 2147483647;
+files = (
+);
+runOnlyForDeploymentPostprocessing = 0;
+};
 /* End PBXResourcesBuildPhase section */
-
 /* Begin PBXSourcesBuildPhase section */
-		CC969C702E60857A00C8630A /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				CC9C2F012E61385B00BAE49A /* AppDelegate.swift in Sources */,
-				CCE1BA3C2E61852B003AF03C /* FluidMenuBarExtraStatusItem.swift in Sources */,
-				CCE079712E6438100026054C /* main.swift in Sources */,
-				CCFD21DA2E62BEEB00A80402 /* PrayerTimeCorrectionView.swift in Sources */,
-				CC969CA72E60989F00C8630A /* PrayerTimeViewModel.swift in Sources */,
-				CC786E582E635B46007299F3 /* PrayerTimerAlertView.swift in Sources */,
-				CCDEFEE62E65231F005D6B45 /* TimePreviewPopover.swift in Sources */,
-				CCE1BA472E620757003AF03C /* StyledToggle.swift in Sources */,
-				CC786E722E63BB26007299F3 /* LanguageManager.swift in Sources */,
-				CC4659612E661CC400159A83 /* TextFieldStepper.swift in Sources */,
-				CCE1BA452E6198C1003AF03C /* ManualLocationView.swift in Sources */,
-				CCED21882E65FE650066D0EB /* AnimationType.swift in Sources */,
-				CC07FC622E63FF5100924451 /* SystemAndNotificationsSettingsView.swift in Sources */,
-				CC786E632E63787E007299F3 /* MenuBarTextMode.swift in Sources */,
-				CCEC0E452E60B08D001E9B1E /* AboutView.swift in Sources */,
-				CC786E542E6359E1007299F3 /* PrayerTimerMonitor.swift in Sources */,
-				CC786E742E63BD15007299F3 /* VisualEffectView.swift in Sources */,
-				CC786E5F2E637700007299F3 /* AdhanSound.swift in Sources */,
-				CCE1BA3A2E61852B003AF03C /* EventMonitor.swift in Sources */,
-				CC4659652E6629C000159A83 /* SajdaStepper.swift in Sources */,
-				CCE1BA3D2E61852B003AF03C /* FluidMenuBarExtra.swift in Sources */,
-				CC969CA92E6098C600C8630A /* SettingsView.swift in Sources */,
-				CCE1BA3F2E61852B003AF03C /* FluidMenuBarExtraWindow.swift in Sources */,
-				CCEC0E4F2E60D2EC001E9B1E /* NotificationManager.swift in Sources */,
-				CC786E672E638425007299F3 /* LocationSearchResult.swift in Sources */,
-				CCED21862E65F9770066D0EB /* NavigationAnimation+Custom.swift in Sources */,
-				CC786E4E2E634B65007299F3 /* OnboardingView.swift in Sources */,
-				CC07FC602E63FD5800924451 /* LocationAndCalcSettingsView.swift in Sources */,
-				CC969C7A2E60857A00C8630A /* ContentView.swift in Sources */,
-				CCEC0E492E60B700001E9B1E /* StartupManager.swift in Sources */,
-				CCEC0E412E60A899001E9B1E /* MainView.swift in Sources */,
-				CC786E5B2E636A04007299F3 /* TimeZoneLocate.swift in Sources */,
-				CC786E652E638353007299F3 /* SajdaCalculationMethod.swift in Sources */,
-				CC969C782E60857A00C8630A /* SajdaApp.swift in Sources */,
-				CCE1BA3E2E61852B003AF03C /* UpdateSizeAction.swift in Sources */,
-				CCED21842E65F7BE0066D0EB /* NavigationAnimations.swift in Sources */,
-				CCE1BA3B2E61852B003AF03C /* RootViewModifier.swift in Sources */,
-				CC786E522E6353F1007299F3 /* ManualLocationSheetView.swift in Sources */,
-				CC786E562E635ADA007299F3 /* AlertWindowManager.swift in Sources */,
-				A1B3068783F31CB16A0B04E4 /* AdhanAudioPlayer.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		CC969C812E60857E00C8630A /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				CC969C8A2E60857E00C8630A /* SajdaTests.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		CC969C8B2E60857E00C8630A /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				CC969C962E60857E00C8630A /* SajdaUITestsLaunchTests.swift in Sources */,
-				CC969C942E60857E00C8630A /* SajdaUITests.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
+CC969C702E60857A00C8630A /* Sources */ = {
+isa = PBXSourcesBuildPhase;
+buildActionMask = 2147483647;
+files = (
+CC9C2F012E61385B00BAE49A /* AppDelegate.swift in Sources */,
+CCE1BA3C2E61852B003AF03C /* FluidMenuBarExtraStatusItem.swift in Sources */,
+CCE079712E6438100026054C /* main.swift in Sources */,
+CCFD21DA2E62BEEB00A80402 /* PrayerTimeCorrectionView.swift in Sources */,
+CC969CA72E60989F00C8630A /* PrayerTimeViewModel.swift in Sources */,
+CC786E582E635B46007299F3 /* PrayerTimerAlertView.swift in Sources */,
+CCDEFEE62E65231F005D6B45 /* TimePreviewPopover.swift in Sources */,
+CCE1BA472E620757003AF03C /* StyledToggle.swift in Sources */,
+CC786E722E63BB26007299F3 /* LanguageManager.swift in Sources */,
+CC4659612E661CC400159A83 /* TextFieldStepper.swift in Sources */,
+CCE1BA452E6198C1003AF03C /* ManualLocationView.swift in Sources */,
+CCED21882E65FE650066D0EB /* AnimationType.swift in Sources */,
+CC07FC622E63FF5100924451 /* SystemAndNotificationsSettingsView.swift in Sources */,
+CC786E632E63787E007299F3 /* MenuBarTextMode.swift in Sources */,
+CCEC0E452E60B08D001E9B1E /* AboutView.swift in Sources */,
+CC786E542E6359E1007299F3 /* PrayerTimerMonitor.swift in Sources */,
+CC786E742E63BD15007299F3 /* VisualEffectView.swift in Sources */,
+CC786E5F2E637700007299F3 /* AdhanSound.swift in Sources */,
+CCE1BA3A2E61852B003AF03C /* EventMonitor.swift in Sources */,
+CC4659652E6629C000159A83 /* SajdaStepper.swift in Sources */,
+CCE1BA3D2E61852B003AF03C /* FluidMenuBarExtra.swift in Sources */,
+CC969CA92E6098C600C8630A /* SettingsView.swift in Sources */,
+CCE1BA3F2E61852B003AF03C /* FluidMenuBarExtraWindow.swift in Sources */,
+CCEC0E4F2E60D2EC001E9B1E /* NotificationManager.swift in Sources */,
+CC786E672E638425007299F3 /* LocationSearchResult.swift in Sources */,
+CCED21862E65F9770066D0EB /* NavigationAnimation+Custom.swift in Sources */,
+CC786E4E2E634B65007299F3 /* OnboardingView.swift in Sources */,
+CC07FC602E63FD5800924451 /* LocationAndCalcSettingsView.swift in Sources */,
+CC969C7A2E60857A00C8630A /* ContentView.swift in Sources */,
+CCEC0E492E60B700001E9B1E /* StartupManager.swift in Sources */,
+CCEC0E412E60A899001E9B1E /* MainView.swift in Sources */,
+CC786E5B2E636A04007299F3 /* TimeZoneLocate.swift in Sources */,
+CC786E652E638353007299F3 /* SajdaCalculationMethod.swift in Sources */,
+CC969C782E60857A00C8630A /* SajdaApp.swift in Sources */,
+CCE1BA3E2E61852B003AF03C /* UpdateSizeAction.swift in Sources */,
+CCED21842E65F7BE0066D0EB /* NavigationAnimations.swift in Sources */,
+CCE1BA3B2E61852B003AF03C /* RootViewModifier.swift in Sources */,
+CC786E522E6353F1007299F3 /* ManualLocationSheetView.swift in Sources */,
+CC786E562E635ADA007299F3 /* AlertWindowManager.swift in Sources */,
+A1B3068783F31CB16A0B04E4 /* AdhanAudioPlayer.swift in Sources */,
+);
+runOnlyForDeploymentPostprocessing = 0;
+};
+CC969C812E60857E00C8630A /* Sources */ = {
+isa = PBXSourcesBuildPhase;
+buildActionMask = 2147483647;
+files = (
+CC969C8A2E60857E00C8630A /* SajdaTests.swift in Sources */,
+);
+runOnlyForDeploymentPostprocessing = 0;
+};
+CC969C8B2E60857E00C8630A /* Sources */ = {
+isa = PBXSourcesBuildPhase;
+buildActionMask = 2147483647;
+files = (
+CC969C962E60857E00C8630A /* SajdaUITestsLaunchTests.swift in Sources */,
+CC969C942E60857E00C8630A /* SajdaUITests.swift in Sources */,
+);
+runOnlyForDeploymentPostprocessing = 0;
+};
 /* End PBXSourcesBuildPhase section */
-
 /* Begin PBXTargetDependency section */
-		CC969C872E60857E00C8630A /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = CC969C732E60857A00C8630A /* Sajda */;
-			targetProxy = CC969C862E60857E00C8630A /* PBXContainerItemProxy */;
-		};
-		CC969C912E60857E00C8630A /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = CC969C732E60857A00C8630A /* Sajda */;
-			targetProxy = CC969C902E60857E00C8630A /* PBXContainerItemProxy */;
-		};
+CC969C872E60857E00C8630A /* PBXTargetDependency */ = {
+isa = PBXTargetDependency;
+target = CC969C732E60857A00C8630A /* Sajda */;
+targetProxy = CC969C862E60857E00C8630A /* PBXContainerItemProxy */;
+};
+CC969C912E60857E00C8630A /* PBXTargetDependency */ = {
+isa = PBXTargetDependency;
+target = CC969C732E60857A00C8630A /* Sajda */;
+targetProxy = CC969C902E60857E00C8630A /* PBXContainerItemProxy */;
+};
 /* End PBXTargetDependency section */
-
 /* Begin PBXVariantGroup section */
-		CC786E6E2E63B1CB007299F3 /* Localizable.strings */ = {
-			isa = PBXVariantGroup;
-			children = (
-				CC786E6D2E63B1CB007299F3 /* en */,
-				CC786E6F2E63B20E007299F3 /* ar */,
-				CC786E702E63B21D007299F3 /* id */,
-			);
-			name = Localizable.strings;
-			sourceTree = "<group>";
-		};
+CC786E6E2E63B1CB007299F3 /* Localizable.strings */ = {
+isa = PBXVariantGroup;
+children = (
+CC786E6D2E63B1CB007299F3 /* en */,
+CC786E6F2E63B20E007299F3 /* ar */,
+CC786E702E63B21D007299F3 /* id */,
+);
+name = Localizable.strings;
+sourceTree = "<group>";
+};
 /* End PBXVariantGroup section */
-
 /* Begin XCBuildConfiguration section */
-		CC969C972E60857E00C8630A /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = "$(ARCHS_STANDARD)";
-				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
-				CLANG_ANALYZER_NONNULL = YES;
-				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
-				CLANG_ENABLE_MODULES = YES;
-				CLANG_ENABLE_OBJC_ARC = YES;
-				CLANG_ENABLE_OBJC_WEAK = YES;
-				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
-				CLANG_WARN_BOOL_CONVERSION = YES;
-				CLANG_WARN_COMMA = YES;
-				CLANG_WARN_CONSTANT_CONVERSION = YES;
-				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
-				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
-				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
-				CLANG_WARN_EMPTY_BODY = YES;
-				CLANG_WARN_ENUM_CONVERSION = YES;
-				CLANG_WARN_INFINITE_RECURSION = YES;
-				CLANG_WARN_INT_CONVERSION = YES;
-				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
-				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
-				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
-				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
-				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
-				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
-				CLANG_WARN_STRICT_PROTOTYPES = YES;
-				CLANG_WARN_SUSPICIOUS_MOVE = YES;
-				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
-				CLANG_WARN_UNREACHABLE_CODE = YES;
-				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				COPY_PHASE_STRIP = NO;
-				DEBUG_INFORMATION_FORMAT = dwarf;
-				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				ENABLE_TESTABILITY = YES;
-				GCC_C_LANGUAGE_STANDARD = gnu11;
-				GCC_DYNAMIC_NO_PIC = NO;
-				GCC_NO_COMMON_BLOCKS = YES;
-				GCC_OPTIMIZATION_LEVEL = 0;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"DEBUG=1",
-					"$(inherited)",
+CC969C972E60857E00C8630A /* Debug */ = {
+isa = XCBuildConfiguration;
+buildSettings = {
+ALWAYS_SEARCH_USER_PATHS = NO;
+ARCHS = "$(ARCHS_STANDARD)";
+CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
+CLANG_ANALYZER_NONNULL = YES;
+CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+CLANG_ENABLE_MODULES = YES;
+CLANG_ENABLE_OBJC_ARC = YES;
+CLANG_ENABLE_OBJC_WEAK = YES;
+CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+CLANG_WARN_BOOL_CONVERSION = YES;
+CLANG_WARN_COMMA = YES;
+CLANG_WARN_CONSTANT_CONVERSION = YES;
+CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+CLANG_WARN_EMPTY_BODY = YES;
+CLANG_WARN_ENUM_CONVERSION = YES;
+CLANG_WARN_INFINITE_RECURSION = YES;
+CLANG_WARN_INT_CONVERSION = YES;
+CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+CLANG_WARN_STRICT_PROTOTYPES = YES;
+CLANG_WARN_SUSPICIOUS_MOVE = YES;
+CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+CLANG_WARN_UNREACHABLE_CODE = YES;
+CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+COPY_PHASE_STRIP = NO;
+DEBUG_INFORMATION_FORMAT = dwarf;
+ENABLE_STRICT_OBJC_MSGSEND = YES;
+ENABLE_TESTABILITY = YES;
+GCC_C_LANGUAGE_STANDARD = gnu11;
+GCC_DYNAMIC_NO_PIC = NO;
+GCC_NO_COMMON_BLOCKS = YES;
+GCC_OPTIMIZATION_LEVEL = 0;
+GCC_PREPROCESSOR_DEFINITIONS = (
+"DEBUG=1",
+"$(inherited
+			)",
 				);
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;

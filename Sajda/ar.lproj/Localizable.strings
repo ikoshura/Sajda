@@ -69,3 +69,17 @@
 "All Prayers" = "جميع الصلوات";
 "Apply" = "تطبيق";
 "Stop Adhan" = "إيقاف الأذان";
+
+/* Adhan Types — Fajr */
+"fajrAzan1" = "مشاري راشد العفاسي (الفجر)";
+"fajrAzan2" = "الدوحة قطر (الفجر)";
+
+/* Adhan Types — Standard */
+"standardAzan1" = "أحمد العمادي";
+"standardAzan2" = "ماجد الحمثاني";
+"standardAzan3" = "ناصر القطامي";
+
+/* Adhan Types — Other */
+"none" = "بدون";
+"defaultBeep" = "صوت افتراضي";
+"custom" = "صوت مخصص";
