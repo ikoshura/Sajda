@@ -1,24 +1,36 @@
 # Azan Audio Files
 
-Place the following CC0/public domain azan audio files in this directory:
+All azan recordings from public domain sources, converted to **CAF (AAC, 44100 Hz, stereo)** via `afconvert -d aac -f caff -q 127`. macOS `NSSound` supports full-length playback without any duration cap.
 
-## Fajr Azan (must include "As-salatu khayrum minan-nawm")
-- `adhan_fajr_1.caf`
-- `adhan_fajr_2.caf`
+## Fajr Azan (includes "As-salatu khayrum minan-nawm")
+
+| Bundle File | Source | Muezzin | Duration |
+|---|---|---|---|
+| `Mishary_Rashid_al_Afasy_Fajr_Adhan.caf` | adhan.notifications | Mishary Rashid al Afasy | 3:07 |
+| `Doha_Qatar_Fajr_Adhan.caf` | adhan.recordings.from.doha.qatar | Doha Qatar muezzin | 3:37 |
 
 ## Standard Azan (without Fajr addition)
-- `adhan_standard_1.caf`
-- `adhan_standard_2.caf`
-- `adhan_standard_3.caf`
 
-## Recommended Sources (Copyright-Safe)
-- Wikimedia Commons (CC0 1.0): https://commons.wikimedia.org/wiki/File:Beautiful_adhan.ogg
-- Internet Archive - Doha Qatar (Public Domain): https://archive.org/details/adhan.recordings.from.doha.qatar
-- Pixabay (Royalty-free): https://pixabay.com/sound-effects/search/call-to-prayer/
+| Bundle File | Source | Muezzin | Duration |
+|---|---|---|---|
+| `Ahmed_al_Imadi_Adhan.caf` | adhan.notifications | Ahmed al Imadi | 2:59 |
+| `Majed_al_Hamathani_Adhan.caf` | adhan.notifications | Majed al Hamathani | 3:39 |
+| `Nasser_al_Qatami_Adhan.caf` | adhan.notifications | Nasser al Qatami | 2:11 |
 
-## Notes
-- Files must be in CAF format (AAC or PCM) for UNNotificationSound compatibility
-- Convert from MP3 using: `afconvert input.mp3 output.caf -d aac -f caff`
-- Trim to ~60-90 seconds for in-app playback (system caps notification sound at 30s)
-- Verify Fajr variants contain "As-salatu khayrum minan-nawm"
-- Add files to Xcode project's "Copy Bundle Resources" build phase
+## Sources
+
+- **[adhan.notifications](https://archive.org/details/adhan.notifications)** — Public Domain Mark 1.0. Collection of adhan recordings by multiple muezzins (Mishary Rashid al Afasy, Ahmed al Imadi, Majed al Hamathani, Nasser al Qatami, Mokhtar Hadj Slimane). Original format: OGG Vorbis.
+- **[adhan.recordings.from.doha.qatar](https://archive.org/details/adhan.recordings.from.doha.qatar)** — Public Domain. Five daily prayer adhan recordings from Doha, Qatar. Original format: OGG Vorbis.
+
+## Code Mapping
+
+File names are referenced in `AdhanSound.swift` via `bundleFileName`:
+- `fajrAzan1` → `Mishary_Rashid_al_Afasy_Fajr_Adhan`
+- `fajrAzan2` → `Doha_Qatar_Fajr_Adhan`
+- `standardAzan1` → `Ahmed_al_Imadi_Adhan`
+- `standardAzan2` → `Majed_al_Hamathani_Adhan`
+- `standardAzan3` → `Nasser_al_Qatami_Adhan`
+
+## Xcode
+
+Add all `.caf` files to the Xcode project's "Copy Bundle Resources" build phase. The `Sajda.xcodeproj` already includes them in the `Resources/Audio` group.

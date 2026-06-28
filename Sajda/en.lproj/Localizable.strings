@@ -69,3 +69,17 @@
 "All Prayers" = "All Prayers";
 "Apply" = "Apply";
 "Stop Adhan" = "Stop Adhan";
+
+/* Adhan Types — Fajr */
+"fajrAzan1" = "Mishary Rashid al Afasy (Fajr)";
+"fajrAzan2" = "Doha Qatar (Fajr)";
+
+/* Adhan Types — Standard */
+"standardAzan1" = "Ahmed al Imadi";
+"standardAzan2" = "Majed al Hamathani";
+"standardAzan3" = "Nasser al Qatami";
+
+/* Adhan Types — Other */
+"none" = "None";
+"defaultBeep" = "Default Beep";
+"custom" = "Custom Sound";

@@ -30,6 +30,10 @@ struct SajdaCalculationMethod: Identifiable, Hashable {
         france12.fajrAngle = 12.0
         france12.ishaAngle = 12.0
 
+        var france15 = CalculationMethod.other.params
+        france15.fajrAngle = 15.0
+        france15.ishaAngle = 15.0
+
         var france18 = CalculationMethod.other.params
         france18.fajrAngle = 18.0
         france18.ishaAngle = 18.0
@@ -72,6 +76,7 @@ struct SajdaCalculationMethod: Identifiable, Hashable {
             SajdaCalculationMethod(name: "Diyanet (Turkey)", params: diyanet),
             SajdaCalculationMethod(name: "Algeria", params: algeria),
             SajdaCalculationMethod(name: "France (12°)", params: france12),
+            SajdaCalculationMethod(name: "France (15°)", params: france15),
             SajdaCalculationMethod(name: "France (18°)", params: france18),
             SajdaCalculationMethod(name: "Germany", params: germany),
             SajdaCalculationMethod(name: "Malaysia (JAKIM)", params: malaysia),
