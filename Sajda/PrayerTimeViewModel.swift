@@ -604,6 +604,11 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
                 self.updateCountdown()
             }
         }
+        // Ensure the countdown timer fires during menu tracking and other
+        // common-mode run-loop activities so the adhan is not delayed.
+        if let timer = timer {
+            RunLoop.main.add(timer, forMode: .common)
+        }
     }
 
     private func handleAuthorizationStatus(status: CLAuthorizationStatus) {

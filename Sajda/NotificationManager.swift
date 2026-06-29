@@ -18,22 +18,10 @@ struct NotificationManager {
                 content.title = NSLocalizedString(prayerName, comment: "")
                 content.body = String(format: NSLocalizedString("notification_body", comment: ""), NSLocalizedString(prayerName, comment: ""))
                 
-                let config = prayerConfigs[prayerName]
-                let adhanSound = config?.adhanType ?? .defaultBeep
-                switch adhanSound {
-                case .none:
-                    content.sound = nil
-                case .defaultBeep:
-                    content.sound = UNNotificationSound.default
-                case .custom:
-                    content.sound = UNNotificationSound.default
-                default:
-                    if let fileName = config?.adhanType.bundleFileName {
-                        content.sound = UNNotificationSound(named: UNNotificationSoundName(rawValue: fileName + ".caf"))
-                    } else {
-                        content.sound = UNNotificationSound.default
-                    }
-                }
+                // Sound is played via the countdown timer (NSSound/AVAudioPlayer, no duration limit).
+                // Notification payload must stay silent — long CAF files (>30s) are rejected
+                // by UNNotificationSound, causing the system to play nothing.
+                content.sound = nil
 
                 let triggerDate = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute, .second], from: prayerTime)
                 let trigger = UNCalendarNotificationTrigger(dateMatching: triggerDate, repeats: false)
