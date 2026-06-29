@@ -33,10 +33,6 @@ A minimal, native prayer times app for the menu bar. Built with SwiftUI. Accurat
 
 ---
 
-The repetition is in the Gatekeeper warning steps — they're identical in both Homebrew and DMG sections. Pull them out into a shared block:
-
----
-
 ## Installation
 
 ### Homebrew (recommended)
