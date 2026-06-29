@@ -38,8 +38,7 @@ A minimal, native prayer times app for the menu bar. Built with SwiftUI. Accurat
 ### Homebrew (recommended)
 
 ```bash
-brew tap ikoshura/sajda
-brew install --cask sajda
+brew install --cask ikoshura/sajda/sajda
 ```
 
 ### DMG
