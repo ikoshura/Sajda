@@ -33,45 +33,38 @@ A minimal, native prayer times app for the menu bar. Built with SwiftUI. Accurat
 
 ---
 
+The repetition is in the Gatekeeper warning steps — they're identical in both Homebrew and DMG sections. Pull them out into a shared block:
+
+---
+
 ## Installation
 
 ### Homebrew (recommended)
-
 ```bash
 brew install --cask ikoshura/sajda/sajda
 ```
 
 ### DMG
-
 Download the latest `.dmg` from the [Releases page](https://github.com/ikoshura/Sajda/releases), open it, and drag Sajda to your Applications folder.
 
-If macOS blocks the app on first launch, right-click the app icon and select **Open**, then confirm in the dialog.
-
-If that does not work, run this in Terminal:
-
+### First launch on macOS
+If macOS blocks the app, right-click the icon and select **Open**, then confirm in the dialog. If that doesn't work, run:
 ```bash
 /usr/bin/xattr -cr /Applications/Sajda.app
 ```
 
-Then open the app normally.
-
 <details>
-<summary>More installation options</summary>
+<summary>Still blocked? More options</summary>
 
-**System Settings method**
-
+**System Settings**
 1. Try to open Sajda. When the warning appears, click OK.
-2. Open System Settings > Privacy & Security.
-3. Find the message about Sajda being blocked and click **Open Anyway**.
+2. Open **System Settings → Privacy & Security**.
+3. Find the Sajda entry and click **Open Anyway**.
 
-**Terminal method (guaranteed fix)**
-
+**Terminal (alternative)**
 ```bash
 xattr -r -d com.apple.quarantine /Applications/Sajda.app
 ```
-
-Or drag the app onto the Terminal window after typing the command with a trailing space.
-
 </details>
 
 ---
