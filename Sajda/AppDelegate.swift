@@ -46,10 +46,22 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
     }
     
     func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+        // Timer-based playback in PrayerTimeViewModel already handles audio.
+        // This delegate fires only when the popover is open (app is "foreground").
+        // We still play here as a safety net so audio is not missed if the timer
+        // fires while the user is interacting with the menu.
         let prayerName = notification.request.identifier
         let config = vm.soundConfig(for: prayerName)
         AdhanAudioPlayer.shared.play(adhanType: config.adhanType, customFilePath: config.customFilePath, prayerName: prayerName)
         completionHandler([.banner])
+    }
+
+    func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
+        // User clicked the notification — ensure audio plays even if the timer missed.
+        let prayerName = response.notification.request.identifier
+        let config = vm.soundConfig(for: prayerName)
+        AdhanAudioPlayer.shared.play(adhanType: config.adhanType, customFilePath: config.customFilePath, prayerName: prayerName)
+        completionHandler()
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
