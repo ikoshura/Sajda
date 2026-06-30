@@ -264,8 +264,7 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
             logger.info("Loaded saved automatic location while refreshing provider in the background. Name: \(automaticData.name, privacy: .public)")
             currentCoordinates = automaticData.coordinates
             locationStatusText = automaticData.name
-            let location = CLLocation(latitude: automaticData.coordinates.latitude, longitude: automaticData.coordinates.longitude)
-            self.locationTimeZone = TimeZoneLocate.timeZoneWithLocation(location)
+            self.locationTimeZone = .current
             self.authorizationStatus = locMgr.authorizationStatus
             DispatchQueue.main.async {
                 self.updateAndDisplayTimes()
@@ -307,8 +306,7 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
             manualLocationFallbackForAutomaticSwitch = nil
             currentCoordinates = cache.coordinates
             locationStatusText = cache.name
-            let location = CLLocation(latitude: cache.coordinates.latitude, longitude: cache.coordinates.longitude)
-            locationTimeZone = TimeZoneLocate.timeZoneWithLocation(location)
+            locationTimeZone = .current
             updateAndDisplayTimes()
         } else {
             handleAuthorizationStatus(status: locMgr.authorizationStatus)
@@ -339,7 +337,7 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
 
         let coordinates = location.coordinate
         let fallbackName = String(format: "Coord: %.2f, %.2f", coordinates.latitude, coordinates.longitude)
-        locationTimeZone = TimeZoneLocate.timeZoneWithLocation(location)
+        locationTimeZone = .current
         automaticLocationCache = (name: fallbackName, coordinates: coordinates)
         saveAutomaticLocation(name: fallbackName, coordinates: coordinates)
         logger.info("Accepted \(source, privacy: .public) location. Accuracy: \(location.horizontalAccuracy, privacy: .public)m")
@@ -391,7 +389,7 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
 
         var locationCalendar = Calendar(identifier: .gregorian); locationCalendar.timeZone = self.locationTimeZone
         let todayInLocation = locationCalendar.dateComponents([.year, .month, .day], from: Date())
-        let tomorrowInLocation = Calendar.current.date(byAdding: .day, value: 1, to: Date())!
+        let tomorrowInLocation = locationCalendar.date(byAdding: .day, value: 1, to: Date())!
         let tomorrowDC = locationCalendar.dateComponents([.year, .month, .day], from: tomorrowInLocation)
         var params = method.params; params.madhab = self.useHanafiMadhhab ? .hanafi : .shafi
         guard let prayersToday = PrayerTimes(coordinates: Coordinates(latitude: coord.latitude, longitude: coord.longitude), date: todayInLocation, calculationParameters: params),
