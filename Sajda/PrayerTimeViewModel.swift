@@ -73,6 +73,7 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
     }
 
     @Published var method: SajdaCalculationMethod { didSet { UserDefaults.standard.set(method.name, forKey: "calculationMethodName"); updatePrayerTimes() } }
+    @Published var highLatitudeRuleSetting: HighLatitudeRuleSetting { didSet { UserDefaults.standard.set(highLatitudeRuleSetting.rawValue, forKey: "highLatitudeRuleSetting"); updatePrayerTimes() } }
     private var currentCoordinates: CLLocationCoordinate2D?
     private var cancellables = Set<AnyCancellable>()
     private let locMgr = CLLocationManager()
@@ -96,6 +97,8 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
         self.method = SajdaCalculationMethod.allCases.first { $0.name == savedMethodName } ?? .allCases[0]
         let savedTextMode = UserDefaults.standard.string(forKey: "menuBarTextMode")
         self.menuBarTextMode = MenuBarTextMode(rawValue: savedTextMode ?? "") ?? .countdown
+        let savedHighLatitudeRule = UserDefaults.standard.string(forKey: "highLatitudeRuleSetting")
+        self.highLatitudeRuleSetting = HighLatitudeRuleSetting(rawValue: savedHighLatitudeRule ?? "") ?? .recommended
         self.authorizationStatus = locMgr.authorizationStatus
         super.init()
         migratePrayerSoundConfigs()
@@ -391,7 +394,7 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
         let todayInLocation = locationCalendar.dateComponents([.year, .month, .day], from: Date())
         let tomorrowInLocation = locationCalendar.date(byAdding: .day, value: 1, to: Date())!
         let tomorrowDC = locationCalendar.dateComponents([.year, .month, .day], from: tomorrowInLocation)
-        var params = method.params; params.madhab = self.useHanafiMadhhab ? .hanafi : .shafi
+        var params = method.params; params.madhab = self.useHanafiMadhhab ? .hanafi : .shafi; params.highLatitudeRule = highLatitudeRuleSetting.adhanRule
         guard let prayersToday = PrayerTimes(coordinates: Coordinates(latitude: coord.latitude, longitude: coord.longitude), date: todayInLocation, calculationParameters: params),
               let prayersTomorrow = PrayerTimes(coordinates: Coordinates(latitude: coord.latitude, longitude: coord.longitude), date: tomorrowDC, calculationParameters: params) else { return }
 
@@ -421,6 +424,32 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
             self.updateNextPrayer()
             self.updateNotifications()
         }
+    }
+
+    // MARK: - High-Latitude Rule Info
+
+    /// The rule actually applied for the current location: the user's override,
+    /// or Adhan's recommendation when "Recommended" is selected. nil until a location is known.
+    var effectiveHighLatitudeRule: HighLatitudeRuleSetting? {
+        guard let coord = currentCoordinates else { return nil }
+        let effective = highLatitudeRuleSetting.adhanRule
+            ?? HighLatitudeRule.recommended(for: Coordinates(latitude: coord.latitude, longitude: coord.longitude))
+        return HighLatitudeRuleSetting(adhanRule: effective)
+    }
+
+    /// Human-readable caption showing the active high-latitude rule. nil until a location is known.
+    var highLatitudeRuleCaption: String? {
+        guard let effective = effectiveHighLatitudeRule, let lat = currentCoordinates?.latitude else { return nil }
+        if highLatitudeRuleSetting == .recommended {
+            return String(format: NSLocalizedString("Recommended for your location (%.1f°): %@", comment: "High-latitude rule caption — recommended"), lat, effective.displayName)
+        } else {
+            return String(format: NSLocalizedString("Override: %@. Recommended for your location is %@.", comment: "High-latitude rule caption — override"), highLatitudeRuleSetting.displayName, effective.displayName)
+        }
+    }
+
+    /// Description of the effective high-latitude rule, for use as secondary caption text.
+    var highLatitudeRuleDescription: String? {
+        return effectiveHighLatitudeRule?.description
     }
 
     private func updateNextPrayer() {
