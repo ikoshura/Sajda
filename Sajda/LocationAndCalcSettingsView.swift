@@ -42,6 +42,17 @@ struct LocationAndCalcSettingsView: View {
                             HStack { Text("Method").font(.subheadline); Spacer(); Picker("", selection: $vm.method) { ForEach(SajdaCalculationMethod.allCases) { method in Text(method.name).tag(method) } }.frame(maxWidth: 140) }
                             HStack { Text("Time Correction").font(.subheadline); Spacer(); Button("Adjust") { navigationModel.showView(Self.id, animation: vm.forwardAnimation()) { PrayerTimeCorrectionView() } }.buttonStyle(.bordered) }
                             StyledToggle(label: "Hanafi Madhhab (for Asr)", isOn: $vm.useHanafiMadhhab)
+                            HStack { Text("High-Latitude Rule").font(.subheadline); Spacer(); Picker("", selection: $vm.highLatitudeRuleSetting) { ForEach(HighLatitudeRuleSetting.allCases, id: \.self) { rule in Text(rule.displayName).tag(rule) } }.frame(maxWidth: 140) }
+                            if let caption = vm.highLatitudeRuleCaption {
+                                Text(caption)
+                                    .font(.caption2)
+                                    .foregroundColor(Color("SecondaryTextColor"))
+                            }
+                            if let description = vm.highLatitudeRuleDescription {
+                                Text(description)
+                                    .font(.caption2)
+                                    .foregroundColor(Color("SecondaryTextColor"))
+                            }
                         }
                         Rectangle().fill(Color("DividerColor")).frame(height: 0.5)
                         Group {
