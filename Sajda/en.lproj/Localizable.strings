@@ -96,3 +96,7 @@
 "none" = "None";
 "defaultBeep" = "Default Beep";
 "custom" = "Custom Sound";
+
+/* Menu Bar Style options */
+"Icon + Countdown" = "Icon + Countdown";
+"Icon + Exact Time" = "Icon + Exact Time";
