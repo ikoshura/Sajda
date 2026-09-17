@@ -96,3 +96,7 @@
 "none" = "Tidak Ada";
 "defaultBeep" = "Bunyi Bawaan";
 "custom" = "Suara Kustom";
+
+/* Menu Bar Style options */
+"Icon + Countdown" = "Ikon + Hitung Mundur";
+"Icon + Exact Time" = "Ikon + Waktu Tepat";
