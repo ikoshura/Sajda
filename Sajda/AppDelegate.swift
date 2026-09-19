@@ -25,7 +25,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
         vm.startLocationProcess()
 
         vm.$menuTitle.debounce(for: .milliseconds(100), scheduler: RunLoop.main).sink { [weak self] newTitle in self?.menuBarExtra?.updateTitle(to: newTitle) }.store(in: &cancellables)
-        NotificationCenter.default.publisher(for: UserDefaults.didChangeNotification).debounce(for: .milliseconds(50), scheduler: RunLoop.main).sink { [weak self] _ in self?.updateIconForMode(self?.vm.menuBarTextMode ?? .countdown) }.store(in: &cancellables)
+        NotificationCenter.default.publisher(for: UserDefaults.didChangeNotification).debounce(for: .milliseconds(50), scheduler: RunLoop.main).sink { [weak self] _ in self?.updateIconForMode(self?.vm.menuBarTextMode ?? .iconExactTime) }.store(in: &cancellables)
     
         if self.showOnboardingAtLaunch {
             self.showOnboardingWindow()
@@ -164,12 +164,26 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
     }
     
     private func updateIconForMode(_ mode: MenuBarTextMode) {
-        let isIconOnly = (mode == .hidden)
-        if vm.useMinimalMenuBarText {
-            menuBarExtra?.statusItem.button?.image = nil
+        let shouldShowIcon: Bool
+        switch mode {
+        case .hidden, .iconCountdown, .iconExactTime:
+            shouldShowIcon = true
+        case .countdown, .exactTime:
+            shouldShowIcon = false
+        }
+        guard let button = menuBarExtra?.statusItem.button else { return }
+        if shouldShowIcon {
+            button.imagePosition = .imageLeading
+            if let image = NSImage(named: "MenuBarMosque") {
+                image.size = NSSize(width: 16, height: 16)
+                image.isTemplate = true
+                button.image = image
+            } else {
+                button.image = NSImage(systemSymbolName: "moon.zzz.fill", accessibilityDescription: "Sajda Pro")
+            }
         }
         else {
-            menuBarExtra?.statusItem.button?.image = isIconOnly ? NSImage(systemSymbolName: "moon.zzz.fill", accessibilityDescription: "Sajda Pro") : nil
+            button.image = nil
         }
     }
 }	

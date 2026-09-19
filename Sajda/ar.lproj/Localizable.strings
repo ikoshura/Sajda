@@ -96,3 +96,7 @@
 "none" = "بدون";
 "defaultBeep" = "صوت افتراضي";
 "custom" = "صوت مخصص";
+
+/* Menu Bar Style options */
+"Icon + Countdown" = "أيقونة + عد تنازلي";
+"Icon + Exact Time" = "أيقونة + الوقت المحدد";

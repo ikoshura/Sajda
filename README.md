@@ -111,6 +111,18 @@ Thanks to everyone who has contributed to this project.
 
 ---
 
+## Privacy
+
+Sajda respects your privacy:
+
+- **No accounts, no analytics, no tracking.** The app has no servers and collects nothing.
+- **Location** is requested only to calculate prayer times and is processed on your device. Prayer time calculation happens entirely offline (Adhan library).
+- **City search** sends only the text you type to [OpenStreetMap's Nominatim](https://wiki.openstreetmap.org/wiki/Nominatim) service (requests identify as `Sajda/1.0`).
+- **Timezone detection** uses Apple's standard reverse geocoding.
+- All settings stay in local storage on your Mac.
+
+---
+
 ## Acknowledgements
 
 - [Adhan](https://github.com/batoulapps/Adhan) - prayer time calculation library

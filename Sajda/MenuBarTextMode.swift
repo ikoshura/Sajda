@@ -7,6 +7,8 @@ enum MenuBarTextMode: String, CaseIterable, Identifiable {
     case countdown = "Countdown"
     case exactTime = "Exact Time"
     case hidden = "Icon Only"
+    case iconCountdown = "Icon + Countdown"
+    case iconExactTime = "Icon + Exact Time"
     var id: Self { self }
 
     // Properti baru untuk menampilkan versi yang sudah diterjemahkan
