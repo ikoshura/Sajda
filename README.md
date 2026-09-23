@@ -29,6 +29,10 @@ A minimal, native prayer times app for the menu bar. Built with SwiftUI. Accurat
     <td><b>Languages</b></td>
     <td>English, Arabic (with RTL support), and Indonesian.</td>
   </tr>
+  <tr>
+    <td><b>Updates</b></td>
+    <td>Optional automatic update checks notify you in-app when a new release is available. Off by default; enable it in Settings or during onboarding.</td>
+  </tr>
 </table>
 
 ---
@@ -43,11 +47,15 @@ brew install --cask ikoshura/sajda/sajda
 ### DMG
 Download the latest `.dmg` from the [Releases page](https://github.com/ikoshura/Sajda/releases), open it, and drag Sajda to your Applications folder.
 
-### First launch on macOS
-If macOS blocks the app, right-click the icon and select **Open**, then confirm in the dialog. If that doesn't work, run:
+### First launch on macOS (important)
+
+Sajda releases are ad-hoc signed and not notarized. The Apple Developer Program costs $99/year, which is not affordable for this project right now. Because of that, macOS Gatekeeper may say **"Sajda.app is damaged and can't be opened"** on first launch. The app is not damaged; macOS shows this misleading message for unsigned apps downloaded from the internet.
+
+To open Sajda, run this once in Terminal after copying the app to Applications:
 ```bash
 /usr/bin/xattr -cr /Applications/Sajda.app
 ```
+Then launch Sajda normally. You only need to do this once per install.
 
 <details>
 <summary>Still blocked? More options</summary>
@@ -106,6 +114,7 @@ Thanks to everyone who has contributed to this project.
 - [@omar-hanafy](https://github.com/omar-hanafy)
 - [@novan](https://github.com/novan)
 - [@maddada](https://github.com/maddada)
+- [@sabuz796](https://github.com/sabuz796)
 
 [![Contributors](https://contrib.rocks/image?repo=ikoshura/Sajda)](https://github.com/ikoshura/Sajda/graphs/contributors)
 

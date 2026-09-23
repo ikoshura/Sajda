@@ -11,6 +11,7 @@ struct SettingsView: View {
     @EnvironmentObject var navigationModel: NavigationModel
     
     @AppStorage("launchAtLogin") private var launchAtLogin = false
+    @AppStorage(UpdateChecker.autoCheckKey) private var autoCheckForUpdates = false
     @State private var isHeaderHovering = false
     @State private var isCalcHovering = false
     @State private var isAdhanHovering = false
@@ -43,6 +44,10 @@ struct SettingsView: View {
                 VStack(alignment: .leading, spacing: 12) {
                     Text("System").font(.caption).foregroundColor(Color("SecondaryTextColor"))
                     StyledToggle(label: "Run at Login", isOn: $launchAtLogin)
+                    StyledToggle(label: "Check for Updates Automatically", isOn: $autoCheckForUpdates)
+                        .onChange(of: autoCheckForUpdates) { enabled in
+                            if enabled { UpdateChecker.shared.checkIfDue() }
+                        }
 
                     HStack {
                         Text("Animation Style").font(.subheadline)

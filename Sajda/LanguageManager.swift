@@ -22,10 +22,20 @@ struct LanguageManagerView<Content: View>: View {
         self.content = content()
     }
 
+    /// Arabic uses Eastern Arabic numerals (٠١٢٣٤٥٦٧٨٩) plus an Arabic
+    /// locale so dates/times render natively. Other languages keep the
+    /// default numbering system.
+    private var effectiveLocale: Locale {
+        if manager.language == "ar" {
+            return Locale(identifier: "ar_EG")
+        }
+        return Locale(identifier: manager.language)
+    }
+
     var body: some View {
         content
             .environmentObject(manager)
-            .environment(\.locale, Locale(identifier: manager.language))
+            .environment(\.locale, effectiveLocale)
             .environment(\.layoutDirection, manager.language == "ar" ? .rightToLeft : .leftToRight)
             .id(manager.language) // Ini adalah kunci untuk memaksa render ulang!
     }

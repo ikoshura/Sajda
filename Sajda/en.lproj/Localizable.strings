@@ -100,3 +100,13 @@
 /* Menu Bar Style options */
 "Icon + Countdown" = "Icon + Countdown";
 "Icon + Exact Time" = "Icon + Exact Time";
+
+/* Updates */
+"Checking for updates..." = "Checking for updates...";
+"You're up to date." = "You're up to date.";
+"Check for Updates" = "Check for Updates";
+"Check for Updates Automatically" = "Check for Updates Automatically";
+"Couldn't check for updates." = "Couldn't check for updates.";
+"Try Again" = "Try Again";
+"Update available: %@" = "Update available: %@";
+"Open the release page to download" = "Open the release page to download";

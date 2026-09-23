@@ -8,6 +8,7 @@ struct OnboardingView: View {
     @EnvironmentObject var languageManager: LanguageManager
     
     @AppStorage("showOnboardingAtLaunch") private var showOnboardingAtLaunch = true
+    @AppStorage(UpdateChecker.autoCheckKey) private var autoCheckForUpdates = false
     @State private var showingManualLocationSheet = false
     
     // State untuk efek hover
@@ -143,6 +144,12 @@ struct OnboardingView: View {
                 VStack(spacing: 12) {
                     Toggle("Show this window on launch", isOn: $showOnboardingAtLaunch)
                         .toggleStyle(.checkbox)
+                    
+                    Toggle("Check for Updates Automatically", isOn: $autoCheckForUpdates)
+                        .toggleStyle(.checkbox)
+                        .onChange(of: autoCheckForUpdates) { enabled in
+                            if enabled { UpdateChecker.shared.checkIfDue() }
+                        }
                     
                     Button(action: { NSApp.keyWindow?.close() }) {
                         Text("Done").frame(maxWidth: .infinity)

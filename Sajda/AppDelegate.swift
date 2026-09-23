@@ -23,6 +23,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
 
         setupMenuBar()
         vm.startLocationProcess()
+        UpdateChecker.shared.checkIfDue()
 
         vm.$menuTitle.debounce(for: .milliseconds(100), scheduler: RunLoop.main).sink { [weak self] newTitle in self?.menuBarExtra?.updateTitle(to: newTitle) }.store(in: &cancellables)
         vm.$isPrayerImminent.sink { [weak self] _ in self?.updateMenuBarUrgentAppearance() }.store(in: &cancellables)
@@ -147,6 +148,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
         window.titlebarAppearsTransparent = true
         window.titleVisibility = .hidden
         window.styleMask.insert(.fullSizeContentView)
+        window.isMovableByWindowBackground = true
         
         window.standardWindowButton(.closeButton)?.isHidden = true
         window.standardWindowButton(.miniaturizeButton)?.isHidden = true
@@ -181,6 +183,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
 
     private func applyMenuBarIcon() {
         let mode = vm.menuBarTextMode
+        let isRTL = languageManager.language == "ar"
         let shouldShowIcon: Bool
         switch mode {
         case .hidden, .iconCountdown, .iconExactTime:
@@ -189,12 +192,18 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
             shouldShowIcon = false
         }
         guard let button = menuBarExtra?.statusItem.button else { return }
+        // In RTL (Arabic) mirror the icon to the trailing edge so the
+        // glyph sits on the outer side, matching the mirrored layout.
+        button.imagePosition = isRTL ? .imageTrailing : .imageLeading
         if shouldShowIcon {
-            button.imagePosition = .imageLeading
-            if vm.isPrayerImminent, let redIcon = tintedMenuBarIcon() {
+            // Icon-only mode gets a larger glyph to match the visual weight
+            // of system icons (Wi-Fi, battery). With text alongside, keep it
+            // small so the title stays the focus.
+            let iconSize: CGFloat = 19
+            if vm.isPrayerImminent, let redIcon = tintedMenuBarIcon(size: iconSize) {
                 button.image = redIcon
             } else if let image = NSImage(named: "MenuBarMosque") {
-                image.size = NSSize(width: 16, height: 16)
+                image.size = NSSize(width: iconSize, height: iconSize)
                 image.isTemplate = true
                 button.image = image
             } else {
@@ -210,7 +219,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
     /// icon turns red when prayer is imminent. The title already carries its
     /// own red attributed-string color — `contentTintColor` is deliberately
     /// avoided because it kills menu-bar vibrancy (→ black text).
-    private func tintedMenuBarIcon() -> NSImage? {
+    private func tintedMenuBarIcon(size iconSize: CGFloat = 16) -> NSImage? {
         let base: NSImage?
         if let mosque = NSImage(named: "MenuBarMosque") {
             base = mosque
@@ -218,7 +227,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
             base = NSImage(systemSymbolName: "moon.zzz.fill", accessibilityDescription: "Sajda Pro")
         }
         guard let base else { return nil }
-        let size = NSSize(width: 16, height: 16)
+        let size = NSSize(width: iconSize, height: iconSize)
         let tinted = NSImage(size: size)
         tinted.lockFocus()
         NSColor.systemRed.set()

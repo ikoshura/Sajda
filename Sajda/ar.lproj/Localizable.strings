@@ -100,3 +100,13 @@
 /* Menu Bar Style options */
 "Icon + Countdown" = "أيقونة + عد تنازلي";
 "Icon + Exact Time" = "أيقونة + الوقت المحدد";
+
+/* Updates */
+"Checking for updates..." = "جارٍ التحقق من التحديثات...";
+"You're up to date." = "تطبيقك محدّث.";
+"Check for Updates" = "التحقق من التحديثات";
+"Check for Updates Automatically" = "التحقق من التحديثات تلقائيًا";
+"Couldn't check for updates." = "تعذر التحقق من التحديثات.";
+"Try Again" = "إعادة المحاولة";
+"Update available: %@" = "يتوفر تحديث: %@";
+"Open the release page to download" = "افتح صفحة الإصدار للتنزيل";

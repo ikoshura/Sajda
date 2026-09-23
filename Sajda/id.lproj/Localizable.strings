@@ -100,3 +100,13 @@
 /* Menu Bar Style options */
 "Icon + Countdown" = "Ikon + Hitung Mundur";
 "Icon + Exact Time" = "Ikon + Waktu Tepat";
+
+/* Updates */
+"Checking for updates..." = "Memeriksa pembaruan...";
+"You're up to date." = "Aplikasi sudah terbaru.";
+"Check for Updates" = "Periksa Pembaruan";
+"Check for Updates Automatically" = "Periksa Pembaruan Otomatis";
+"Couldn't check for updates." = "Gagal memeriksa pembaruan.";
+"Try Again" = "Coba Lagi";
+"Update available: %@" = "Pembaruan tersedia: %@";
+"Open the release page to download" = "Buka halaman rilis untuk mengunduh";

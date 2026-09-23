@@ -42,6 +42,13 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
     @Published var activeAdhanPrayerName: String = ""
 
     private let languageManager = LanguageManager()
+
+    /// Locale used for all user-visible numbers and times. Arabic renders
+    /// with Eastern Arabic numerals (٠١٢٣٤٥٦٧٨٩); other languages keep
+    /// their default numbering system.
+    private var displayLocale: Locale {
+        languageManager.language == "ar" ? Locale(identifier: "ar_EG") : Locale(identifier: languageManager.language)
+    }
     private let logger = Logger(subsystem: "com.madda.Sajda", category: "Location")
     private var automaticLocationCache: (name: String, coordinates: CLLocationCoordinate2D)?
     private var tomorrowFajrTime: Date?
@@ -499,7 +506,7 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
             let h = diff / 3600
             let m = (diff % 3600) / 60
             let numberFormatter = NumberFormatter()
-            numberFormatter.locale = Locale(identifier: languageManager.language)
+            numberFormatter.locale = displayLocale
             let formattedM = numberFormatter.string(from: NSNumber(value: m + 1)) ?? "\(m + 1)"
             if h > 0 {
                 let formattedH = numberFormatter.string(from: NSNumber(value: h)) ?? "\(h)"
@@ -521,7 +528,7 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
     var dateFormatter: DateFormatter {
         let formatter = DateFormatter()
         formatter.timeZone = self.locationTimeZone
-        formatter.locale = Locale(identifier: languageManager.language)
+        formatter.locale = displayLocale
         if use24HourFormat {
             formatter.dateFormat = "HH:mm"
         } else if useMinimalMenuBarText {
