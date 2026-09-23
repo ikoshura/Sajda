@@ -23,22 +23,6 @@ Most prayer apps want your attention. Sajda wants the opposite. It sits in the m
 
 ---
 
-## Features
-
-| Area | What you get |
-|------|--------------|
-| **Menu bar** | Icon only, countdown, exact time, or icon plus text. Compact and minimal styles available. Adapts to light and dark mode. |
-| **Liquid Glass panel** | Refractive glass dropdown with a frosted interior, glass header pill, and sharp settings rows with no blur stacking. |
-| **Prayer times** | Automatic location detection or manual city and coordinates. Supports MWL, ISNA, Umm al-Qura, Kemenag, Diyanet, and more. Hanafi Asr toggle plus per-prayer offset up to 60 minutes. |
-| **Sunnah prayers** | Optional Tahajud and Dhuha rows. |
-| **High latitudes** | Configurable high-latitude rule (Recommended, Middle of the Night, Seventh of the Night, Twilight Angle) with a caption that explains which rule is active. |
-| **Notifications** | Native macOS notifications with per-prayer adhan sounds, bundled tones, custom audio files, and run at login. |
-| **Languages** | English, Arabic with full RTL layout, and Indonesian. |
-| **Accessibility** | VoiceOver labels on the menu bar item, keyboard friendly panels, and a Text Size setting (Small to Extra Large) that scales the whole panel. |
-| **Updates** | Optional in-app update checks notify you when a new release is available. Off by default; enable it in Settings or during onboarding. |
-
----
-
 ## Installation
 
 ### Homebrew (recommended)
