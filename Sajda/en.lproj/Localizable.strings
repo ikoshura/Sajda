@@ -110,3 +110,6 @@
 "Try Again" = "Try Again";
 "Update available: %@" = "Update available: %@";
 "Open the release page to download" = "Open the release page to download";
+
+/* Text size presets */
+"Text Size" = "Text Size"; "Small" = "Small"; "Default" = "Default"; "Large" = "Large"; "Extra Large" = "Extra Large";

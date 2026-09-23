@@ -110,3 +110,6 @@
 "Try Again" = "Coba Lagi";
 "Update available: %@" = "Pembaruan tersedia: %@";
 "Open the release page to download" = "Buka halaman rilis untuk mengunduh";
+
+/* Text size presets */
+"Text Size" = "Ukuran Teks"; "Small" = "Kecil"; "Default" = "Bawaan"; "Large" = "Besar"; "Extra Large" = "Sangat Besar";

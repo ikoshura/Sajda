@@ -17,7 +17,7 @@ struct CorrectionRow: View {
         VStack(alignment: .leading, spacing: 2) {
             HStack {
                 Text(LocalizedStringKey(prayerName))
-                    .font(.caption)
+                    .scaledFont(.caption)
                 
                 Spacer()
                 
@@ -50,7 +50,7 @@ struct CorrectionRow: View {
                     Text("00:00 → 00:00").hidden()
                 }
             }
-            .font(.caption2)
+            .scaledFont(.caption2)
             .foregroundColor(.secondary)
             .opacity(isDefaultValue ? 0 : 1)
             .animation(.easeInOut(duration: 0.2), value: isDefaultValue)
@@ -85,7 +85,7 @@ struct PrayerTimeCorrectionView: View {
     @State private var isResetAllHovering = false
 
     private var viewWidth: CGFloat {
-        return vm.useCompactLayout ? 200 : 240
+        return vm.panelWidth(base: vm.useCompactLayout ? 200 : 240)
     }
 
     var body: some View {
@@ -98,7 +98,7 @@ struct PrayerTimeCorrectionView: View {
                     Image(systemName: vm.backChevron)
                         .font(.system(size: 14, weight: .semibold))
                     Text("Time Correction")
-                        .font(.subheadline).fontWeight(.bold)
+                        .scaledFont(.subheadline, weight: .bold)
                     Spacer()
                 }
                 .padding(.vertical, 4).padding(.horizontal, 6)
@@ -115,7 +115,7 @@ struct PrayerTimeCorrectionView: View {
 
             VStack(spacing: 8) {
                 Text("Adjust prayer times to match your local mosque.")
-                    .font(.caption2)
+                    .scaledFont(.caption2)
                     .foregroundColor(Color("SecondaryTextColor"))
                     .multilineTextAlignment(.center)
                     .padding(.bottom, 2)
@@ -136,7 +136,7 @@ struct PrayerTimeCorrectionView: View {
                     
                     Button(action: resetAll) {
                         Text("Reset All to Default")
-                            .font(.caption2)
+                            .scaledFont(.caption2)
                             .foregroundColor(Color("SecondaryTextColor"))
                             .padding(.vertical, 2).padding(.horizontal, 6)
                             .liquidHover(isResetAllHovering, cornerRadius: 4)

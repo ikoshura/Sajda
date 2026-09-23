@@ -12,7 +12,7 @@ struct LocationAndCalcSettingsView: View {
     @State private var isHeaderHovering = false
 
     private var viewWidth: CGFloat {
-        return vm.useCompactLayout ? 220 : 260
+        return vm.panelWidth(base: vm.useCompactLayout ? 220 : 260)
     }
 
     var body: some View {
@@ -22,8 +22,8 @@ struct LocationAndCalcSettingsView: View {
                     navigationModel.hideView(SettingsView.id, animation: vm.backwardAnimation())
                 }) {
                     HStack {
-                        Image(systemName: vm.backChevron).font(.body.weight(.semibold))
-                        Text("Calculation & Location").font(.body).fontWeight(.bold)
+                        Image(systemName: vm.backChevron).scaledFont(.body, weight: .semibold)
+                        Text("Calculation & Location").scaledFont(.body, weight: .bold)
                         Spacer()
                     }
                     .padding(.vertical, 5).padding(.horizontal, 8)
@@ -38,25 +38,25 @@ struct LocationAndCalcSettingsView: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 12) {
                         Group {
-                            Text("Calculation").font(.caption).foregroundColor(Color("SecondaryTextColor"))
-                            HStack { Text("Method").font(.subheadline); Spacer(); Picker("", selection: $vm.method) { ForEach(SajdaCalculationMethod.allCases) { method in Text(method.name).tag(method) } }.frame(maxWidth: 140) }
-                            HStack { Text("Time Correction").font(.subheadline); Spacer(); Button("Adjust") { navigationModel.showView(Self.id, animation: vm.forwardAnimation()) { PrayerTimeCorrectionView() } }.buttonStyle(.bordered) }
+                            Text("Calculation").scaledFont(.caption).foregroundColor(Color("SecondaryTextColor"))
+                            HStack { Text("Method").scaledFont(.subheadline); Spacer(); ScaledMenuPicker(selection: $vm.method, options: SajdaCalculationMethod.allCases, maxWidth: 150) { $0.name } }
+                            HStack { Text("Time Correction").scaledFont(.subheadline); Spacer(); Button("Adjust") { navigationModel.showView(Self.id, animation: vm.forwardAnimation()) { PrayerTimeCorrectionView() } }.buttonStyle(.bordered) }
                             StyledToggle(label: "Hanafi Madhhab (for Asr)", isOn: $vm.useHanafiMadhhab)
-                            HStack { Text("High-Latitude Rule").font(.subheadline); Spacer(); Picker("", selection: $vm.highLatitudeRuleSetting) { ForEach(HighLatitudeRuleSetting.allCases, id: \.self) { rule in Text(rule.displayName).tag(rule) } }.frame(maxWidth: 140) }
+                            HStack { Text("High-Latitude Rule").scaledFont(.subheadline); Spacer(); ScaledMenuPicker(selection: $vm.highLatitudeRuleSetting, options: HighLatitudeRuleSetting.allCases, maxWidth: 150) { $0.displayName } }
                             if let caption = vm.highLatitudeRuleCaption {
                                 Text(caption)
-                                    .font(.caption2)
+                                    .scaledFont(.caption2)
                                     .foregroundColor(Color("SecondaryTextColor"))
                             }
                             if let description = vm.highLatitudeRuleDescription {
                                 Text(description)
-                                    .font(.caption2)
+                                    .scaledFont(.caption2)
                                     .foregroundColor(Color("SecondaryTextColor"))
                             }
                         }
                         Rectangle().fill(Color("DividerColor")).frame(height: 0.5)
                         Group {
-                            Text("Location").font(.caption).foregroundColor(Color("SecondaryTextColor"))
+                            Text("Location").scaledFont(.caption).foregroundColor(Color("SecondaryTextColor"))
                             HStack(spacing: 6) {
                                 Image(systemName: vm.isUsingManualLocation ? "pencil.circle.fill" : "location.circle.fill")
                                     .foregroundColor(.secondary)

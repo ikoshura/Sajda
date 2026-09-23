@@ -15,7 +15,7 @@ struct SystemAndNotificationsSettingsView: View {
     private let sunnahPrayers = ["Tahajud", "Dhuha"]
 
     private var viewWidth: CGFloat {
-        return vm.useCompactLayout ? 220 : 260
+        return vm.panelWidth(base: vm.useCompactLayout ? 220 : 260)
     }
 
     private var allPrayers: [String] {
@@ -33,8 +33,8 @@ struct SystemAndNotificationsSettingsView: View {
                     navigationModel.hideView(SettingsView.id, animation: vm.backwardAnimation())
                 }) {
                     HStack {
-                        Image(systemName: vm.backChevron).font(.body.weight(.semibold))
-                        Text("Adhan Sound").font(.body).fontWeight(.bold)
+                        Image(systemName: vm.backChevron).scaledFont(.body, weight: .semibold)
+                        Text("Adhan Sound").scaledFont(.body, weight: .bold)
                         Spacer()
                     }
                     .padding(.vertical, 5).padding(.horizontal, 8)
@@ -56,15 +56,10 @@ struct SystemAndNotificationsSettingsView: View {
                             .fill(Color("DividerColor"))
                             .frame(height: 0.5)
 
-                        Text("All Prayers").font(.caption).foregroundColor(Color("SecondaryTextColor"))
+                        Text("All Prayers").scaledFont(.caption).foregroundColor(Color("SecondaryTextColor"))
 
                         HStack {
-                            Picker("", selection: $applyToAllAdhanType) {
-                                ForEach(AdhanType.allCases) { type in
-                                    Text(type.displayName).tag(type)
-                                }
-                            }
-                            .fixedSize()
+                            ScaledMenuPicker(selection: $applyToAllAdhanType, options: AdhanType.allCases) { $0.displayName }
 
                             Button("Apply") {
                                 for prayer in allPrayers {
@@ -157,7 +152,7 @@ struct PrayerSoundRow: View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
                 Text(LocalizedStringKey(prayerName))
-                    .font(.subheadline)
+                    .scaledFont(.subheadline)
                     .fontWeight(.medium)
 
                 Spacer()
@@ -174,7 +169,7 @@ struct PrayerSoundRow: View {
 
             HStack {
                 Spacer()
-                Picker("", selection: Binding(
+                ScaledMenuPicker(selection: Binding(
                     get: { config.adhanType },
                     set: { newType in
                         var newConfig = config
@@ -182,21 +177,16 @@ struct PrayerSoundRow: View {
                         if newType != .custom { newConfig.customFilePath = "" }
                         onUpdateConfig(newConfig)
                     }
-                )) {
-                    ForEach(options) { type in
-                        Text(type.displayName).tag(type)
-                    }
-                }
-                .fixedSize()
+                ), options: options) { $0.displayName }
             }
 
             if config.adhanType == .custom {
                 HStack {
                     Spacer()
                     Button(NSLocalizedString("Browse...", comment: "")) { onBrowse() }
-                        .font(.caption)
+                        .scaledFont(.caption)
                     Text(URL(string: config.customFilePath)?.lastPathComponent ?? NSLocalizedString("No file selected", comment: ""))
-                        .font(.caption)
+                        .scaledFont(.caption)
                         .foregroundColor(Color("SecondaryTextColor"))
                 }
             }

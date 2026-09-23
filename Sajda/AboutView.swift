@@ -13,7 +13,7 @@ struct AboutView: View {
     // State isDoneHovering sudah dihapus karena tidak lagi diperlukan.
 
     private var viewWidth: CGFloat {
-        return vm.useCompactLayout ? 220 : 260
+        return vm.panelWidth(base: vm.useCompactLayout ? 220 : 260)
     }
 
     private var appVersionText: String {
@@ -28,8 +28,8 @@ struct AboutView: View {
             VStack(alignment: .leading, spacing: 6) {
             Button(action: handleBackButton) {
                 HStack {
-                    Image(systemName: vm.backChevron).font(.body.weight(.semibold))
-                    Text("About Sajda Pro").font(.body).fontWeight(.bold)
+                    Image(systemName: vm.backChevron).scaledFont(.body, weight: .semibold)
+                    Text("About Sajda Pro").scaledFont(.body, weight: .bold)
                     Spacer()
                 }
                 .padding(.vertical, 5).padding(.horizontal, 8)
@@ -47,11 +47,11 @@ struct AboutView: View {
                             .resizable().scaledToFit().frame(width: 64, height: 64)
                             .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                         VStack(spacing: 2) {
-                            Text("Sajda Pro").font(.title2).fontWeight(.bold)
-                            Text(verbatim: appVersionText).font(.caption).foregroundColor(Color("SecondaryTextColor"))
-                            Text("by Abrar Zha").font(.caption).foregroundColor(Color("SecondaryTextColor"))
+                            Text("Sajda Pro").scaledFont(.title2, weight: .bold)
+                            Text(verbatim: appVersionText).scaledFont(.caption).foregroundColor(Color("SecondaryTextColor"))
+                            Text("by Abrar Zha").scaledFont(.caption).foregroundColor(Color("SecondaryTextColor"))
                         }
-                        Text("A simple and beautiful prayer times app for your menu bar.").font(.subheadline)
+                        Text("A simple and beautiful prayer times app for your menu bar.").scaledFont(.subheadline)
                             .multilineTextAlignment(.center).padding(.horizontal)
                     }
                     updateSection
@@ -102,7 +102,7 @@ struct AboutView: View {
                             .fontWeight(.semibold)
                         Spacer()
                         Image(systemName: vm.forwardChevron)
-                            .font(.caption.weight(.bold))
+                            .scaledFont(.caption, weight: .bold)
                             .foregroundColor(.secondary)
                     }
                     .padding(.vertical, 5).padding(.horizontal, 8)
@@ -114,28 +114,28 @@ struct AboutView: View {
             case .checking:
                 HStack(spacing: 6) {
                     ProgressView().controlSize(.small)
-                    Text("Checking for updates...").font(.caption)
+                    Text("Checking for updates...").scaledFont(.caption)
                         .foregroundColor(Color("SecondaryTextColor"))
                 }
             case .upToDate:
                 VStack(spacing: 4) {
-                    Text("You're up to date.").font(.caption)
+                    Text("You're up to date.").scaledFont(.caption)
                         .foregroundColor(Color("SecondaryTextColor"))
                     Button("Check for Updates") { updater.checkManually() }
-                        .buttonStyle(.link).font(.caption)
+                        .buttonStyle(.link).scaledFont(.caption)
                 }
             case .failed:
                 VStack(spacing: 4) {
-                    Text("Couldn't check for updates.").font(.caption)
+                    Text("Couldn't check for updates.").scaledFont(.caption)
                         .foregroundColor(Color("SecondaryTextColor"))
                     Button("Try Again") { updater.checkManually() }
-                        .buttonStyle(.link).font(.caption)
+                        .buttonStyle(.link).scaledFont(.caption)
                 }
             case .idle:
                 Button(action: { updater.checkManually() }) {
                     HStack(spacing: 6) {
                         Image(systemName: "arrow.triangle.2.circlepath")
-                        Text("Check for Updates").font(.subheadline)
+                        Text("Check for Updates").scaledFont(.subheadline)
                     }
                     .padding(.vertical, 5).padding(.horizontal, 8)
                 }

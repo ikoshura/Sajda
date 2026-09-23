@@ -42,7 +42,7 @@ struct TextFieldStepper: View {
                     updateValue(from: textValue)
                     onCommit()
                 })
-                .font(.system(.body, design: .monospaced))
+                .scaledFont(.body, design: .monospaced)
                 .textFieldStyle(.plain)
                 .multilineTextAlignment(.center)
                 .frame(width: 45)

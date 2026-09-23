@@ -59,7 +59,14 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
     @AppStorage("useAccentColor") var useAccentColor: Bool = true
     @AppStorage("isNotificationsEnabled") var isNotificationsEnabled: Bool = true { didSet { updateNotifications() } }
     @AppStorage("useCompactLayout") var useCompactLayout: Bool = false
+    @AppStorage("panelTextSize") var panelTextSize: PanelTextSize = .default
     @AppStorage("use24HourFormat") var use24HourFormat: Bool = false { didSet { updateAndDisplayTimes() } }
+
+    /// Lebar panel yang diskalakan sesuai ukuran teks terpilih agar font
+    /// yang lebih besar tidak terpotong.
+    func panelWidth(base: CGFloat) -> CGFloat {
+        return (base * panelTextSize.widthMultiplier).rounded()
+    }
     @AppStorage("useHanafiMadhhab") var useHanafiMadhhab: Bool = false { didSet { updatePrayerTimes() } }
     @AppStorage("isUsingManualLocation") var isUsingManualLocation: Bool = false
     @AppStorage("fajrCorrection") var fajrCorrection: Double = 0 { didSet { updatePrayerTimes() } }

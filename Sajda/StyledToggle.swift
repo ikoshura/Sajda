@@ -7,14 +7,18 @@ struct StyledToggle: View {
     @Binding var isOn: Bool
     
     @Environment(\.isEnabled) private var isEnabled
+    @Environment(\.panelFontScale) private var fontScale
 
-    private let toggleWidth: CGFloat = 32
-    private let toggleHeight: CGFloat = 18
-    private let thumbSize: CGFloat = 14
+    // Dimensi switch mengikuti preset Text Size panel agar kontrol tetap
+    // proporsional dengan label di sampingnya.
+    private var toggleWidth: CGFloat { 32 * fontScale }
+    private var toggleHeight: CGFloat { 18 * fontScale }
+    private var thumbSize: CGFloat { 14 * fontScale }
 
     var body: some View {
         HStack {
             Text(label)
+                .scaledFont(.subheadline)
             Spacer()
             
             ZStack {

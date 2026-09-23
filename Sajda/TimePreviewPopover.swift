@@ -10,16 +10,16 @@ struct TimePreviewPopover: View {
     var body: some View {
         HStack(spacing: 6) {
             Text(formatter.string(from: originalTime))
-                .font(.caption)
+                .scaledFont(.caption)
                 .foregroundColor(.secondary)
                 .strikethrough(color: .secondary)
             
             Image(systemName: "arrow.right")
-                .font(.caption)
+                .scaledFont(.caption)
                 .foregroundColor(.secondary)
             
             Text(formatter.string(from: adjustedTime))
-                .font(.caption.weight(.semibold))
+                .scaledFont(.caption, weight: .semibold)
                 .foregroundColor(.accentColor)
         }
         .padding(.vertical, 6)

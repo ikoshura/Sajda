@@ -62,6 +62,7 @@
 		CCED21842E65F7BE0066D0EB /* NavigationAnimations.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCED21832E65F7BE0066D0EB /* NavigationAnimations.swift */; };
 		CCED21862E65F9770066D0EB /* NavigationAnimation+Custom.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCED21852E65F9770066D0EB /* NavigationAnimation+Custom.swift */; };
 		CCED21882E65FE650066D0EB /* AnimationType.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCED21872E65FE650066D0EB /* AnimationType.swift */; };
+		CCED21912E6600000066D0EB /* PanelTextSize.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCED21902E6600000066D0EB /* PanelTextSize.swift */; };
 		CCFD21DA2E62BEEB00A80402 /* PrayerTimeCorrectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCFD21D92E62BEEB00A80402 /* PrayerTimeCorrectionView.swift */; };
 /* End PBXBuildFile section */
 
@@ -142,6 +143,7 @@
 		CCED21832E65F7BE0066D0EB /* NavigationAnimations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationAnimations.swift; sourceTree = "<group>"; };
 		CCED21852E65F9770066D0EB /* NavigationAnimation+Custom.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NavigationAnimation+Custom.swift"; sourceTree = "<group>"; };
 		CCED21872E65FE650066D0EB /* AnimationType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnimationType.swift; sourceTree = "<group>"; };
+		CCED21902E6600000066D0EB /* PanelTextSize.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PanelTextSize.swift; sourceTree = "<group>"; };
 		CCFD21D92E62BEEB00A80402 /* PrayerTimeCorrectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrayerTimeCorrectionView.swift; sourceTree = "<group>"; };
 		EBC237DE638145FF832C3A24 /* Mishary_Rashid_al_Afasy_Fajr_Adhan.caf */ = {isa = PBXFileReference; lastKnownFileType = audio.caf; path = Mishary_Rashid_al_Afasy_Fajr_Adhan.caf; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -257,6 +259,7 @@
 				CCED21832E65F7BE0066D0EB /* NavigationAnimations.swift */,
 				CCED21852E65F9770066D0EB /* NavigationAnimation+Custom.swift */,
 				CCED21872E65FE650066D0EB /* AnimationType.swift */,
+				CCED21902E6600000066D0EB /* PanelTextSize.swift */,
 				CC4659602E661CC400159A83 /* TextFieldStepper.swift */,
 				CC4659642E6629C000159A83 /* SajdaStepper.swift */,
 				A1B220C2AC258F390A192FF3 /* AdhanAudioPlayer.swift */,
@@ -461,6 +464,7 @@
 				CC4659612E661CC400159A83 /* TextFieldStepper.swift in Sources */,
 				CCE1BA452E6198C1003AF03C /* ManualLocationView.swift in Sources */,
 				CCED21882E65FE650066D0EB /* AnimationType.swift in Sources */,
+				CCED21912E6600000066D0EB /* PanelTextSize.swift in Sources */,
 				CC07FC622E63FF5100924451 /* SystemAndNotificationsSettingsView.swift in Sources */,
 				CC786E632E63787E007299F3 /* MenuBarTextMode.swift in Sources */,
 				CCEC0E452E60B08D001E9B1E /* AboutView.swift in Sources */,
@@ -668,7 +672,7 @@
 				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 5;
 				DEVELOPMENT_ASSET_PATHS = "\"Sajda/Preview Content\"";
 				DEVELOPMENT_TEAM = KTKP595G3B;
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = "";
@@ -683,7 +687,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 3.5.0;
+				MARKETING_VERSION = 3.5.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.madda.Sajda;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "";
@@ -702,7 +706,7 @@
 				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 5;
 				DEVELOPMENT_ASSET_PATHS = "\"Sajda/Preview Content\"";
 				DEVELOPMENT_TEAM = KTKP595G3B;
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = "";
@@ -717,7 +721,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 3.5.0;
+				MARKETING_VERSION = 3.5.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.madda.Sajda;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "";

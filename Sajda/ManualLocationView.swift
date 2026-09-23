@@ -14,15 +14,15 @@ struct ManualLocationView: View {
     @State private var isHeaderHovering = false
 
     private var viewWidth: CGFloat {
-        return vm.useCompactLayout ? 220 : 260
+        return vm.panelWidth(base: vm.useCompactLayout ? 220 : 260)
     }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             Button(action: handleBackButton) {
                 HStack {
-                    Image(systemName: vm.backChevron).font(.body.weight(.semibold))
-                    Text(LocalizedStringKey("Set Location")).font(.body).fontWeight(.bold)
+                    Image(systemName: vm.backChevron).scaledFont(.body, weight: .semibold)
+                    Text(LocalizedStringKey("Set Location")).scaledFont(.body, weight: .bold)
                     Spacer()
                 }
                 .padding(.vertical, 5).padding(.horizontal, 8)
@@ -53,7 +53,7 @@ struct ManualLocationView: View {
                                 HStack {
                                     VStack(alignment: .leading) {
                                         Text(result.name).fontWeight(.semibold)
-                                        Text(result.country).font(.caption).foregroundColor(Color("SecondaryTextColor"))
+                                        Text(result.country).scaledFont(.caption).foregroundColor(Color("SecondaryTextColor"))
                                     }
                                     Spacer()
                                 }

@@ -10,17 +10,17 @@ struct MainView: View {
     @State private var isSettingsHovering = false
     @State private var isAboutHovering = false
     @State private var isQuitHovering = false
-    private var viewWidth: CGFloat { return vm.useCompactLayout ? 220 : 260 }
+    private var viewWidth: CGFloat { return vm.panelWidth(base: vm.useCompactLayout ? 220 : 260) }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {
-                Text("Sajda").font(.body).fontWeight(.bold)
+                Text("Sajda").scaledFont(.body, weight: .bold)
                 Spacer()
                 if vm.isPrayerDataAvailable && vm.menuBarTextMode == .hidden {
                     let format = NSLocalizedString("prayer_in_countdown", comment: "")
                     let localizedPrayerName = NSLocalizedString(vm.nextPrayerName, comment: "")
-                    Text(String(format: format, localizedPrayerName, vm.countdown)).font(.body).foregroundColor(vm.isPrayerImminent ? .red : Color("SecondaryTextColor")).transition(.opacity.animation(.easeInOut))
+                    Text(String(format: format, localizedPrayerName, vm.countdown)).scaledFont(.body).foregroundColor(vm.isPrayerImminent ? .red : Color("SecondaryTextColor")).transition(.opacity.animation(.easeInOut))
                 }
             }
             .padding(.horizontal, 12).padding(.top, 4)
@@ -48,7 +48,7 @@ struct MainView: View {
                 Button(action: {
                     navigationModel.showView(ContentView.id, animation: vm.forwardAnimation()) { SettingsView() }
                 }) {
-                    HStack { Text("Settings"); Spacer(); Image(systemName: vm.forwardChevron).font(.caption.weight(.bold)).foregroundColor(.secondary) }
+                    HStack { Text("Settings"); Spacer(); Image(systemName: vm.forwardChevron).scaledFont(.caption, weight: .bold).foregroundColor(.secondary) }
                         .padding(.vertical, 5).padding(.horizontal, 8)
                         .liquidHover(isSettingsHovering)
                 }
@@ -61,7 +61,7 @@ struct MainView: View {
                 Button(action: {
                     navigationModel.showView(ContentView.id, animation: vm.forwardAnimation()) { AboutView() }
                 }) {
-                    HStack { Text("About"); Spacer(); Image(systemName: vm.forwardChevron).font(.caption.weight(.bold)).foregroundColor(.secondary) }
+                    HStack { Text("About"); Spacer(); Image(systemName: vm.forwardChevron).scaledFont(.caption, weight: .bold).foregroundColor(.secondary) }
                         .padding(.vertical, 5).padding(.horizontal, 8)
                         .liquidHover(isAboutHovering)
                 }
@@ -103,7 +103,7 @@ struct PrayerListView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack { Image(systemName: "location.fill"); Text(vm.locationStatusText); Spacer() }
-                .font(.caption).foregroundColor(Color("SecondaryTextColor")).padding(.horizontal, 12)
+                .scaledFont(.caption).foregroundColor(Color("SecondaryTextColor")).padding(.horizontal, 12)
             VStack(spacing: 0) {
                 ForEach(prayerOrder, id: \.self) { prayerName in
                     if let prayerTime = vm.todayTimes[prayerName] {
@@ -130,14 +130,14 @@ struct PrayerListView: View {
                             if vm.isAdhanPlaying && prayerName == vm.activeAdhanPrayerName {
                                 Button(action: { vm.stopAdhan() }) {
                                     Image(systemName: "speaker.slash.fill")
-                                        .font(.caption)
+                                        .scaledFont(.caption)
                                         .foregroundColor(textColor)
                                 }
                                 .buttonStyle(.plain)
                                 .help("Stop Adhan")
                             }
-                            if prayerName == "Tahajud" || prayerName == "Dhuha" { Text("Around").font(.caption).foregroundColor(isNextPrayer ? textColor.opacity(0.8) : Color("SecondaryTextColor")) }
-                            Text(vm.dateFormatter.string(from: prayerTime)).font(.system(.body, design: .monospaced))
+                            if prayerName == "Tahajud" || prayerName == "Dhuha" { Text("Around").scaledFont(.caption).foregroundColor(isNextPrayer ? textColor.opacity(0.8) : Color("SecondaryTextColor")) }
+                            Text(vm.dateFormatter.string(from: prayerTime)).scaledFont(.body, design: .monospaced, weight: isNextPrayer ? .bold : nil)
                         }
                         .foregroundColor(textColor).fontWeight(isNextPrayer ? .bold : .regular).padding(.horizontal, 12).padding(.vertical, 5).background(RoundedRectangle(cornerRadius: 6).fill(highlightColor))
                     }
@@ -154,12 +154,12 @@ struct PermissionRequestView: View {
     var body: some View {
         VStack(spacing: 12) {
             Image(systemName: "location.slash.circle.fill").font(.system(size: 28)).foregroundColor(.secondary)
-            Text("Location Required").font(.headline)
-            Text("To provide accurate prayer times, Sajda Pro needs to know your location.").font(.caption).multilineTextAlignment(.center).foregroundColor(Color("SecondaryTextColor")).padding(.horizontal)
+            Text("Location Required").scaledFont(.headline)
+            Text("To provide accurate prayer times, Sajda Pro needs to know your location.").scaledFont(.caption).multilineTextAlignment(.center).foregroundColor(Color("SecondaryTextColor")).padding(.horizontal)
             VStack(spacing: 8) {
                 if vm.isRequestingLocation {
                     ProgressView().padding(.vertical, 4)
-                    Text("Requesting Permission...").font(.caption).foregroundColor(.secondary)
+                    Text("Requesting Permission...").scaledFont(.caption).foregroundColor(.secondary)
                 } else if vm.authorizationStatus == .denied {
                     Button("Open System Settings", action: vm.openLocationSettings).buttonStyle(.borderedProminent).controlSize(.regular)
                 } else if vm.authorizationStatus == .authorized {

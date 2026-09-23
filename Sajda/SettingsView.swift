@@ -18,7 +18,7 @@ struct SettingsView: View {
     @State private var isSyncingLaunchAtLogin = false
 
     private var viewWidth: CGFloat {
-        return vm.useCompactLayout ? 220 : 260
+        return vm.panelWidth(base: vm.useCompactLayout ? 220 : 260)
     }
 
     var body: some View {
@@ -28,8 +28,8 @@ struct SettingsView: View {
                     navigationModel.hideView(ContentView.id, animation: vm.backwardAnimation())
                 }) {
                     HStack {
-                        Image(systemName: vm.backChevron).font(.body.weight(.semibold))
-                        Text("Settings").font(.body).fontWeight(.bold)
+                        Image(systemName: vm.backChevron).scaledFont(.body, weight: .semibold)
+                        Text("Settings").scaledFont(.body, weight: .bold)
                         Spacer()
                     }
                     .padding(.vertical, 5).padding(.horizontal, 8)
@@ -42,7 +42,7 @@ struct SettingsView: View {
                     .padding(.horizontal, 12)
 
                 VStack(alignment: .leading, spacing: 12) {
-                    Text("System").font(.caption).foregroundColor(Color("SecondaryTextColor"))
+                    Text("System").scaledFont(.caption).foregroundColor(Color("SecondaryTextColor"))
                     StyledToggle(label: "Run at Login", isOn: $launchAtLogin)
                     StyledToggle(label: "Check for Updates Automatically", isOn: $autoCheckForUpdates)
                         .onChange(of: autoCheckForUpdates) { enabled in
@@ -50,18 +50,15 @@ struct SettingsView: View {
                         }
 
                     HStack {
-                        Text("Animation Style").font(.subheadline)
+                        Text("Animation Style").scaledFont(.subheadline)
                         Spacer()
-                        Picker("", selection: $vm.animationType) {
-                            ForEach(AnimationType.allCases) { type in
-                                Text(type.localized).tag(type)
-                            }
-                        }.fixedSize()
+                        ScaledMenuPicker(selection: $vm.animationType, options: AnimationType.allCases) { NSLocalizedString($0.rawValue, comment: "") }
                     }
 
-                    Text("Display").font(.caption).foregroundColor(Color("SecondaryTextColor"))
-                    HStack { Text("Language").font(.subheadline); Spacer(); Picker("", selection: $languageManager.language) { Text("English").tag("en"); Text("العربية").tag("ar"); Text("Indonesia").tag("id") }.fixedSize() }
-                    HStack { Text("Menu Bar Style").font(.subheadline); Spacer(); Picker("", selection: $vm.menuBarTextMode) { ForEach(MenuBarTextMode.allCases) { mode in Text(mode.localized).tag(mode) } }.fixedSize() }
+                    Text("Display").scaledFont(.caption).foregroundColor(Color("SecondaryTextColor"))
+                    HStack { Text("Language").scaledFont(.subheadline); Spacer(); ScaledMenuPicker(selection: $languageManager.language, options: ["en", "ar", "id"]) { code in code == "en" ? "English" : (code == "ar" ? "العربية" : "Indonesia") } }
+                    HStack { Text("Menu Bar Style").scaledFont(.subheadline); Spacer(); ScaledMenuPicker(selection: $vm.menuBarTextMode, options: MenuBarTextMode.allCases) { NSLocalizedString($0.rawValue, comment: "") } }
+                    HStack { Text("Text Size").scaledFont(.subheadline); Spacer(); ScaledMenuPicker(selection: $vm.panelTextSize, options: PanelTextSize.allCases) { NSLocalizedString($0.rawValue, comment: "") } }
                     StyledToggle(label: "Compact View", isOn: $vm.useCompactLayout)
                     StyledToggle(label: "24-Hour Time", isOn: $vm.use24HourFormat)
                     StyledToggle(label: "Minimal Menu Bar", isOn: $vm.useMinimalMenuBarText).disabled(vm.menuBarTextMode == .hidden)
@@ -77,12 +74,12 @@ struct SettingsView: View {
 
                 VStack(alignment: .leading, spacing: 0) {
                     Button(action: { navigationModel.showView(Self.id, animation: vm.forwardAnimation()) { LocationAndCalcSettingsView() } }) {
-                        HStack { Text("Calculation & Location").font(.subheadline); Spacer(); Image(systemName: vm.forwardChevron).font(.caption.weight(.bold)).foregroundColor(.secondary) }
+                        HStack { Text("Calculation & Location").scaledFont(.subheadline); Spacer(); Image(systemName: vm.forwardChevron).scaledFont(.caption, weight: .bold).foregroundColor(.secondary) }
                         .padding(.vertical, 5).padding(.horizontal, 8).liquidHover(isCalcHovering)
                     }.buttonStyle(.plain).padding(.horizontal, 5).onHover { hovering in isCalcHovering = hovering }
 
                     Button(action: { navigationModel.showView(Self.id, animation: vm.forwardAnimation()) { SystemAndNotificationsSettingsView() } }) {
-                        HStack { Text("Adhan Sound").font(.subheadline); Spacer(); Image(systemName: vm.forwardChevron).font(.caption.weight(.bold)).foregroundColor(.secondary) }
+                        HStack { Text("Adhan Sound").scaledFont(.subheadline); Spacer(); Image(systemName: vm.forwardChevron).scaledFont(.caption, weight: .bold).foregroundColor(.secondary) }
                         .padding(.vertical, 5).padding(.horizontal, 8).liquidHover(isAdhanHovering)
                     }.buttonStyle(.plain).padding(.horizontal, 5).onHover { hovering in isAdhanHovering = hovering }
                 }

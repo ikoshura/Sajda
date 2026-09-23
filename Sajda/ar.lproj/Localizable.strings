@@ -110,3 +110,6 @@
 "Try Again" = "إعادة المحاولة";
 "Update available: %@" = "يتوفر تحديث: %@";
 "Open the release page to download" = "افتح صفحة الإصدار للتنزيل";
+
+/* Text size presets */
+"Text Size" = "حجم النص"; "Small" = "صغير"; "Default" = "افتراضي"; "Large" = "كبير"; "Extra Large" = "كبير جداً";
