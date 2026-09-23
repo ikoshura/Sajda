@@ -1,0 +1,31 @@
+name: Check for bot co-authors
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  pull-requests: read
+
+jobs:
+  no-claude-coauthor:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Scan PR commits for Claude/Anthropic co-author trailers
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          echo "Scanning commits in PR #$PR_NUMBER for bot co-author trailers..."
+          MATCHES=$(gh api "repos/$REPO/pulls/$PR_NUMBER/commits" --paginate \
+            --jq '.[] | select(.commit.message | test("(?i)co-authored-by:.*(claude|anthropic)")) | "\(.sha[0:7]) \(.commit.message | split("\n")[0])"')
+          if [ -n "$MATCHES" ]; then
+            echo "::error::This PR contains commits with a Claude/Anthropic Co-Authored-By trailer:"
+            echo "$MATCHES"
+            echo ""
+            echo "No action needed from the contributor — the maintainer can simply remove"
+            echo "the trailer line from the commit message box when squash-merging."
+            exit 1
+          fi
+          echo "OK: no bot co-author trailers found."
