@@ -102,7 +102,7 @@ struct PrayerTimeCorrectionView: View {
                     Spacer()
                 }
                 .padding(.vertical, 4).padding(.horizontal, 6)
-                .background(isHeaderHovering ? Color("HoverColor") : .clear).cornerRadius(4)
+                .liquidHover(isHeaderHovering, cornerRadius: 4)
             }
             .buttonStyle(.plain)
             .padding(.horizontal, 5).padding(.top, 2)
@@ -139,8 +139,7 @@ struct PrayerTimeCorrectionView: View {
                             .font(.caption2)
                             .foregroundColor(Color("SecondaryTextColor"))
                             .padding(.vertical, 2).padding(.horizontal, 6)
-                            .background(isResetAllHovering ? Color("HoverColor") : .clear)
-                            .cornerRadius(4)
+                            .liquidHover(isResetAllHovering, cornerRadius: 4)
                     }
                     .buttonStyle(.plain)
                     .onHover { hovering in isResetAllHovering = hovering }

@@ -25,8 +25,7 @@ struct SajdaStepper: View {
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .background(isMinusHovering ? Color("HoverColor") : .clear)
-            .cornerRadius(4)
+            .liquidHover(isMinusHovering, cornerRadius: 4)
             .onHover { hovering in isMinusHovering = hovering }
 
             // TextField Nilai
@@ -49,8 +48,7 @@ struct SajdaStepper: View {
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .background(isPlusHovering ? Color("HoverColor") : .clear)
-            .cornerRadius(4)
+            .liquidHover(isPlusHovering, cornerRadius: 4)
             .onHover { hovering in isPlusHovering = hovering }
         }
         .onAppear { textValue = formatValue(value) }

@@ -26,7 +26,7 @@ struct ManualLocationView: View {
                     Spacer()
                 }
                 .padding(.vertical, 5).padding(.horizontal, 8)
-                .background(isHeaderHovering ? Color("HoverColor") : .clear).cornerRadius(5)
+                .liquidHover(isHeaderHovering)
             }
             .buttonStyle(.plain)
             .padding(.horizontal, 5).padding(.top, 2)
@@ -59,8 +59,7 @@ struct ManualLocationView: View {
                                 }
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 .padding(EdgeInsets(top: 6, leading: 8, bottom: 6, trailing: 8))
-                                .background(hoveringResult == result.id ? Color("HoverColor") : Color.clear)
-                                .cornerRadius(5)
+                                .liquidHover(hoveringResult == result.id)
                             }
                             .buttonStyle(.plain)
                             .onHover { isHovering in hoveringResult = isHovering ? result.id : nil }

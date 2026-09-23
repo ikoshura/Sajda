@@ -50,8 +50,7 @@ struct MainView: View {
                 }) {
                     HStack { Text("Settings"); Spacer(); Image(systemName: vm.forwardChevron).font(.caption.weight(.bold)).foregroundColor(.secondary) }
                         .padding(.vertical, 5).padding(.horizontal, 8)
-                        .background(isSettingsHovering ? Color("HoverColor") : .clear)
-                        .cornerRadius(5)
+                        .liquidHover(isSettingsHovering)
                 }
                 .buttonStyle(.plain)
                 .padding(.horizontal, 5)
@@ -64,8 +63,7 @@ struct MainView: View {
                 }) {
                     HStack { Text("About"); Spacer(); Image(systemName: vm.forwardChevron).font(.caption.weight(.bold)).foregroundColor(.secondary) }
                         .padding(.vertical, 5).padding(.horizontal, 8)
-                        .background(isAboutHovering ? Color("HoverColor") : .clear)
-                        .cornerRadius(5)
+                        .liquidHover(isAboutHovering)
                 }
                 .buttonStyle(.plain)
                 .padding(.horizontal, 5)
@@ -82,8 +80,7 @@ struct MainView: View {
                 Button(action: { NSApp.terminate(nil) }) {
                     HStack { Text("Quit"); Spacer() }
                         .padding(.vertical, 5).padding(.horizontal, 8)
-                        .background(isQuitHovering ? Color("HoverColor") : .clear)
-                        .cornerRadius(5)
+                        .liquidHover(isQuitHovering)
                 }
                 .buttonStyle(.plain)
                 .padding(.horizontal, 5)
@@ -114,7 +111,7 @@ struct PrayerListView: View {
                         let (highlightColor, textColor): (Color, Color) = {
                             if isNextPrayer && vm.isPrayerImminent {
                                 if vm.useAccentColor {
-                                    return (Color.red, Color.white)
+                                    return (Color(red: 1.0, green: 0x42 / 255.0, blue: 0x46 / 255.0), Color.white)
                                 } else {
                                     return (Color("HighlightColor"), .red)
                                 }
@@ -175,8 +172,7 @@ struct PermissionRequestView: View {
                 }) {
                     Text("Or, set location manually")
                         .padding(.vertical, 3).padding(.horizontal, 8)
-                        .background(isManualHovering ? Color("HoverColor") : .clear)
-                        .cornerRadius(5)
+                        .liquidHover(isManualHovering)
                 }.buttonStyle(.plain).onHover { hovering in isManualHovering = hovering }
             }.padding(.top, 4).padding(.horizontal).animation(.easeInOut, value: vm.isRequestingLocation)
         }.frame(maxWidth: .infinity)

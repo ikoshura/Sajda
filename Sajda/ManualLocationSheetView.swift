@@ -61,8 +61,7 @@ struct ManualLocationSheetView: View {
                                 }
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 .padding(EdgeInsets(top: 6, leading: 8, bottom: 6, trailing: 8))
-                                .background(hoveringResult == result.id ? Color("HoverColor") : Color.clear)
-                                .cornerRadius(5)
+                                .liquidHover(hoveringResult == result.id)
                             }
                             .buttonStyle(.plain)
                             .onHover { isHovering in

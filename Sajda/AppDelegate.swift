@@ -25,7 +25,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
         vm.startLocationProcess()
 
         vm.$menuTitle.debounce(for: .milliseconds(100), scheduler: RunLoop.main).sink { [weak self] newTitle in self?.menuBarExtra?.updateTitle(to: newTitle) }.store(in: &cancellables)
-        NotificationCenter.default.publisher(for: UserDefaults.didChangeNotification).debounce(for: .milliseconds(50), scheduler: RunLoop.main).sink { [weak self] _ in self?.updateIconForMode(self?.vm.menuBarTextMode ?? .iconExactTime) }.store(in: &cancellables)
+        vm.$isPrayerImminent.sink { [weak self] _ in self?.updateMenuBarUrgentAppearance() }.store(in: &cancellables)
+        NotificationCenter.default.publisher(for: UserDefaults.didChangeNotification).debounce(for: .milliseconds(50), scheduler: RunLoop.main).sink { [weak self] _ in
+            self?.updateIconForMode(self?.vm.menuBarTextMode ?? .iconExactTime)
+            self?.updateMenuBarUrgentAppearance()
+        }.store(in: &cancellables)
     
         if self.showOnboardingAtLaunch {
             self.showOnboardingWindow()
@@ -80,6 +84,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
             }
         }
         updateIconForMode(vm.menuBarTextMode)
+        updateMenuBarUrgentAppearance()
         setupContextMenu()
     }
     
@@ -164,6 +169,18 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
     }
     
     private func updateIconForMode(_ mode: MenuBarTextMode) {
+        // `mode` is now read from `vm` inside applyMenuBarIcon (kept for existing call sites).
+        applyMenuBarIcon()
+    }
+
+    private func updateMenuBarUrgentAppearance() {
+        // Re-tint the icon for the current imminent state without touching
+        // `contentTintColor` (setting it breaks menu-bar vibrancy → black text).
+        applyMenuBarIcon()
+    }
+
+    private func applyMenuBarIcon() {
+        let mode = vm.menuBarTextMode
         let shouldShowIcon: Bool
         switch mode {
         case .hidden, .iconCountdown, .iconExactTime:
@@ -174,16 +191,42 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
         guard let button = menuBarExtra?.statusItem.button else { return }
         if shouldShowIcon {
             button.imagePosition = .imageLeading
-            if let image = NSImage(named: "MenuBarMosque") {
+            if vm.isPrayerImminent, let redIcon = tintedMenuBarIcon() {
+                button.image = redIcon
+            } else if let image = NSImage(named: "MenuBarMosque") {
                 image.size = NSSize(width: 16, height: 16)
                 image.isTemplate = true
                 button.image = image
             } else {
                 button.image = NSImage(systemSymbolName: "moon.zzz.fill", accessibilityDescription: "Sajda Pro")
+                button.image?.isTemplate = true
             }
-        }
-        else {
+        } else {
             button.image = nil
         }
+    }
+
+    /// Builds a non-template, red-tinted copy of the mosque glyph so only the
+    /// icon turns red when prayer is imminent. The title already carries its
+    /// own red attributed-string color — `contentTintColor` is deliberately
+    /// avoided because it kills menu-bar vibrancy (→ black text).
+    private func tintedMenuBarIcon() -> NSImage? {
+        let base: NSImage?
+        if let mosque = NSImage(named: "MenuBarMosque") {
+            base = mosque
+        } else {
+            base = NSImage(systemSymbolName: "moon.zzz.fill", accessibilityDescription: "Sajda Pro")
+        }
+        guard let base else { return nil }
+        let size = NSSize(width: 16, height: 16)
+        let tinted = NSImage(size: size)
+        tinted.lockFocus()
+        NSColor.systemRed.set()
+        let rect = NSRect(origin: .zero, size: size)
+        rect.fill()
+        base.draw(in: rect, from: NSRect(origin: .zero, size: base.size), operation: .destinationIn, fraction: 1.0)
+        tinted.unlockFocus()
+        tinted.isTemplate = false
+        return tinted
     }
 }	

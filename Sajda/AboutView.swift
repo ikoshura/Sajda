@@ -16,29 +16,24 @@ struct AboutView: View {
     }
 
     private var appVersionText: String {
-        let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "3.1.1"
-        let build = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String
-        if let build, !build.isEmpty {
-            return "Version \(version) (\(build))"
-        }
+        let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "3.4.0"
         return "Version \(version)"
     }
 
     var body: some View {
         ZStack {
-            VisualEffectView(material: .popover).ignoresSafeArea()
+            PanelInteriorBackground(material: .popover)
 
             VStack(alignment: .leading, spacing: 6) {
-                Button(action: handleBackButton) {
-                    HStack {
-                        Image(systemName: vm.backChevron).font(.body.weight(.semibold))
-                        Text("About Sajda Pro").font(.body).fontWeight(.bold)
-                        Spacer()
-                    }
-                    .padding(.vertical, 5).padding(.horizontal, 8)
-                    .background(isHeaderHovering ? Color("HoverColor") : .clear)
-                    .cornerRadius(5)
-                }.buttonStyle(.plain).padding(.horizontal, 5).onHover { hovering in isHeaderHovering = hovering }
+            Button(action: handleBackButton) {
+                HStack {
+                    Image(systemName: vm.backChevron).font(.body.weight(.semibold))
+                    Text("About Sajda Pro").font(.body).fontWeight(.bold)
+                    Spacer()
+                }
+                .padding(.vertical, 5).padding(.horizontal, 8)
+                .liquidHover(isHeaderHovering)
+            }.buttonStyle(.plain).padding(.horizontal, 5).onHover { hovering in isHeaderHovering = hovering }
 
                 Rectangle()
                     .fill(Color("DividerColor"))
@@ -82,6 +77,7 @@ struct AboutView: View {
                 }.frame(maxWidth: .infinity, maxHeight: .infinity)
             }.padding(.vertical, 8)
             .frame(width: viewWidth)
+            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
         }
     }
 

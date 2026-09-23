@@ -9,7 +9,14 @@ struct PrayerTimerAlertView: View {
 
     var body: some View {
         ZStack {
-            VisualEffectView(material: .sidebar).ignoresSafeArea()
+            // Liquid Glass window background: native NSGlassEffectView on
+            // macOS 26+, .sidebar material on older systems.
+            GlassBackgroundView(
+                material: .sidebar,
+                cornerRadius: GlassConstants.windowCornerRadius,
+                isInteractive: true
+            )
+            .ignoresSafeArea()
 
             VStack(spacing: 20) {
                 Image(systemName: "timer")

@@ -1,4 +1,9 @@
-// MARK: - GANTI FILE: Sajda/FluidMenuBar/FluidMenuBarExtraWindow.swift (MENGGUNAKAN WARNA BORDER BARU)
+// MARK: - GANTI FILE: Sajda/FluidMenuBar/FluidMenuBarExtraWindow.swift (LIQUID GLASS REVAMP)
+//
+// Menu bar panel background:
+// - macOS 26+: NSGlassEffectView (.regular, interactive) wrapping the hosting
+//   view — the same technique as the Sunray-xdr reference implementation.
+// - Older systems: the previous NSVisualEffectView + border look.
 
 import AppKit
 import SwiftUI
@@ -12,19 +17,34 @@ final class FluidMenuBarExtraWindow<Content: View>: NSPanel {
         view.state = .active
         view.material = .popover
         view.translatesAutoresizingMaskIntoConstraints = true
-        
+
         // --- TAMBAHAN UNTUK BORDER NATIVE ---
         view.wantsLayer = true
-        view.layer?.cornerRadius = 10.0
+        view.layer?.cornerRadius = GlassConstants.panelCornerRadius
         view.layer?.masksToBounds = true
         view.layer?.borderWidth = 0.5
-        // --- PERUBAHAN DI SINI ---
         // Mengganti "SecondaryTextColor" dengan "BorderColor" yang baru dan lebih subtle.
         view.layer?.borderColor = NSColor(named: "BorderColor")?.cgColor
         // --- AKHIR PERUBAHAN ---
-        
+
         return view
     }()
+
+    /// Liquid Glass container factory for macOS 26+. Draws its own specular
+    /// edge, so no manual border layer is needed.
+    @available(macOS 26.0, *)
+    private func makeGlassEffectView() -> NSGlassEffectView {
+        let view = NSGlassEffectView()
+        view.autoresizingMask = [.width, .height]
+        view.style = .regular
+        view.cornerRadius = GlassConstants.panelCornerRadius
+        // The panel hosts interactive controls, so enable interactive glass
+        // feedback where the OS supports it (macOS 27+).
+        if #available(macOS 27.0, *) {
+            view.effectIsInteractive = true
+        }
+        return view
+    }
 
     private var rootView: some View {
         content()
@@ -78,16 +98,31 @@ final class FluidMenuBarExtraWindow<Content: View>: NSPanel {
         standardWindowButton(.miniaturizeButton)?.isHidden = true
         standardWindowButton(.zoomButton)?.isHidden = true
 
-        contentView = visualEffectView
-        visualEffectView.addSubview(hostingView)
-        setContentSize(hostingView.intrinsicContentSize)
+        if #available(macOS 26.0, *) {
+            // Liquid Glass path (mirrors the Sunray-xdr reference): the hosting
+            // view lives in the glass view's contentView — the only placement
+            // NSGlassEffectView guarantees relative to the glass effect.
+            // Frame + autoresizing keeps it filling the panel as it resizes.
+            let glassView = makeGlassEffectView()
+            hostingView.translatesAutoresizingMaskIntoConstraints = true
+            hostingView.autoresizingMask = [.width, .height]
+            hostingView.frame = glassView.bounds
+            glassView.contentView = hostingView
+            contentView = glassView
+        } else {
+            // Fallback path for macOS 13.3–25.x: blur + border, as before.
+            contentView = visualEffectView
+            visualEffectView.addSubview(hostingView)
 
-        NSLayoutConstraint.activate([
-            hostingView.topAnchor.constraint(equalTo: visualEffectView.topAnchor),
-            hostingView.trailingAnchor.constraint(equalTo: visualEffectView.trailingAnchor),
-            hostingView.bottomAnchor.constraint(equalTo: visualEffectView.bottomAnchor),
-            hostingView.leadingAnchor.constraint(equalTo: visualEffectView.leadingAnchor)
-        ])
+            NSLayoutConstraint.activate([
+                hostingView.topAnchor.constraint(equalTo: visualEffectView.topAnchor),
+                hostingView.trailingAnchor.constraint(equalTo: visualEffectView.trailingAnchor),
+                hostingView.bottomAnchor.constraint(equalTo: visualEffectView.bottomAnchor),
+                hostingView.leadingAnchor.constraint(equalTo: visualEffectView.leadingAnchor)
+            ])
+        }
+
+        setContentSize(hostingView.intrinsicContentSize)
     }
 
     private func contentSizeDidUpdate(to size: CGSize) {

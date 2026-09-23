@@ -59,7 +59,14 @@ struct OnboardingView: View {
 
     var body: some View {
         ZStack {
-            VisualEffectView(material: .underWindowBackground).ignoresSafeArea()
+            // Liquid Glass window background: native NSGlassEffectView on
+            // macOS 26+, .underWindowBackground material on older systems.
+            GlassBackgroundView(
+                material: .underWindowBackground,
+                cornerRadius: GlassConstants.windowCornerRadius,
+                isInteractive: true
+            )
+            .ignoresSafeArea()
 
             VStack(spacing: 0) {
                 Spacer(minLength: 20)
@@ -165,6 +172,10 @@ struct OnboardingView: View {
             }
         }
         .frame(width: 380, height: 490)
+        // Rounded window silhouette shared by both paths: the glass view rounds
+        // itself on macOS 26+, the fallback VisualEffectView rounds its layer,
+        // and this clip rounds the remaining SwiftUI content.
+        .clipShape(RoundedRectangle(cornerRadius: GlassConstants.windowCornerRadius, style: .continuous))
         .sheet(isPresented: $showingManualLocationSheet) {
             LanguageManagerView(manager: languageManager) {
                 ManualLocationSheetView().environmentObject(vm)
@@ -211,6 +222,9 @@ struct OnboardingView: View {
         .padding(.vertical, 10)
         .padding(.horizontal, 12)
         .frame(maxWidth: .infinity)
+        // Liquid Glass status card: glass on macOS 26+, flat fill + hairline
+        // stroke on older systems.
+        .glassCard(cornerRadius: 8)
         .background(
             RoundedRectangle(cornerRadius: 8, style: .continuous)
                 .fill(Color("HoverColor").opacity(0.55))
@@ -248,8 +262,7 @@ struct LocationRefreshButton: View {
         .buttonStyle(.plain)
         .disabled(isDisabled || isRefreshing)
         .focusable(false)
-        .background(isHovering ? Color("HoverColor") : .clear)
-        .cornerRadius(4)
+        .liquidHover(isHovering, cornerRadius: 4)
         .opacity(isDisabled && !isRefreshing ? 0.45 : 1)
         .help(Text("Refresh Location"))
         .accessibilityLabel(Text("Refresh Location"))

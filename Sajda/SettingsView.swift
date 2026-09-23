@@ -32,7 +32,7 @@ struct SettingsView: View {
                         Spacer()
                     }
                     .padding(.vertical, 5).padding(.horizontal, 8)
-                    .background(isHeaderHovering ? Color("HoverColor") : .clear).cornerRadius(5)
+                    .liquidHover(isHeaderHovering)
                 }.buttonStyle(.plain).padding(.horizontal, 5).padding(.top, 2).onHover { hovering in isHeaderHovering = hovering }
                 
                 Rectangle()
@@ -73,12 +73,12 @@ struct SettingsView: View {
                 VStack(alignment: .leading, spacing: 0) {
                     Button(action: { navigationModel.showView(Self.id, animation: vm.forwardAnimation()) { LocationAndCalcSettingsView() } }) {
                         HStack { Text("Calculation & Location").font(.subheadline); Spacer(); Image(systemName: vm.forwardChevron).font(.caption.weight(.bold)).foregroundColor(.secondary) }
-                        .padding(.vertical, 5).padding(.horizontal, 8).background(isCalcHovering ? Color("HoverColor") : .clear).cornerRadius(5)
+                        .padding(.vertical, 5).padding(.horizontal, 8).liquidHover(isCalcHovering)
                     }.buttonStyle(.plain).padding(.horizontal, 5).onHover { hovering in isCalcHovering = hovering }
 
                     Button(action: { navigationModel.showView(Self.id, animation: vm.forwardAnimation()) { SystemAndNotificationsSettingsView() } }) {
                         HStack { Text("Adhan Sound").font(.subheadline); Spacer(); Image(systemName: vm.forwardChevron).font(.caption.weight(.bold)).foregroundColor(.secondary) }
-                        .padding(.vertical, 5).padding(.horizontal, 8).background(isAdhanHovering ? Color("HoverColor") : .clear).cornerRadius(5)
+                        .padding(.vertical, 5).padding(.horizontal, 8).liquidHover(isAdhanHovering)
                     }.buttonStyle(.plain).padding(.horizontal, 5).onHover { hovering in isAdhanHovering = hovering }
                 }
             }

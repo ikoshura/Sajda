@@ -23,6 +23,12 @@ struct StyledToggle: View {
                     // Gunakan "HoverColor" untuk state 'off' agar terlihat di Light Mode
                     .fill(isOn ? Color.accentColor : Color("HoverColor"))
                     .frame(width: toggleWidth, height: toggleHeight)
+                    // Subtle specular rim so the custom toggle sits comfortably
+                    // on Liquid Glass surfaces.
+                    .overlay(
+                        Capsule()
+                            .strokeBorder(Color.white.opacity(isOn ? 0.28 : 0.15), lineWidth: 0.5)
+                    )
 
                 Circle()
                     .fill(Color.white)

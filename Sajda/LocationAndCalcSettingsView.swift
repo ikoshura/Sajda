@@ -27,7 +27,7 @@ struct LocationAndCalcSettingsView: View {
                         Spacer()
                     }
                     .padding(.vertical, 5).padding(.horizontal, 8)
-                    .background(isHeaderHovering ? Color("HoverColor") : .clear).cornerRadius(5)
+                    .liquidHover(isHeaderHovering)
                 }.buttonStyle(.plain).padding(.horizontal, 5).padding(.top, 2).onHover { hovering in isHeaderHovering = hovering }
                 
                 Rectangle()

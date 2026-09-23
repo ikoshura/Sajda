@@ -35,8 +35,7 @@ struct TextFieldStepper: View {
                         .frame(width: 28, height: 28)
                 }
                 .buttonStyle(.plain)
-                .background(isMinusHovering ? Color("HoverColor") : .clear)
-                .cornerRadius(5)
+                .liquidHover(isMinusHovering)
                 .onHover { hovering in isMinusHovering = hovering }
 
                 TextField(title, text: $textValue, onCommit: {
@@ -62,8 +61,7 @@ struct TextFieldStepper: View {
                         .frame(width: 28, height: 28)
                 }
                 .buttonStyle(.plain)
-                .background(isPlusHovering ? Color("HoverColor") : .clear)
-                .cornerRadius(5)
+                .liquidHover(isPlusHovering)
                 .onHover { hovering in isPlusHovering = hovering }
             }
             .onHover { hovering in

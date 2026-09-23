@@ -24,6 +24,9 @@ struct TimePreviewPopover: View {
         }
         .padding(.vertical, 6)
         .padding(.horizontal, 10)
+        // Liquid Glass preview card: glass on macOS 26+, solid native window
+        // background on older systems.
+        .glassCard(cornerRadius: 8)
         // Latar belakang solid yang native dan stabil
         .background(
             RoundedRectangle(cornerRadius: 8, style: .continuous)
