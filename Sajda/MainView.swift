@@ -118,7 +118,7 @@ struct PrayerListView: View {
                                 if vm.useAccentColor {
                                     return (Color.accentColor, Color.white)
                                 } else {
-                                    return (Color("HoverColor"), .primary)
+                                    return (Color("ButtonFaceColor"), .primary)
                                 }
                             }
                             else { return (.clear, .primary) }
