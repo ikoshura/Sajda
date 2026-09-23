@@ -113,3 +113,7 @@
 
 /* Text size presets */
 "Text Size" = "Text Size"; "Small" = "Small"; "Default" = "Default"; "Large" = "Large"; "Extra Large" = "Extra Large";
+
+/* Accessibility settings */
+"Accessibility" = "Accessibility"; "Text" = "Text"; "Menu Bar" = "Menu Bar"; "Bold Text" = "Bold Text"; "Uppercase Text" = "Uppercase Text"; "Larger Menu Bar Text" = "Larger Menu Bar Text"; "XXL" = "XXL";
+"Make text easier to read across the panel and menu bar." = "Make text easier to read across the panel and menu bar.";

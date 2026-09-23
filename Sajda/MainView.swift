@@ -18,9 +18,7 @@ struct MainView: View {
                 Text("Sajda").scaledFont(.body, weight: .bold)
                 Spacer()
                 if vm.isPrayerDataAvailable && vm.menuBarTextMode == .hidden {
-                    let format = NSLocalizedString("prayer_in_countdown", comment: "")
-                    let localizedPrayerName = NSLocalizedString(vm.nextPrayerName, comment: "")
-                    Text(String(format: format, localizedPrayerName, vm.countdown)).scaledFont(.body).foregroundColor(vm.isPrayerImminent ? .red : Color("SecondaryTextColor")).transition(.opacity.animation(.easeInOut))
+                    Text(vm.headerCountdownText).scaledFont(.body).foregroundColor(vm.isPrayerImminent ? .red : Color("SecondaryTextColor")).transition(.opacity.animation(.easeInOut))
                 }
             }
             .padding(.horizontal, 12).padding(.top, 4)
@@ -126,7 +124,7 @@ struct PrayerListView: View {
                             else { return (.clear, .primary) }
                         }()
                         HStack {
-                            Text(LocalizedStringKey(prayerName)); Spacer()
+                            Text(vm.prayerDisplayName(prayerName)); Spacer()
                             if vm.isAdhanPlaying && prayerName == vm.activeAdhanPrayerName {
                                 Button(action: { vm.stopAdhan() }) {
                                     Image(systemName: "speaker.slash.fill")
@@ -139,7 +137,7 @@ struct PrayerListView: View {
                             if prayerName == "Tahajud" || prayerName == "Dhuha" { Text("Around").scaledFont(.caption).foregroundColor(isNextPrayer ? textColor.opacity(0.8) : Color("SecondaryTextColor")) }
                             Text(vm.dateFormatter.string(from: prayerTime)).scaledFont(.body, design: .monospaced, weight: isNextPrayer ? .bold : nil)
                         }
-                        .foregroundColor(textColor).fontWeight(isNextPrayer ? .bold : .regular).padding(.horizontal, 12).padding(.vertical, 5).background(RoundedRectangle(cornerRadius: 6).fill(highlightColor))
+                        .foregroundColor(textColor).fontWeight((isNextPrayer || vm.accessibilityBoldText) ? .bold : .regular).padding(.horizontal, 12).padding(.vertical, 5).background(RoundedRectangle(cornerRadius: 6).fill(highlightColor))
                     }
                 }
             }.padding(.horizontal, 5).padding(.top, 4)

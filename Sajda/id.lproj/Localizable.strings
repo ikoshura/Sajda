@@ -113,3 +113,7 @@
 
 /* Text size presets */
 "Text Size" = "Ukuran Teks"; "Small" = "Kecil"; "Default" = "Bawaan"; "Large" = "Besar"; "Extra Large" = "Sangat Besar";
+
+/* Accessibility settings */
+"Accessibility" = "Aksesibilitas"; "Text" = "Teks"; "Menu Bar" = "Menu Bar"; "Bold Text" = "Teks Tebal"; "Uppercase Text" = "Teks Kapital"; "Larger Menu Bar Text" = "Teks Menu Bar Lebih Besar"; "XXL" = "Paling Besar";
+"Make text easier to read across the panel and menu bar." = "Membuat teks lebih mudah dibaca di panel dan menu bar.";

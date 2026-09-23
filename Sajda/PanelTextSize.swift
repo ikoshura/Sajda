@@ -8,6 +8,7 @@ enum PanelTextSize: String, CaseIterable, Identifiable {
     case `default` = "Default"
     case large = "Large"
     case extraLarge = "Extra Large"
+    case xxl = "XXL"
 
     var id: Self { self }
 
@@ -27,6 +28,7 @@ enum PanelTextSize: String, CaseIterable, Identifiable {
         case .default: return 1.0
         case .large: return 1.2
         case .extraLarge: return 1.45
+        case .xxl: return 1.75
         }
     }
 
@@ -38,6 +40,7 @@ enum PanelTextSize: String, CaseIterable, Identifiable {
         case .default: return 1.0
         case .large: return 1.2
         case .extraLarge: return 1.45
+        case .xxl: return 1.75
         }
     }
 
@@ -52,10 +55,21 @@ private struct PanelFontScaleKey: EnvironmentKey {
     static let defaultValue: CGFloat = 1.0
 }
 
+private struct PanelBoldTextKey: EnvironmentKey {
+    static let defaultValue = false
+}
+
 extension EnvironmentValues {
     var panelFontScale: CGFloat {
         get { self[PanelFontScaleKey.self] }
         set { self[PanelFontScaleKey.self] = newValue }
+    }
+
+    /// Mode aksesibilitas "Bold Text": seluruh teks panel dinaikkan satu
+    /// tingkat bobotnya agar lebih mudah dibaca pengguna low-vision.
+    var panelBoldText: Bool {
+        get { self[PanelBoldTextKey.self] }
+        set { self[PanelBoldTextKey.self] = newValue }
     }
 }
 
@@ -63,6 +77,7 @@ extension EnvironmentValues {
 
 private struct ScaledFontModifier: ViewModifier {
     @Environment(\.panelFontScale) private var scale
+    @Environment(\.panelBoldText) private var boldText
 
     let style: Font.TextStyle
     var design: Font.Design = .default
@@ -85,7 +100,7 @@ private struct ScaledFontModifier: ViewModifier {
         }
     }
 
-    private var nsWeight: NSFont.Weight {
+    private func nsWeight(for weight: Font.Weight?) -> NSFont.Weight {
         switch weight {
         case .ultraLight: return .ultraLight
         case .thin: return .thin
@@ -99,13 +114,29 @@ private struct ScaledFontModifier: ViewModifier {
         }
     }
 
+    /// Bobot efektif setelah penyesuaian mode "Bold Text": setiap bobot
+    /// dinaikkan satu tingkat; teks tanpa bobot eksplisit menjadi semibold.
+    private var effectiveWeight: Font.Weight? {
+        guard boldText else { return weight }
+        guard let weight else { return .semibold }
+        switch weight {
+        case .ultraLight, .thin, .light: return .regular
+        case .regular, .medium: return .semibold
+        case .semibold: return .bold
+        case .bold: return .heavy
+        case .heavy, .black: return .black
+        default: return .semibold
+        }
+    }
+
     func body(content: Content) -> some View {
         let base = NSFont.preferredFont(forTextStyle: nsTextStyle)
         let size = base.pointSize * scale
         // Dengan weight eksplisit kita bangun dari systemFont agar bobotnya
         // pasti diterapkan; tanpa weight kita pakai font bawaan gaya tersebut
         // (misal .headline yang sudah tebal) lalu ubah ukurannya saja.
-        var descriptor = (weight == nil ? base : NSFont.systemFont(ofSize: size, weight: nsWeight)).fontDescriptor
+        let resolvedWeight = effectiveWeight
+        var descriptor = (resolvedWeight == nil ? base : NSFont.systemFont(ofSize: size, weight: nsWeight(for: resolvedWeight))).fontDescriptor
         if design == .monospaced, let mono = descriptor.withDesign(.monospaced) {
             descriptor = mono
         }
@@ -141,6 +172,7 @@ struct ScaledMenuPicker<Value: Hashable>: NSViewRepresentable {
     let titleFor: (Value) -> String
 
     @Environment(\.panelFontScale) private var scale
+    @Environment(\.panelBoldText) private var boldText
     @Environment(\.isEnabled) private var isEnabled
     @Environment(\.layoutDirection) private var layoutDirection
 
@@ -194,7 +226,12 @@ struct ScaledMenuPicker<Value: Hashable>: NSViewRepresentable {
 
     private var scaledFont: NSFont {
         let base = NSFont.preferredFont(forTextStyle: .subheadline)
-        return NSFont(descriptor: base.fontDescriptor, size: base.pointSize * scale) ?? base
+        let size = base.pointSize * scale
+        // Mode aksesibilitas "Bold Text" menebalkan teks tombol popup juga.
+        if boldText {
+            return NSFont.systemFont(ofSize: size, weight: .semibold)
+        }
+        return NSFont(descriptor: base.fontDescriptor, size: size) ?? base
     }
 
     private func configure(_ button: NSPopUpButton, with coordinator: Coordinator) {

@@ -60,6 +60,12 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
     @AppStorage("isNotificationsEnabled") var isNotificationsEnabled: Bool = true { didSet { updateNotifications() } }
     @AppStorage("useCompactLayout") var useCompactLayout: Bool = false
     @AppStorage("panelTextSize") var panelTextSize: PanelTextSize = .default
+    // Aksesibilitas (Settings > Accessibility): teks yang lebih mudah dibaca
+    // untuk pengguna low-vision. Ketiganya menyegarkan judul menu bar karena
+    // bobot/uppercase/ukuran memengaruhi teks di sana juga.
+    @AppStorage("accessibilityBoldText") var accessibilityBoldText: Bool = false { didSet { updateMenuTitle() } }
+    @AppStorage("accessibilityUppercaseText") var accessibilityUppercaseText: Bool = false { didSet { updateMenuTitle() } }
+    @AppStorage("menuBarLargerText") var menuBarLargerText: Bool = false { didSet { updateMenuTitle() } }
     @AppStorage("use24HourFormat") var use24HourFormat: Bool = false { didSet { updateAndDisplayTimes() } }
 
     /// Lebar panel yang diskalakan sesuai ukuran teks terpilih agar font
@@ -530,7 +536,66 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
         updateMenuTitle()
     }
 
-    func updateMenuTitle() { guard isPrayerDataAvailable else { self.menuTitle = NSAttributedString(string: "Sajda Pro"); return }; var textToShow = ""; let localizedPrayerName = NSLocalizedString(nextPrayerName, comment: ""); switch menuBarTextMode { case .hidden: textToShow = ""; case .countdown, .iconCountdown: if useMinimalMenuBarText { textToShow = String(format: NSLocalizedString("prayer_minimal_countdown", comment: ""), localizedPrayerName, countdown) } else { textToShow = String(format: NSLocalizedString("prayer_in_countdown", comment: ""), localizedPrayerName, countdown) }; case .exactTime, .iconExactTime: var nextPrayerDate: Date?; if nextPrayerName == "Fajr" && todayTimes["Fajr"] ?? Date() < Date() { nextPrayerDate = tomorrowFajrTime } else { nextPrayerDate = todayTimes[nextPrayerName] }; guard let nextDate = nextPrayerDate else { textToShow = "Sajda Pro"; break }; if useMinimalMenuBarText { textToShow = String(format: NSLocalizedString("prayer_minimal_exact", comment: ""), localizedPrayerName, dateFormatter.string(from: nextDate)) } else { textToShow = String(format: NSLocalizedString("prayer_at_time", comment: ""), localizedPrayerName, dateFormatter.string(from: nextDate)) } }; let attributes: [NSAttributedString.Key: Any] = isPrayerImminent ? [.foregroundColor: NSColor.systemRed] : [:]; self.menuTitle = NSAttributedString(string: textToShow, attributes: attributes) }
+    /// Nama shalat yang sudah dilokalkan, di-uppercase bila opsi aksesibilitas
+    /// "Uppercase Text" aktif. Untuk bahasa Arab (tanpa kapitalisasi) hasilnya
+    /// otomatis tetap sama.
+    func prayerDisplayName(_ prayerName: String) -> String {
+        let localized = NSLocalizedString(prayerName, comment: "")
+        return accessibilityUppercaseText ? localized.uppercased() : localized
+    }
+
+    /// Teks countdown pada header panel ("Fajr in 25m") dengan penyesuaian
+    /// aksesibilitas uppercase yang sama seperti menu bar.
+    var headerCountdownText: String {
+        let format = NSLocalizedString("prayer_in_countdown", comment: "")
+        var text = String(format: format, prayerDisplayName(nextPrayerName), countdown)
+        if accessibilityUppercaseText { text = text.uppercased() }
+        return text
+    }
+
+    func updateMenuTitle() {
+        guard isPrayerDataAvailable else { self.menuTitle = NSAttributedString(string: "Sajda Pro"); return }
+        var textToShow = ""
+        let localizedPrayerName = NSLocalizedString(nextPrayerName, comment: "")
+        switch menuBarTextMode {
+        case .hidden:
+            textToShow = ""
+        case .countdown, .iconCountdown:
+            if useMinimalMenuBarText {
+                textToShow = String(format: NSLocalizedString("prayer_minimal_countdown", comment: ""), localizedPrayerName, countdown)
+            } else {
+                textToShow = String(format: NSLocalizedString("prayer_in_countdown", comment: ""), localizedPrayerName, countdown)
+            }
+        case .exactTime, .iconExactTime:
+            var nextPrayerDate: Date?
+            if nextPrayerName == "Fajr" && todayTimes["Fajr"] ?? Date() < Date() {
+                nextPrayerDate = tomorrowFajrTime
+            } else {
+                nextPrayerDate = todayTimes[nextPrayerName]
+            }
+            guard let nextDate = nextPrayerDate else { textToShow = "Sajda Pro"; break }
+            if useMinimalMenuBarText {
+                textToShow = String(format: NSLocalizedString("prayer_minimal_exact", comment: ""), localizedPrayerName, dateFormatter.string(from: nextDate))
+            } else {
+                textToShow = String(format: NSLocalizedString("prayer_at_time", comment: ""), localizedPrayerName, dateFormatter.string(from: nextDate))
+            }
+        }
+        // Aksesibilitas: seluruh teks menu bar di-uppercase bila diminta.
+        if accessibilityUppercaseText {
+            textToShow = textToShow.uppercased()
+        }
+        var attributes: [NSAttributedString.Key: Any] = [:]
+        if isPrayerImminent {
+            attributes[.foregroundColor] = NSColor.systemRed
+        }
+        // Aksesibilitas: judul menu bar bisa diperbesar dan/atau ditebalkan
+        // agar tetap terbaca tanpa zoom sistem.
+        if menuBarLargerText || accessibilityBoldText {
+            let size = menuBarLargerText ? NSFont.systemFontSize + 3 : NSFont.systemFontSize
+            attributes[.font] = NSFont.systemFont(ofSize: size, weight: accessibilityBoldText ? .bold : .regular)
+        }
+        self.menuTitle = NSAttributedString(string: textToShow, attributes: attributes)
+    }
 
     var dateFormatter: DateFormatter {
         let formatter = DateFormatter()

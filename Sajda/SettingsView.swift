@@ -15,6 +15,7 @@ struct SettingsView: View {
     @State private var isHeaderHovering = false
     @State private var isCalcHovering = false
     @State private var isAdhanHovering = false
+    @State private var isAccessibilityHovering = false
     @State private var isSyncingLaunchAtLogin = false
 
     private var viewWidth: CGFloat {
@@ -58,7 +59,6 @@ struct SettingsView: View {
                     Text("Display").scaledFont(.caption).foregroundColor(Color("SecondaryTextColor"))
                     HStack { Text("Language").scaledFont(.subheadline); Spacer(); ScaledMenuPicker(selection: $languageManager.language, options: ["en", "ar", "id"]) { code in code == "en" ? "English" : (code == "ar" ? "العربية" : "Indonesia") } }
                     HStack { Text("Menu Bar Style").scaledFont(.subheadline); Spacer(); ScaledMenuPicker(selection: $vm.menuBarTextMode, options: MenuBarTextMode.allCases) { NSLocalizedString($0.rawValue, comment: "") } }
-                    HStack { Text("Text Size").scaledFont(.subheadline); Spacer(); ScaledMenuPicker(selection: $vm.panelTextSize, options: PanelTextSize.allCases) { NSLocalizedString($0.rawValue, comment: "") } }
                     StyledToggle(label: "Compact View", isOn: $vm.useCompactLayout)
                     StyledToggle(label: "24-Hour Time", isOn: $vm.use24HourFormat)
                     StyledToggle(label: "Minimal Menu Bar", isOn: $vm.useMinimalMenuBarText).disabled(vm.menuBarTextMode == .hidden)
@@ -82,6 +82,11 @@ struct SettingsView: View {
                         HStack { Text("Adhan Sound").scaledFont(.subheadline); Spacer(); Image(systemName: vm.forwardChevron).scaledFont(.caption, weight: .bold).foregroundColor(.secondary) }
                         .padding(.vertical, 5).padding(.horizontal, 8).liquidHover(isAdhanHovering)
                     }.buttonStyle(.plain).padding(.horizontal, 5).onHover { hovering in isAdhanHovering = hovering }
+
+                    Button(action: { navigationModel.showView(Self.id, animation: vm.forwardAnimation()) { AccessibilitySettingsView() } }) {
+                        HStack { Text("Accessibility").scaledFont(.subheadline); Spacer(); Image(systemName: vm.forwardChevron).scaledFont(.caption, weight: .bold).foregroundColor(.secondary) }
+                        .padding(.vertical, 5).padding(.horizontal, 8).liquidHover(isAccessibilityHovering)
+                    }.buttonStyle(.plain).padding(.horizontal, 5).onHover { hovering in isAccessibilityHovering = hovering }
                 }
             }
             .padding(.vertical, 8)

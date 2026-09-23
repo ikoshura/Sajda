@@ -18,7 +18,8 @@ struct ContentView: View {
         // faktor skala dibaca modifier `scaledFont`, sementara .font root
         // menangani teks tanpa gaya eksplisit (toggle, tombol, dsb).
         .environment(\.panelFontScale, vm.panelTextSize.fontScale)
-        .font(.system(size: PanelTextSize.baseBodyPointSize * vm.panelTextSize.fontScale))
+        .environment(\.panelBoldText, vm.accessibilityBoldText)
+        .font(.system(size: PanelTextSize.baseBodyPointSize * vm.panelTextSize.fontScale, weight: vm.accessibilityBoldText ? .semibold : .regular))
         // --- PERBAIKAN DI SINI ---
         // Menggunakan properti animationType yang baru, bukan disableAnimations yang sudah dihapus.
         .transaction { transaction in
