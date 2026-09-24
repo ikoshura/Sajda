@@ -429,9 +429,28 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
         var allPrayerTimes: [(name: String, time: Date)] = [("Fajr", correctedFajr), ("Dhuhr", correctedDhuhr), ("Asr", correctedAsr), ("Maghrib", correctedMaghrib), ("Isha", correctedIsha)]
 
         if showSunnahPrayers {
-            let correctedFajrTomorrow = prayersTomorrow.fajr.addingTimeInterval(fajrCorrection * 60)
-            let nightDuration = correctedFajrTomorrow.timeIntervalSince(correctedIsha)
-            let lastThirdOfNightStart = correctedIsha.addingTimeInterval(nightDuration * (2/3.0))
+            // Tahajud is the last third of the night that is ongoing *now*.
+            // Between midnight and today's Fajr that night began at
+            // *yesterday's* Isha; anchoring unconditionally to today's Isha
+            // put the entry a full day ahead in that window, so the sorted
+            // next-prayer search saw it too far away and fell through to
+            // highlighting Fajr instead of the Tahajud hours away.
+            let now = Date()
+            let nightStart: Date
+            let nightEnd: Date
+            if now < correctedFajr,
+               let yesterdayInLocation = locationCalendar.date(byAdding: .day, value: -1, to: now),
+               let prayersYesterday = PrayerTimes(coordinates: Coordinates(latitude: coord.latitude, longitude: coord.longitude),
+                                                   date: locationCalendar.dateComponents([.year, .month, .day], from: yesterdayInLocation),
+                                                   calculationParameters: params) {
+                nightStart = prayersYesterday.isha.addingTimeInterval(ishaCorrection * 60)
+                nightEnd = correctedFajr
+            } else {
+                nightStart = correctedIsha
+                nightEnd = prayersTomorrow.fajr.addingTimeInterval(fajrCorrection * 60)
+            }
+            let nightDuration = nightEnd.timeIntervalSince(nightStart)
+            let lastThirdOfNightStart = nightStart.addingTimeInterval(nightDuration * (2/3.0))
             allPrayerTimes.append(("Tahajud", lastThirdOfNightStart))
 
             let dhuhaTime = prayersToday.sunrise.addingTimeInterval(20 * 60)
