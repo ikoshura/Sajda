@@ -63,6 +63,7 @@ struct SettingsView: View {
                     StyledToggle(label: "24-Hour Time", isOn: $vm.use24HourFormat)
                     StyledToggle(label: "Minimal Menu Bar", isOn: $vm.useMinimalMenuBarText).disabled(vm.menuBarTextMode == .hidden)
                     StyledToggle(label: "Accent Color", isOn: $vm.useAccentColor)
+                    StyledToggle(label: "Glass Highlight", isOn: $vm.useGlassPrayerHighlight)
                     StyledToggle(label: "Show Sunnah Prayers", isOn: $vm.showSunnahPrayers)
                 }
                 .controlSize(.small)

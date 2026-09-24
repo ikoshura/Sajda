@@ -57,6 +57,8 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
     @AppStorage("useMinimalMenuBarText") var useMinimalMenuBarText: Bool = false { didSet { updateAndDisplayTimes() } }
     @AppStorage("showSunnahPrayers") var showSunnahPrayers: Bool = false { didSet { updatePrayerTimes() } }
     @AppStorage("useAccentColor") var useAccentColor: Bool = true
+    // Gaya Liquid Glass di atas highlight waktu sholat berikutnya (opsional).
+    @AppStorage("useGlassPrayerHighlight") var useGlassPrayerHighlight: Bool = false
     @AppStorage("isNotificationsEnabled") var isNotificationsEnabled: Bool = true { didSet { updateNotifications() } }
     @AppStorage("useCompactLayout") var useCompactLayout: Bool = false
     @AppStorage("panelTextSize") var panelTextSize: PanelTextSize = .default

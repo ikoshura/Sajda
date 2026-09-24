@@ -107,46 +107,25 @@ struct GlassBackgroundView: NSViewRepresentable {
 
 // MARK: - LiquidHover
 
-/// Liquid Glass hover highlight for rows and buttons.
+/// Flat macOS hover highlight for rows and buttons.
 ///
-/// On macOS 26+ the hovered surface gets an interactive glass pill via
-/// `.glassEffect(.regular.interactive(), ...)`. On older systems it keeps the
-/// flat `HoverColor` fill the app has always used.
+/// Uses the translucent `HoverColor` fill on every macOS version — the same
+/// regular hover the app has always used, matching the native menu-bar hover
+/// shown on Wi-Fi / battery. The Liquid Glass pill (`.glassEffect(.interactive)`)
+/// that previously appeared on macOS 26+ has been removed.
 struct LiquidHover: ViewModifier {
     let isActive: Bool
     var cornerRadius: CGFloat = 5
 
     func body(content: Content) -> some View {
-        hoverBody(content)
-    }
-
-    @ViewBuilder
-    private func hoverBody(_ content: Content) -> some View {
-        if #available(macOS 26.0, *) {
-            content.background {
-                if isActive {
-                    glassPill
-                }
-            }
-        } else {
-            content
-                .background(isActive ? Color("HoverColor") : .clear)
-                .cornerRadius(cornerRadius)
-        }
-    }
-
-    @available(macOS 26.0, *)
-    @ViewBuilder
-    private var glassPill: some View {
-        let shape = RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-        shape
-            .fill(Color.clear)
-            .glassEffect(.regular.interactive(), in: shape)
+        content
+            .background(isActive ? Color("HoverColor") : .clear)
+            .cornerRadius(cornerRadius)
     }
 }
 
 extension View {
-    /// Applies the Liquid Glass hover highlight when `isActive` is true.
+    /// Applies the flat macOS hover highlight when `isActive` is true.
     func liquidHover(_ isActive: Bool, cornerRadius: CGFloat = 5) -> some View {
         modifier(LiquidHover(isActive: isActive, cornerRadius: cornerRadius))
     }

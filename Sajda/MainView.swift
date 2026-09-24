@@ -92,6 +92,7 @@ struct MainView: View {
 
 struct PrayerListView: View {
     @EnvironmentObject var vm: PrayerTimeViewModel
+    @Environment(\.colorScheme) private var colorScheme
     private var prayerOrder: [String] {
         let defaultOrder = ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"]
         let sunnahOrder = ["Tahajud", "Fajr", "Dhuha", "Dhuhr", "Asr", "Maghrib", "Isha"]
@@ -118,7 +119,7 @@ struct PrayerListView: View {
                                 if vm.useAccentColor {
                                     return (Color.accentColor, Color.white)
                                 } else {
-                                    return (Color("ButtonFaceColor"), .primary)
+                                    return (Color("HoverColor"), .primary)
                                 }
                             }
                             else { return (.clear, .primary) }
@@ -135,9 +136,22 @@ struct PrayerListView: View {
                                 .help("Stop Adhan")
                             }
                             if prayerName == "Tahajud" || prayerName == "Dhuha" { Text("Around").scaledFont(.caption).foregroundColor(isNextPrayer ? textColor.opacity(0.8) : Color("SecondaryTextColor")) }
-                            Text(vm.dateFormatter.string(from: prayerTime)).scaledFont(.body, design: .monospaced, weight: isNextPrayer ? .bold : nil)
+                            Text(vm.dateFormatter.string(from: prayerTime)).scaledFont(.body, weight: isNextPrayer ? .bold : nil)
                         }
-                        .foregroundColor(textColor).fontWeight((isNextPrayer || vm.accessibilityBoldText) ? .bold : .regular).padding(.horizontal, 12).padding(.vertical, 5).background(RoundedRectangle(cornerRadius: 6).fill(highlightColor))
+                        .foregroundColor(textColor).fontWeight((isNextPrayer || vm.accessibilityBoldText) ? .bold : .regular).padding(.horizontal, 12).padding(.vertical, 5).background {
+                            ZStack {
+                                RoundedRectangle(cornerRadius: 6).fill(highlightColor)
+                                if isNextPrayer, vm.useGlassPrayerHighlight {
+                                    RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                        .fill(Color.clear)
+                                        .glassCard(cornerRadius: 6, interactive: true)
+                                        // Glass gelap hanya untuk highlight aksen (teks
+                                        // putih): glass terang di atas aksen di mode terang
+                                        // terlalu memutih. Non-ikut skema aslinya.
+                                        .environment(\.colorScheme, vm.useAccentColor ? .dark : colorScheme)
+                                }
+                            }
+                        }
                     }
                 }
             }.padding(.horizontal, 5).padding(.top, 4)

@@ -35,7 +35,7 @@ Sajda/
 ├── StartupManager.swift               # Launch at login toggle (LSSharedFileList)
 ├── SajdaCalculationMethod.swift       # Adhan calculation method mapping
 ├── SajdaStepper.swift                 # Custom stepper UI component
-├── StyledToggle.swift                 # Custom toggle UI component
+├── StyledToggle.swift                 # Settings row: label + native macOS switch (Liquid Glass)
 ├── TextFieldStepper.swift             # Text field with stepper controls
 ├── SajdaApp.swift                     # Notification.Name extensions
 ├── VisualEffectView.swift             # NSVisualEffectView wrapper
