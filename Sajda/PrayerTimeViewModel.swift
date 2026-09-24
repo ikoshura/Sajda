@@ -502,15 +502,29 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
         updateCountdown()
     }
 
-    private func updateCountdown() {
-        var nextPrayerDate: Date?
-        if nextPrayerName == "Fajr" && todayTimes["Fajr"] ?? Date() < Date() {
-            nextPrayerDate = tomorrowFajrTime
-        } else {
-            nextPrayerDate = todayTimes[nextPrayerName]
+    /// Fajr time displayed by every surface (panel row, menu bar, correction
+    /// preview): today's Fajr — except after Isha, when today's Fajr has
+    /// already passed and Fajr is the next prayer. Then it is tomorrow's
+    /// actual Fajr, because that is when the countdown ends and the next-day
+    /// notifications fire. Today's and tomorrow's Fajr differ by a minute in
+    /// some cities, which used to make the menu bar read one minute off from
+    /// the panel.
+    var displayedFajrTime: Date? {
+        guard let todayFajr = todayTimes["Fajr"] else { return nil }
+        if nextPrayerName == "Fajr", todayFajr < Date() {
+            return tomorrowFajrTime
         }
+        return todayFajr
+    }
 
-        guard let nextDate = nextPrayerDate else {
+    /// Occurrence date of the next prayer — the single source shared by the
+    /// countdown and the menu-bar time so they can never disagree.
+    var nextPrayerOccurrenceDate: Date? {
+        nextPrayerName == "Fajr" ? displayedFajrTime : todayTimes[nextPrayerName]
+    }
+
+    private func updateCountdown() {
+        guard let nextDate = nextPrayerOccurrenceDate else {
             countdown = "--:--"; updateMenuTitle(); return
         }
 
@@ -569,13 +583,7 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
                 textToShow = String(format: NSLocalizedString("prayer_in_countdown", comment: ""), localizedPrayerName, countdown)
             }
         case .exactTime, .iconExactTime:
-            var nextPrayerDate: Date?
-            if nextPrayerName == "Fajr" && todayTimes["Fajr"] ?? Date() < Date() {
-                nextPrayerDate = tomorrowFajrTime
-            } else {
-                nextPrayerDate = todayTimes[nextPrayerName]
-            }
-            guard let nextDate = nextPrayerDate else { textToShow = "Sajda Pro"; break }
+            guard let nextDate = nextPrayerOccurrenceDate else { textToShow = "Sajda Pro"; break }
             if useMinimalMenuBarText {
                 textToShow = String(format: NSLocalizedString("prayer_minimal_exact", comment: ""), localizedPrayerName, dateFormatter.string(from: nextDate))
             } else {

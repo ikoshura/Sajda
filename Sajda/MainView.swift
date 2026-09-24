@@ -107,6 +107,10 @@ struct PrayerListView: View {
                 ForEach(prayerOrder, id: \.self) { prayerName in
                     if let prayerTime = vm.todayTimes[prayerName] {
                         let isNextPrayer = prayerName == vm.nextPrayerName
+                        // After Isha the highlighted Fajr is tomorrow's occurrence;
+                        // format the same Date the menu bar uses so the panel and
+                        // menu bar can never show different minutes.
+                        let displayTime = prayerName == "Fajr" ? (vm.displayedFajrTime ?? prayerTime) : prayerTime
                         let (highlightColor, textColor): (Color, Color) = {
                             if isNextPrayer && vm.isPrayerImminent {
                                 if vm.useAccentColor {
@@ -136,7 +140,7 @@ struct PrayerListView: View {
                                 .help("Stop Adhan")
                             }
                             if prayerName == "Tahajud" || prayerName == "Dhuha" { Text("Around").scaledFont(.caption).foregroundColor(isNextPrayer ? textColor.opacity(0.8) : Color("SecondaryTextColor")) }
-                            Text(vm.dateFormatter.string(from: prayerTime)).scaledFont(.body, weight: isNextPrayer ? .bold : nil)
+                            Text(vm.dateFormatter.string(from: displayTime)).scaledFont(.body, weight: isNextPrayer ? .bold : nil)
                         }
                         .foregroundColor(textColor).fontWeight((isNextPrayer || vm.accessibilityBoldText) ? .bold : .regular).padding(.horizontal, 12).padding(.vertical, 5).background {
                             ZStack {

@@ -58,7 +58,10 @@ struct CorrectionRow: View {
     }
     
     private func getOriginalTime(_ prayer: String, for currentValue: Double) -> Date? {
-        guard let time = vm.todayTimes[prayer] else { return nil }
+        // Fajr follows the shared display date: after Isha that is tomorrow's
+        // Fajr, so the preview matches the panel row and the menu bar.
+        let baseTime = prayer == "Fajr" ? (vm.displayedFajrTime ?? vm.todayTimes[prayer]) : vm.todayTimes[prayer]
+        guard let time = baseTime else { return nil }
         return time.addingTimeInterval(-currentValue * 60)
     }
     
