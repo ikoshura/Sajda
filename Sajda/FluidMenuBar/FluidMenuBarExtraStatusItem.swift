@@ -12,6 +12,18 @@ public final class FluidMenuBarExtraStatusItem: NSObject, NSWindowDelegate {
     /// Tracks whether we currently hold an "expanded interface session" on the
     /// status item (see `setSystemHighlight(_:)`), so begin and end stay balanced.
     private var isSystemHighlightActive = false
+    /// True from the moment `dismissWindow()` starts its close animation until
+    /// the window is ordered out, so re-entrant dismissal requests (session-end
+    /// callback, key-loss + outside click racing each other) run at most once.
+    private var isDismissing = false
+    /// Set while `performEndExpandedSession()` runs, so the session-end callback
+    /// AppKit sends for that handshake is not mistaken for an external end.
+    private var isEndingExpandedSession = false
+    /// Generation counter for the session-watch chain; bumped on start/stop so a
+    /// tick scheduled before a fast close/reopen cannot spawn a second chain.
+    private var sessionWatchGeneration = 0
+    private var sessionWatchAbsentTicks = 0
+    private var sessionWatchSeenSession = false
     
     /// Diagnostics for the open/close state machine. Enabled by setting
     /// `SAJDA_MENUBAR_DEBUG=1` in the environment; silent otherwise.
@@ -36,6 +48,13 @@ public final class FluidMenuBarExtraStatusItem: NSObject, NSWindowDelegate {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         statusItem.isVisible = true
         super.init()
+
+        // AppKit reports every expanded-session end through this callback —
+        // including ends it decides on its own, like the second click of a
+        // force click (see `systemEndedExpandedSession()`).
+        expandedInterfaceDelegate.sessionDidEnd = { [weak self] in
+            self?.systemEndedExpandedSession()
+        }
 
         localEventMonitor = LocalEventMonitor(mask: [.leftMouseDown]) { [weak self] event in
             guard let self else { return event }
@@ -78,6 +97,7 @@ public final class FluidMenuBarExtraStatusItem: NSObject, NSWindowDelegate {
         window.makeKeyAndOrderFront(nil)
         log("didPress: after makeKeyAndOrderFront → \(stateDescription)")
         setSystemHighlight(true)
+        startSessionWatch()
     }
     
     public func windowDidBecomeKey(_ notification: Notification) {
@@ -98,6 +118,12 @@ public final class FluidMenuBarExtraStatusItem: NSObject, NSWindowDelegate {
             log("dismissWindow: ignored, window not visible")
             return
         }
+        guard !isDismissing else {
+            log("dismissWindow: ignored, dismissal already in progress")
+            return
+        }
+        isDismissing = true
+        stopSessionWatch()
         log("dismissWindow: begin → \(stateDescription)")
 
         globalEventMonitor?.stop()
@@ -118,8 +144,87 @@ public final class FluidMenuBarExtraStatusItem: NSObject, NSWindowDelegate {
             
             self.window.orderOut(nil)
             self.window.alphaValue = 1
+            self.isDismissing = false
             self.log("dismissWindow: after orderOut → \(self.stateDescription)")
         }
+    }
+
+    // MARK: - Session ends we did not ask for
+
+    /// AppKit retired the expanded-interface session on its own — the pill is
+    /// drawn from the session, so it has already vanished, and the panel has to
+    /// follow it in the same beat.
+    ///
+    /// This is the force-click case: the extra click a force click produces
+    /// lands while the item holds the session, and AppKit closes the expanded
+    /// interface exactly as it does for its own panels (Wi-Fi, battery). The
+    /// panel is a separate window this class owns, so without this hook it
+    /// outlives the pill.
+    private func systemEndedExpandedSession() {
+        guard !isEndingExpandedSession else {
+            log("sessionDidEnd: own end handshake → ignored (\(stateDescription))")
+            return
+        }
+        guard !hasExpandedInterfaceSession() else {
+            // A session is active again (a fast toggle already replaced the one
+            // that ended); the pill is on screen, so there is nothing to fix.
+            log("sessionDidEnd: a session is active again → ignored (\(stateDescription))")
+            return
+        }
+        guard window.isVisible, !isDismissing else {
+            log("sessionDidEnd: panel not open or already dismissing → ignored")
+            return
+        }
+        log("sessionDidEnd: session ended externally → dismissWindow (\(stateDescription))")
+        dismissWindow()
+    }
+
+    // MARK: - Session watch (backstop for silent session ends)
+
+    /// Starts watching the session behind the pill while the panel is open.
+    /// `systemEndedExpandedSession()` handles the normal case instantly; this is
+    /// the backstop for AppKit dropping the session without calling back.
+    private func startSessionWatch() {
+        sessionWatchGeneration += 1
+        sessionWatchAbsentTicks = 0
+        sessionWatchSeenSession = false
+        scheduleSessionWatch(generation: sessionWatchGeneration)
+    }
+
+    private func stopSessionWatch() {
+        sessionWatchGeneration += 1
+        sessionWatchAbsentTicks = 0
+        sessionWatchSeenSession = false
+    }
+
+    private func scheduleSessionWatch(generation: Int) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + Self.sessionWatchInterval) { [weak self] in
+            guard let self, generation == self.sessionWatchGeneration else { return }
+            self.sessionWatchTick()
+        }
+    }
+
+    private func sessionWatchTick() {
+        guard window.isVisible else {
+            stopSessionWatch()
+            return
+        }
+        if hasExpandedInterfaceSession() {
+            sessionWatchSeenSession = true
+            sessionWatchAbsentTicks = 0
+        } else if sessionWatchSeenSession {
+            // Absence only counts once a session has actually been granted this
+            // open: on systems without the SPI there is no session at all, and
+            // right after a fast reopen the new grant is still in flight — a
+            // transient gap must not look like the pill vanishing.
+            sessionWatchAbsentTicks += 1
+            if sessionWatchAbsentTicks >= Self.sessionWatchMissLimit {
+                log("sessionWatch: session gone while panel open → dismissWindow (\(stateDescription))")
+                dismissWindow()
+                return
+            }
+        }
+        scheduleSessionWatch(generation: sessionWatchGeneration)
     }
 
     private func setWindowPosition() {
@@ -193,6 +298,12 @@ public final class FluidMenuBarExtraStatusItem: NSObject, NSWindowDelegate {
     /// often: 20 × 0.15 s ≈ 3 s of grace for asynchronous grants to land.
     private static let maximumSessionEndAttempts = 20
     private static let sessionEndRetryDelay: TimeInterval = 0.15
+    /// How often the open panel re-checks the session behind the pill, and how
+    /// many consecutive misses before treating it as gone: 3 × 0.25 s = 0.75 s —
+    /// comfortably longer than an asynchronous session grant, so a late grant
+    /// can never look like the pill vanishing, but short enough to feel instant.
+    private static let sessionWatchInterval: TimeInterval = 0.25
+    private static let sessionWatchMissLimit = 3
 
     private typealias RequestExpandedSession = @convention(c) (AnyObject, Selector) -> Void
     private typealias BeginExpandedSession = @convention(c) (AnyObject, Selector, Double) -> Void
@@ -202,13 +313,27 @@ public final class FluidMenuBarExtraStatusItem: NSObject, NSWindowDelegate {
     /// Session callback target. AppKit drives the expanded-interface session
     /// through these two delegate methods, so they have to exist even though the
     /// panel itself is fully managed by this class.
+    ///
+    /// The end callback doubles as the notification that AppKit retired the
+    /// session by itself — e.g. the extra click of a force click lands while the
+    /// item holds the session, and AppKit closes the expanded interface the way
+    /// it does for Wi-Fi and battery. The pill is drawn from the session, so it
+    /// vanishes with it; `sessionDidEnd` lets the owning status item close the
+    /// panel in the same beat (see `systemEndedExpandedSession()`).
     @objcMembers
     private final class ExpandedInterfaceDelegate: NSObject {
+        /// Called for every session end AppKit reports, including ones we did
+        /// not request; the receiver filters out its own (via
+        /// `isEndingExpandedSession`).
+        var sessionDidEnd: (() -> Void)?
+
         func statusItem(_ statusItem: NSStatusItem, didBeginExpandedInterfaceSession session: AnyObject) {}
-        func statusItemDidEndExpandedInterfaceSession(_ statusItem: NSStatusItem, animated: Bool) {}
+        func statusItemDidEndExpandedInterfaceSession(_ statusItem: NSStatusItem, animated: Bool) {
+            sessionDidEnd?()
+        }
     }
 
-    private static let expandedInterfaceDelegate = ExpandedInterfaceDelegate()
+    private let expandedInterfaceDelegate = ExpandedInterfaceDelegate()
     /// The delegate the status item had before we claimed it, so it can be handed
     /// back once our session is over. AppKit treats an item that has an expanded
     /// interface delegate differently from a plain one, so holding on to it longer
@@ -229,7 +354,7 @@ public final class FluidMenuBarExtraStatusItem: NSObject, NSWindowDelegate {
         }
         typealias SetDelegate = @convention(c) (AnyObject, Selector, AnyObject?) -> Void
         let setDelegate = unsafeBitCast(implementation, to: SetDelegate.self)
-        setDelegate(item, SystemHighlightSelector.setExpandedInterfaceDelegate, Self.expandedInterfaceDelegate)
+        setDelegate(item, SystemHighlightSelector.setExpandedInterfaceDelegate, expandedInterfaceDelegate)
         didInstallExpandedInterfaceDelegate = true
         log("installed expandedInterfaceDelegate (previous=\(String(describing: previousExpandedInterfaceDelegate)))")
     }
@@ -324,8 +449,15 @@ public final class FluidMenuBarExtraStatusItem: NSObject, NSWindowDelegate {
         if hasExpandedInterfaceSession() {
             installExpandedInterfaceDelegateIfNeeded()
             performEndExpandedSession()
-            restoreExpandedInterfaceDelegate()
         }
+        // Hand the delegate back even when the session reads clear. An external
+        // end (the force click) retires the session before this round runs, and
+        // a delegate claimed over an empty session is exactly the state in which
+        // AppKit swallows clicks instead of delivering them — the item then eats
+        // every click until the delegate is finally handed back at the end of
+        // the grace window (see `restoreExpandedInterfaceDelegate()`). Rounds
+        // that catch a late grant above re-claim it themselves before ending it.
+        restoreExpandedInterfaceDelegate()
         log("sessionCleanup attempt \(attempt) → session=\(hasExpandedInterfaceSession()) "
             + "delegateHeld=\(statusItem.value(forKey: SystemHighlightSelector.expandedInterfaceDelegateName) != nil) "
             + "btnHighlighted=\(statusItem.button?.isHighlighted ?? false)")
@@ -344,6 +476,15 @@ public final class FluidMenuBarExtraStatusItem: NSObject, NSWindowDelegate {
     /// emits it: three end calls with the selected-content frame reported
     /// interleaved between them, then four more frame reports.
     private func performEndExpandedSession() {
+        // AppKit may report this end back through the delegate; mark it as ours
+        // so `systemEndedExpandedSession()` does not close a panel we just
+        // reopened over a leftover session. Cleared on the next runloop turn
+        // because the callback is allowed to arrive asynchronously.
+        isEndingExpandedSession = true
+        DispatchQueue.main.async { [weak self] in
+            self?.isEndingExpandedSession = false
+        }
+
         let item = statusItem as AnyObject
 
         if item.responds(to: SystemHighlightSelector.endExpandedSession),
