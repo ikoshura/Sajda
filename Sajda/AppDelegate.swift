@@ -198,8 +198,17 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
         if shouldShowIcon {
             // Icon-only mode gets a larger glyph to match the visual weight
             // of system icons (Wi-Fi, battery). With text alongside, keep it
-            // small so the title stays the focus.
-            let iconSize: CGFloat = 19
+            // small so the title stays the focus — except when the
+            // accessibility "Larger Menu Bar Text" setting is on: then the
+            // glyph scales by the same ratio the title grows so both stay
+            // proportional (see PrayerTimeViewModel.updateMenuTitle).
+            var iconSize: CGFloat = 19
+            let isIconPlusText = (mode == .iconCountdown || mode == .iconExactTime)
+            if isIconPlusText, vm.menuBarLargerText {
+                let baseFontSize = NSFont.systemFontSize
+                let scale = (baseFontSize + 3) / baseFontSize
+                iconSize = (iconSize * scale).rounded()
+            }
             if vm.isPrayerImminent, let redIcon = tintedMenuBarIcon(size: iconSize) {
                 button.image = redIcon
             } else if let image = NSImage(named: "MenuBarMosque") {
@@ -207,8 +216,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
                 image.isTemplate = true
                 button.image = image
             } else {
-                button.image = NSImage(systemSymbolName: "moon.zzz.fill", accessibilityDescription: "Sajda Pro")
-                button.image?.isTemplate = true
+                let fallback = NSImage(systemSymbolName: "moon.zzz.fill", accessibilityDescription: "Sajda Pro")
+                fallback?.size = NSSize(width: iconSize, height: iconSize)
+                fallback?.isTemplate = true
+                button.image = fallback
             }
         } else {
             button.image = nil
