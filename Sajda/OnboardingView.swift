@@ -9,7 +9,9 @@ struct OnboardingView: View {
     
     @AppStorage("showOnboardingAtLaunch") private var showOnboardingAtLaunch = true
     @AppStorage(UpdateChecker.autoCheckKey) private var autoCheckForUpdates = false
+    @AppStorage("launchAtLogin") private var launchAtLogin = false
     @State private var showingManualLocationSheet = false
+    @State private var isSyncingLaunchAtLogin = false
     
     // State untuk efek hover
     @State private var isSkipHovering = false
@@ -56,6 +58,19 @@ struct OnboardingView: View {
         }
 
         return vm.isPrayerDataAvailable ? .green : .orange
+    }
+
+    /// The checkbox reflects the real login-item state (which the user can
+    /// also change from Settings), not just the stored default.
+    private func syncLaunchAtLoginState() {
+        let currentSystemState = StartupManager.isLaunchAtLoginEnabled
+        guard launchAtLogin != currentSystemState else { return }
+
+        isSyncingLaunchAtLogin = true
+        launchAtLogin = currentSystemState
+        DispatchQueue.main.async {
+            isSyncingLaunchAtLogin = false
+        }
     }
 
     var body: some View {
@@ -142,9 +157,15 @@ struct OnboardingView: View {
                 Spacer(minLength: 25)
                 
                 VStack(spacing: 12) {
+                    Toggle("Run at Login", isOn: $launchAtLogin)
+                        .toggleStyle(.checkbox)
+                        .onAppear(perform: syncLaunchAtLoginState)
+                        .onChange(of: launchAtLogin) { newValue in
+                            guard !isSyncingLaunchAtLogin else { return }
+                            StartupManager.toggleLaunchAtLogin(isEnabled: newValue)
+                        }
                     Toggle("Show this window on launch", isOn: $showOnboardingAtLaunch)
                         .toggleStyle(.checkbox)
-                    
                     Toggle("Check for Updates Automatically", isOn: $autoCheckForUpdates)
                         .toggleStyle(.checkbox)
                         .onChange(of: autoCheckForUpdates) { enabled in
