@@ -118,3 +118,8 @@
 /* Accessibility settings */
 "Accessibility" = "アクセシビリティ"; "Text" = "テキスト"; "Menu Bar" = "メニューバー"; "Bold Text" = "太字"; "Uppercase Text" = "大文字"; "Larger Menu Bar Text" = "より大きいメニューバーの文字"; "XXL" = "XXL";
 "Make text easier to read across the panel and menu bar." = "パネルとメニューバーのテキストを読みやすくします。";
+
+/* Countdown header + highlight color */
+"prayer_countdown_in" = "%@ あと";
+"adhan_at_time" = "アザーン %@";
+"Highlight Color" = "ハイライトカラー";

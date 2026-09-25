@@ -28,6 +28,10 @@ struct MainView: View {
                 .frame(height: 0.5)
                 .padding(.horizontal, 12)
 
+            if vm.isPrayerDataAvailable, vm.nextPrayerOccurrenceDate != nil {
+                NextPrayerCountdownHeader()
+            }
+
             if vm.isPrayerDataAvailable {
                 PrayerListView()
             } else {
@@ -112,21 +116,8 @@ struct PrayerListView: View {
                         // menu bar can never show different minutes.
                         let displayTime = prayerName == "Fajr" ? (vm.displayedFajrTime ?? prayerTime) : prayerTime
                         let (highlightColor, textColor): (Color, Color) = {
-                            if isNextPrayer && vm.isPrayerImminent {
-                                if vm.useAccentColor {
-                                    return (Color(red: 1.0, green: 0x42 / 255.0, blue: 0x46 / 255.0), Color.white)
-                                } else {
-                                    return (Color("HighlightColor"), .red)
-                                }
-                            }
-                            else if isNextPrayer {
-                                if vm.useAccentColor {
-                                    return (Color.accentColor, Color.white)
-                                } else {
-                                    return (Color("HoverColor"), .primary)
-                                }
-                            }
-                            else { return (.clear, .primary) }
+                            guard isNextPrayer else { return (.clear, .primary) }
+                            return vm.nextPrayerHighlight()
                         }()
                         HStack {
                             Text(vm.prayerDisplayName(prayerName)); Spacer()
@@ -152,7 +143,7 @@ struct PrayerListView: View {
                                         // Glass gelap hanya untuk highlight aksen (teks
                                         // putih): glass terang di atas aksen di mode terang
                                         // terlalu memutih. Non-ikut skema aslinya.
-                                        .environment(\.colorScheme, vm.useAccentColor ? .dark : colorScheme)
+                                        .environment(\.colorScheme, (vm.useAccentColor || vm.customHighlightColor != nil) ? .dark : colorScheme)
                                 }
                             }
                         }
@@ -160,6 +151,43 @@ struct PrayerListView: View {
                 }
             }.padding(.horizontal, 5).padding(.top, 4)
         }
+    }
+}
+
+/// Big "ASR IN 00:13:01" card above the schedule, mirroring the Mawaqit-style
+/// header. Shares the row highlight logic via `nextPrayerHighlight()` so the
+/// custom color/accent/imminent states always match the highlighted row.
+struct NextPrayerCountdownHeader: View {
+    @EnvironmentObject var vm: PrayerTimeViewModel
+
+    var body: some View {
+        let colors = vm.nextPrayerHighlight()
+        VStack(spacing: 4) {
+            Text(String(format: NSLocalizedString("prayer_countdown_in", comment: ""), vm.prayerDisplayName(vm.nextPrayerName)))
+                .scaledFont(.caption, weight: .semibold)
+                .textCase(.uppercase)
+            Text(vm.detailedCountdown)
+                .font(.system(size: 38, weight: .bold, design: .rounded))
+                .monospacedDigit()
+                .lineLimit(1)
+                .minimumScaleFactor(0.6)
+            if let occurrence = vm.nextPrayerOccurrenceDate {
+                Text(String(format: NSLocalizedString("adhan_at_time", comment: ""), vm.dateFormatter.string(from: occurrence)))
+                    .scaledFont(.caption)
+                    .opacity(0.85)
+            }
+        }
+        .foregroundColor(colors.text)
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 12)
+        .padding(.horizontal, 8)
+        .background {
+            RoundedRectangle(cornerRadius: 10, style: .continuous).fill(colors.fill)
+        }
+        .padding(.horizontal, 8)
+        .padding(.top, 2)
+        .accessibilityLabel(Text(String(format: NSLocalizedString("prayer_in_countdown", comment: ""),
+                                        vm.prayerDisplayName(vm.nextPrayerName), vm.countdown)))
     }
 }
 

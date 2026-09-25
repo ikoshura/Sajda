@@ -30,6 +30,8 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
     @Published var todayTimes: [String: Date] = [:]
     @Published var nextPrayerName: String = ""
     @Published var countdown: String = "--:--"
+    /// Seconds-precision countdown shown in the big panel header.
+    @Published var detailedCountdown: String = "--:--:--"
     @Published var locationStatusText: String = NSLocalizedString("Preparing prayer schedule...", comment: "")
     @Published var authorizationStatus: CLAuthorizationStatus
     @Published var locationSearchQuery: String = ""
@@ -57,6 +59,8 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
     @AppStorage("useMinimalMenuBarText") var useMinimalMenuBarText: Bool = false { didSet { updateAndDisplayTimes() } }
     @AppStorage("showSunnahPrayers") var showSunnahPrayers: Bool = false { didSet { updatePrayerTimes() } }
     @AppStorage("useAccentColor") var useAccentColor: Bool = true
+    /// User-picked next-prayer highlight color ("#RRGGBB"); empty = accent default.
+    @AppStorage("customHighlightColorHex") var customHighlightColorHex: String = ""
     // Gaya Liquid Glass di atas highlight waktu sholat berikutnya (opsional).
     @AppStorage("useGlassPrayerHighlight") var useGlassPrayerHighlight: Bool = false
     @AppStorage("isNotificationsEnabled") var isNotificationsEnabled: Bool = true { didSet { updateNotifications() } }
@@ -544,11 +548,22 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
 
     private func updateCountdown() {
         guard let nextDate = nextPrayerOccurrenceDate else {
-            countdown = "--:--"; updateMenuTitle(); return
+            countdown = "--:--"; detailedCountdown = "--:--:--"; updateMenuTitle(); return
         }
 
         let diff = Int(nextDate.timeIntervalSince(Date()))
         isPrayerImminent = (diff <= 600 && diff > 0)
+
+        // hh:mm:ss for the panel's countdown header (same locale digits as
+        // the menu-bar countdown).
+        let digits = NumberFormatter()
+        digits.locale = displayLocale
+        digits.minimumIntegerDigits = 2
+        digits.maximumIntegerDigits = 2
+        let comp = { (v: Int) in digits.string(from: NSNumber(value: v)) ?? String(format: "%02d", v) }
+        detailedCountdown = diff > 0
+            ? "\(comp(diff / 3600)):\(comp((diff % 3600) / 60)):\(comp(diff % 60))"
+            : "00:00:00"
 
         if diff > 0 {
             let h = diff / 3600
@@ -569,6 +584,42 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
             DispatchQueue.main.asyncAfter(deadline: .now() + 2) { self.updateNextPrayer() }
         }
         updateMenuTitle()
+    }
+
+    /// User-picked next-prayer highlight fill; nil while the accent default applies.
+    var customHighlightColor: Color? {
+        var hex = customHighlightColorHex
+        guard !hex.isEmpty else { return nil }
+        if hex.hasPrefix("#") { hex.removeFirst() }
+        guard hex.count == 6, let v = UInt32(hex, radix: 16) else { return nil }
+        return Color(red: Double((v >> 16) & 0xFF) / 255.0,
+                     green: Double((v >> 8) & 0xFF) / 255.0,
+                     blue: Double(v & 0xFF) / 255.0)
+    }
+
+    /// Single source for the next-prayer highlight on the panel row and the
+    /// countdown header, so the accent toggle, custom color, and imminent red
+    /// can never disagree between the two surfaces.
+    func nextPrayerHighlight(imminent override: Bool? = nil) -> (fill: Color, text: Color) {
+        let imminent = override ?? isPrayerImminent
+        if imminent {
+            return useAccentColor
+                ? (Color(red: 1.0, green: 0x42 / 255.0, blue: 0x46 / 255.0), .white)
+                : (Color("HighlightColor"), .red)
+        }
+        if useAccentColor {
+            return (customHighlightColor ?? Color.accentColor, .white)
+        }
+        return (Color("HoverColor"), .primary)
+    }
+
+    /// "#RRGGBB" for persisting a picked highlight color.
+    static func hexString(from color: Color) -> String {
+        guard let rgb = NSColor(color).usingColorSpace(.sRGB) else { return "" }
+        return String(format: "#%02X%02X%02X",
+                      Int(round(rgb.redComponent * 255)),
+                      Int(round(rgb.greenComponent * 255)),
+                      Int(round(rgb.blueComponent * 255)))
     }
 
     /// Nama shalat yang sudah dilokalkan, di-uppercase bila opsi aksesibilitas

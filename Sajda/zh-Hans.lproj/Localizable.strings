@@ -118,3 +118,8 @@
 /* Accessibility settings */
 "Accessibility" = "辅助功能"; "Text" = "文本"; "Menu Bar" = "菜单栏"; "Bold Text" = "粗体文字"; "Uppercase Text" = "大写文字"; "Larger Menu Bar Text" = "更大的菜单栏文字"; "XXL" = "XXL";
 "Make text easier to read across the panel and menu bar." = "让面板和菜单栏中的文字更易阅读。";
+
+/* Countdown header + highlight color */
+"prayer_countdown_in" = "%@ 还有";
+"adhan_at_time" = "宣礼 %@";
+"Highlight Color" = "高亮颜色";

@@ -117,3 +117,8 @@
 /* Accessibility settings */
 "Accessibility" = "إمكانية الوصول"; "Text" = "النص"; "Menu Bar" = "شريط القوائم"; "Bold Text" = "نص عريض"; "Uppercase Text" = "أحرف كبيرة"; "Larger Menu Bar Text" = "نص أكبر في شريط القوائم"; "XXL" = "كبير للغاية";
 "Make text easier to read across the panel and menu bar." = "اجعل النص أسهل قراءةً في اللوحة وشريط القوائم.";
+
+/* Countdown header + highlight color */
+"prayer_countdown_in" = "%@ بعد";
+"adhan_at_time" = "الأذان في %@";
+"Highlight Color" = "لون التمييز";

@@ -117,3 +117,8 @@
 /* Accessibility settings */
 "Accessibility" = "Accessibility"; "Text" = "Text"; "Menu Bar" = "Menu Bar"; "Bold Text" = "Bold Text"; "Uppercase Text" = "Uppercase Text"; "Larger Menu Bar Text" = "Larger Menu Bar Text"; "XXL" = "XXL";
 "Make text easier to read across the panel and menu bar." = "Make text easier to read across the panel and menu bar.";
+
+/* Countdown header + highlight color */
+"prayer_countdown_in" = "%@ in";
+"adhan_at_time" = "Adhan at %@";
+"Highlight Color" = "Highlight Color";

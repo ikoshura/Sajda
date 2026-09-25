@@ -118,3 +118,8 @@
 /* Accessibility settings */
 "Accessibility" = "Bedienungshilfen"; "Text" = "Text"; "Menu Bar" = "Menüleiste"; "Bold Text" = "Fett"; "Uppercase Text" = "Großbuchstaben"; "Larger Menu Bar Text" = "Größere Schrift in der Menüleiste"; "XXL" = "XXL";
 "Make text easier to read across the panel and menu bar." = "Macht Text in Panel und Menüleiste leichter lesbar.";
+
+/* Countdown header + highlight color */
+"prayer_countdown_in" = "%@ in";
+"adhan_at_time" = "Adhan um %@";
+"Highlight Color" = "Hervorhebungsfarbe";

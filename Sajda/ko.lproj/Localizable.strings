@@ -118,3 +118,8 @@
 /* Accessibility settings */
 "Accessibility" = "손쉬운 사용"; "Text" = "텍스트"; "Menu Bar" = "메뉴 막대"; "Bold Text" = "굵은 글씨"; "Uppercase Text" = "대문자"; "Larger Menu Bar Text" = "메뉴 막대 글자 더 크게"; "XXL" = "XXL";
 "Make text easier to read across the panel and menu bar." = "패널과 메뉴 막대의 텍스트를 읽기 쉽게 합니다.";
+
+/* Countdown header + highlight color */
+"prayer_countdown_in" = "%@ 까지";
+"adhan_at_time" = "아잔 %@";
+"Highlight Color" = "하이라이트 색상";

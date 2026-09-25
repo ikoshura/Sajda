@@ -18,7 +18,17 @@ struct SettingsView: View {
     @State private var isAccessibilityHovering = false
     @State private var isSyncingLaunchAtLogin = false
 
+    /// Bridges the stored highlight hex to the ColorPicker; picking writes
+    /// "#RRGGBB", the Default button clears it back to the accent color.
+    private var highlightColorBinding: Binding<Color> {
+        Binding(
+            get: { vm.customHighlightColor ?? .accentColor },
+            set: { vm.customHighlightColorHex = PrayerTimeViewModel.hexString(from: $0) }
+        )
+    }
+
     private var viewWidth: CGFloat {
+
         return vm.panelWidth(base: vm.useCompactLayout ? 220 : 260)
     }
 
@@ -63,6 +73,17 @@ struct SettingsView: View {
                     StyledToggle(label: "24-Hour Time", isOn: $vm.use24HourFormat)
                     StyledToggle(label: "Minimal Menu Bar", isOn: $vm.useMinimalMenuBarText).disabled(vm.menuBarTextMode == .hidden)
                     StyledToggle(label: "Accent Color", isOn: $vm.useAccentColor)
+                    HStack {
+                        Text("Highlight Color").scaledFont(.subheadline)
+                        Spacer()
+                        ColorPicker("", selection: highlightColorBinding, supportsOpacity: false)
+                            .labelsHidden()
+                        Button("Default") { vm.customHighlightColorHex = "" }
+                            .controlSize(.mini)
+                            .disabled(vm.customHighlightColorHex.isEmpty)
+                    }
+                    .disabled(!vm.useAccentColor)
+                    .opacity(vm.useAccentColor ? 1 : 0.5)
                     StyledToggle(label: "Glass Highlight", isOn: $vm.useGlassPrayerHighlight)
                     StyledToggle(label: "Show Sunnah Prayers", isOn: $vm.showSunnahPrayers)
                 }
