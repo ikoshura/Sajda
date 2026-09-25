@@ -771,11 +771,8 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
         ("color_blue", "#007AFF"),
         ("color_purple", "#AF52DE"),
         ("color_pink", "#FF2D55"),
-        ("color_red", "#FF3B30"),
         ("color_orange", "#FF9500"),
-        ("color_yellow", "#FFCC00"),
         ("color_green", "#34C759"),
-        ("color_graphite", "#8E8E93"),
     ]
 
     /// `Color` for a "#RRGGBB[AA]" (or "RRGGBB[AA]") string; malformed input
