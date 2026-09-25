@@ -125,7 +125,48 @@ xcrun stapler staple build/Sajda.dmg
 spctl -a -vv --type open build/Sajda.dmg
 ```
 
+## Ad-hoc Release (no Developer ID)
+
+When a Developer ID certificate is not available, the release can still be built
+**ad-hoc signed** — which is what allows the app to launch on Apple Silicon at all.
+Sajda 4.0.0 shipped this way. Treat it as a documented fallback, not the preferred
+path: the release body must carry the Gatekeeper instructions below.
+
+```sh
+# Archive without signing, and check the metadata that goes into the bundle
+xcodebuild -project Sajda.xcodeproj -scheme Sajda -configuration Release \
+  -archivePath build/Sajda.xcarchive clean archive \
+  CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO
+plutil -p build/Sajda.xcarchive/Products/Applications/Sajda.app/Contents/Info.plist \
+  | grep -E 'CFBundleShortVersionString|CFBundleVersion|LSMinimumSystemVersion'
+
+# Ad-hoc sign the archived app (no nested code, so no --deep and no entitlements work)
+rm -rf build/export-adhoc && mkdir -p build/export-adhoc
+cp -R build/Sajda.xcarchive/Products/Applications/Sajda.app build/export-adhoc/
+codesign --force --sign - build/export-adhoc/Sajda.app
+codesign -dv build/export-adhoc/Sajda.app 2>&1 | grep -E 'Signature|Identifier='
+
+# Package the DMG: app + /Applications symlink, then verify the image
+rm -rf build/dmg-stage && mkdir build/dmg-stage
+ln -s /Applications build/dmg-stage/Applications
+cp -R build/export-adhoc/Sajda.app build/dmg-stage/
+hdiutil create -volname Sajda -srcfolder build/dmg-stage -ov -format UDZO build/Sajda-X.Y.Z.dmg
+hdiutil verify build/Sajda-X.Y.Z.dmg
+shasum -a 256 build/Sajda-X.Y.Z.dmg
+```
+
+Every ad-hoc release body must say, in plain words:
+
+- The build is ad-hoc signed and not notarized, so macOS warns on first launch.
+- First launch: right-click the app → **Open** → **Open**.
+- If that dialog has no *Open* button: `xattr -dr com.apple.quarantine /Applications/Sajda.app`.
+- The warning goes away once a notarized build is published.
+
 ## Notes
+
+- Prefer Developer ID signing and notarization. If the certificate is unavailable, an
+  ad-hoc build may be published as a documented fallback (see "Ad-hoc Release" above) —
+  never as the preferred path, and always with the Gatekeeper instructions above.
 
 - Do not publish ad-hoc signed builds as production releases.
 - Do not ask normal users to run `xattr` or self-sign the app as the primary install path.
