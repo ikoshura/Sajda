@@ -123,3 +123,12 @@
 "prayer_countdown_in" = "%@ あと";
 "adhan_at_time" = "アザーン %@";
 "Highlight Color" = "ハイライトカラー";
+
+/* Mosque timetable (Mawaqit) */
+"Mosque Timetable" = "モスクの時刻表";
+"Search for a mosque..." = "モスクを検索...";
+"Downloading..." = "ダウンロード中...";
+"mawaqit_ready" = "✓ オフライン準備完了（%@）";
+"Couldn't reach mawaqit.net." = "mawaqit.netに接続できませんでした。";
+"Refresh" = "更新";
+"Use Calculated Times Instead" = "計算された時刻を使用";

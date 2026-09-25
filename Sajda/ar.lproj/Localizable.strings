@@ -122,3 +122,12 @@
 "prayer_countdown_in" = "%@ بعد";
 "adhan_at_time" = "الأذان في %@";
 "Highlight Color" = "لون التمييز";
+
+/* Mosque timetable (Mawaqit) */
+"Mosque Timetable" = "جدول المسجد";
+"Search for a mosque..." = "ابحث عن مسجد...";
+"Downloading..." = "جارٍ التنزيل...";
+"mawaqit_ready" = "✓ جاهز دون اتصال (%@)";
+"Couldn't reach mawaqit.net." = "تعذر الوصول إلى mawaqit.net.";
+"Refresh" = "تحديث";
+"Use Calculated Times Instead" = "استخدم الأوقات المحسوبة بدلاً من ذلك";

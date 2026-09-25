@@ -122,3 +122,12 @@
 "prayer_countdown_in" = "%@ dalam";
 "adhan_at_time" = "Adhan pada %@";
 "Highlight Color" = "Warna Sorotan";
+
+/* Mosque timetable (Mawaqit) */
+"Mosque Timetable" = "Jadwal Masjid";
+"Search for a mosque..." = "Cari masjid...";
+"Downloading..." = "Mengunduh...";
+"mawaqit_ready" = "✓ Siap offline (%@)";
+"Couldn't reach mawaqit.net." = "Tidak dapat menjangkau mawaqit.net.";
+"Refresh" = "Muat ulang";
+"Use Calculated Times Instead" = "Gunakan waktu perhitungan";

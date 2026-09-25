@@ -123,3 +123,12 @@
 "prayer_countdown_in" = "%@ 还有";
 "adhan_at_time" = "宣礼 %@";
 "Highlight Color" = "高亮颜色";
+
+/* Mosque timetable (Mawaqit) */
+"Mosque Timetable" = "清真寺时刻表";
+"Search for a mosque..." = "搜索清真寺...";
+"Downloading..." = "正在下载...";
+"mawaqit_ready" = "✓ 已离线就绪（%@）";
+"Couldn't reach mawaqit.net." = "无法连接 mawaqit.net。";
+"Refresh" = "刷新";
+"Use Calculated Times Instead" = "使用计算时间";

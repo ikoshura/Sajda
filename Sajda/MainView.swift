@@ -105,7 +105,7 @@ struct PrayerListView: View {
     }
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            HStack { Image(systemName: "location.fill"); Text(vm.locationStatusText); Spacer() }
+            HStack { Image(systemName: "location.fill"); Text(vm.panelLocationCaption); Spacer() }
                 .scaledFont(.caption).foregroundColor(Color("SecondaryTextColor")).padding(.horizontal, 12)
             VStack(spacing: 0) {
                 ForEach(prayerOrder, id: \.self) { prayerName in

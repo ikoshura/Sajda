@@ -123,3 +123,12 @@
 "prayer_countdown_in" = "%@ 까지";
 "adhan_at_time" = "아잔 %@";
 "Highlight Color" = "하이라이트 색상";
+
+/* Mosque timetable (Mawaqit) */
+"Mosque Timetable" = "모스크 시간표";
+"Search for a mosque..." = "모스크 검색...";
+"Downloading..." = "다운로드 중...";
+"mawaqit_ready" = "✓ 오프라인 준비 완료（%@）";
+"Couldn't reach mawaqit.net." = "mawaqit.net에 연결할 수 없습니다.";
+"Refresh" = "새로 고침";
+"Use Calculated Times Instead" = "계산된 시간 사용";

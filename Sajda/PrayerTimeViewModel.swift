@@ -61,6 +61,11 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
     @AppStorage("useAccentColor") var useAccentColor: Bool = true
     /// User-picked next-prayer highlight color ("#RRGGBB"); empty = accent default.
     @AppStorage("customHighlightColorHex") var customHighlightColorHex: String = ""
+    /// Downloaded Mawaqit mosque schedule; loaded from disk on first use.
+    @Published var mawaqitMosque: MawaqitMosque?
+    /// When true the panel, menu bar, and notifications read the mosque
+    /// calendar instead of calculating from coordinates.
+    @AppStorage("useMawaqitSchedule") var useMawaqitSchedule: Bool = false { didSet { updatePrayerTimes() } }
     // Gaya Liquid Glass di atas highlight waktu sholat berikutnya (opsional).
     @AppStorage("useGlassPrayerHighlight") var useGlassPrayerHighlight: Bool = false
     @AppStorage("isNotificationsEnabled") var isNotificationsEnabled: Bool = true { didSet { updateNotifications() } }
@@ -406,15 +411,27 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
     private func updateAndDisplayTimes() { updatePrayerTimes() }
 
     func updatePrayerTimes() {
-        guard let coord = currentCoordinates else { return }
-
         // Reset played prayers when day changes or prayer times are recalculated
         if let lastDate = lastCalculationDate,
            !Calendar.current.isDate(lastDate, inSameDayAs: Date()) {
             AdhanAudioPlayer.shared.resetPlayedPrayers()
         }
-
         lastCalculationDate = Date()
+
+        // Mosque timetable (Mawaqit): runs fully offline from the downloaded
+        // calendar and needs no coordinates. Falls through to the calculated
+        // path when the calendar doesn't cover today (e.g. Dec 31 before the
+        // mosque publishes the new year).
+        if mawaqitMosque == nil { mawaqitMosque = MawaqitService.load() }
+        if useMawaqitSchedule, let mosque = mawaqitMosque {
+            if let day = MawaqitService.times(for: Date(), in: mosque.calendar) {
+                applyMawaqitDay(day, mosque: mosque)
+                return
+            }
+            logger.warning("Mawaqit calendar does not cover today; using calculated times.")
+        }
+
+        guard let coord = currentCoordinates else { return }
 
         var locationCalendar = Calendar(identifier: .gregorian); locationCalendar.timeZone = self.locationTimeZone
         let todayInLocation = locationCalendar.dateComponents([.year, .month, .day], from: Date())
@@ -469,6 +486,72 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
             self.updateNextPrayer()
             self.updateNotifications()
         }
+    }
+
+    /// Builds today's times from a mosque calendar day
+    /// `[fajr, sunrise, dhuhr, asr, maghrib, isha]` ("HH:MM", Mac timezone).
+    private func applyMawaqitDay(_ day: [String], mosque: MawaqitMosque) {
+        guard day.count >= 6,
+              let fajr = dateFromHM(day[0]), let dhuhr = dateFromHM(day[2]),
+              let asr = dateFromHM(day[3]), let maghrib = dateFromHM(day[4]),
+              let isha = dateFromHM(day[5]) else {
+            logger.warning("Mawaqit day entry incomplete; keeping previous times.")
+            return
+        }
+
+        // Tomorrow's Fajr for the after-Isha highlight. At the year's edge the
+        // new calendar may not be published yet, so fall back to today's Fajr
+        // clock time on tomorrow's date (the estimate the Mawaqit applet uses).
+        let tomorrow = Date().addingTimeInterval(86_400)
+        let fajrTomorrow = MawaqitService.times(for: tomorrow, in: mosque.calendar)
+            .flatMap { dateFromHM($0[0], on: tomorrow) }
+            ?? dateFromHM(day[0], on: tomorrow)
+            ?? fajr.addingTimeInterval(86_400)
+
+        DispatchQueue.main.async {
+            self.todayTimes = [
+                "Fajr": fajr, "Dhuhr": dhuhr, "Asr": asr,
+                "Maghrib": maghrib, "Isha": isha,
+            ]
+            self.tomorrowFajrTime = fajrTomorrow
+            self.updateNextPrayer()
+            self.updateNotifications()
+        }
+    }
+
+    /// Parses "HH:MM" into a Date on the given day (Mac timezone).
+    private func dateFromHM(_ hm: String, on day: Date = Date()) -> Date? {
+        let parts = hm.split(separator: ":")
+        guard parts.count == 2, let hour = Int(parts[0]), let minute = Int(parts[1]) else { return nil }
+        var cal = Calendar(identifier: .gregorian)
+        cal.timeZone = .current
+        var comps = cal.dateComponents([.year, .month, .day], from: day)
+        comps.hour = hour
+        comps.minute = minute
+        comps.second = 0
+        return cal.date(from: comps)
+    }
+
+    /// Persists and activates a downloaded mosque schedule.
+    func activateMosqueSchedule(_ mosque: MawaqitMosque) {
+        do {
+            try MawaqitService.save(mosque)
+        } catch {
+            logger.error("Failed to save Mawaqit schedule: \(error.localizedDescription, privacy: .public)")
+        }
+        mawaqitMosque = mosque
+        useMawaqitSchedule = true   // didSet → updatePrayerTimes()
+    }
+
+    /// Drops back to coordinate-based calculation (the file is kept for reuse).
+    func disableMosqueSchedule() {
+        useMawaqitSchedule = false  // didSet → updatePrayerTimes()
+    }
+
+    /// Panel caption: the mosque's name while the mosque timetable is active.
+    var panelLocationCaption: String {
+        if useMawaqitSchedule, let mosque = mawaqitMosque { return mosque.name }
+        return locationStatusText
     }
 
     // MARK: - High-Latitude Rule Info
