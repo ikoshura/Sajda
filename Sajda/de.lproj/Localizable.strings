@@ -1,0 +1,120 @@
+/* Deutsch */
+"Fajr" = "Fajr"; "Sunrise" = "Sonnenaufgang"; "Dhuhr" = "Dhuhr"; "Asr" = "Asr"; "Maghrib" = "Maghrib"; "Isha" = "Isha"; "Tahajud" = "Tahajud"; "Dhuha" = "Dhuha";
+"Sajda Pro" = "Sajda Pro"; "Settings" = "Einstellungen"; "About" = "Info"; "Quit" = "Beenden"; "Quit Sajda Pro" = "Sajda Pro beenden"; "Done" = "Fertig"; "Cancel" = "Abbrechen";
+"prayer_in_countdown" = "%@ in %@"; "prayer_at_time" = "%@ um %@"; "Location Required" = "Standort erforderlich"; "Open System Settings" = "Systemeinstellungen öffnen"; "Allow Location Access" = "Standortzugriff erlauben"; "Or, set location manually" = "Oder Standort manuell festlegen"; "Around" = "Um";
+"To provide accurate prayer times, Sajda Pro needs to know your location." = "Damit Sajda Pro genaue Gebetszeiten anzeigen kann, muss es deinen Standort kennen."; "Location access is already enabled." = "Der Standortzugriff ist bereits aktiviert."; "Or, Set Location Manually" = "Oder Standort manuell festlegen"; "Please grant location access in System Settings." = "Bitte erlaube den Standortzugriff in den Systemeinstellungen."; "You are using a manual location: **%@**" = "Du verwendest einen manuellen Standort: **%@**"; "Switch to Automatic Location" = "Zu automatischem Standort wechseln"; "Change Manual Location" = "Manuellen Standort ändern"; "Show this window on launch" = "Dieses Fenster beim Start anzeigen"; "Welcome to Sajda Pro" = "Willkommen bei Sajda Pro";
+"To get started, please provide your location for accurate prayer times." = "Gib zur Einrichtung deinen Standort an, um genaue Gebetszeiten zu erhalten."; "Using manual location: **%@**" = "Manueller Standort: **%@**"; "Location access is enabled." = "Der Standortzugriff ist aktiviert."; "Please grant access in System Settings." = "Bitte erlaube den Zugriff in den Systemeinstellungen.";
+"About Sajda Pro" = "Info zu Sajda Pro"; "Version 3.3.1" = "Version 3.3.1"; "by Abrar Zha" = "von Abrar Zha"; "Show Welcome Guide on Launch" = "Willkommensguide beim Start anzeigen"; "Show Welcome Window" = "Willkommensfenster anzeigen";
+"General" = "Allgemein"; "Language" = "Sprache"; "Display" = "Anzeige"; "Menu Bar Style" = "Stil der Menüleiste"; "Compact View" = "Kompaktansicht"; "24-Hour Time" = "24-Stunden-Format"; "Minimal Menu Bar" = "Schlichte Menüleiste"; "Accent Color" = "Akzentfarbe"; "Show Sunnah Prayers" = "Sunnah-Gebete anzeigen"; "Glass Highlight" = "Glas-Hervorhebung";
+"Calculation" = "Berechnung"; "Method" = "Methode"; "Time Correction" = "Zeitkorrektur"; "Adjust" = "Anpassen"; "Hanafi Madhhab (for Asr)" = "Hanafi-Madhhab (für Asr)"; "Location" = "Standort"; "Manual:" = "Manuell:"; "Automatic:" = "Automatisch:"; "Use Automatic" = "Automatisch verwenden";
+"Adjust prayer times to match your local mosque. Hover over the number to reset." = "Passe die Gebetszeiten an deine Moschee an. Fahre über die Zahl, um sie zurückzusetzen."; "Reset All to Default" = "Alles zurücksetzen";
+"Set Location" = "Standort festlegen"; "Search for a city or paste coordinates..." = "Stadt suchen oder Koordinaten einfügen..."; "Set Location Manually" = "Standort manuell festlegen"; "Start typing a city or paste coordinates." = "Beginne, eine Stadt zu tippen, oder füge Koordinaten ein."; "No results found." = "Keine Ergebnisse gefunden.";
+"Calculation & Location" = "Berechnung & Standort";
+"System & Notifications" = "System & Mitteilungen";
+"System" = "System"; "Run at Login" = "Bei Anmeldung starten"; "Notifications" = "Mitteilungen"; "Prayer Notifications" = "Gebetsmitteilungen"; "Notification Sound" = "Mitteilungston"; "Custom File" = "Eigene Datei"; "Browse..." = "Durchsuchen..."; "No file selected" = "Keine Datei ausgewählt";
+
+/* New Onboarding Strings */
+"Requesting Permission..." = "Berechtigung wird angefordert...";
+"Skip for now" = "Vorerst überspringen";
+"Current location: %@" = "Aktueller Standort: %@";
+"Finding your location..." = "Standort wird gesucht...";
+"Refreshing location..." = "Standort wird aktualisiert...";
+"Resolving city..." = "Stadt wird ermittelt...";
+"Animation Style" = "Animationsstil";
+"None" = "Keine";
+"Fade" = "Überblenden";
+"Slide" = "Einschieben";
+
+/* Countdown */
+"countdown_hm" = "%@h %@m";
+"countdown_m" = "%@m";
+"Now" = "Jetzt";
+"prayer_minimal_countdown" = "%@ -%@";
+"prayer_minimal_exact" = "%@ %@";
+
+/* Menu Bar Modes */
+"Countdown" = "Countdown";
+"Exact Time" = "Genaue Zeit";
+"Icon Only" = "Nur Symbol";
+
+/* Notification Sound */
+"Default Beep" = "Standardton";
+"Custom Sound" = "Eigener Ton";
+
+/* Notifications */
+"notification_body" = "Es ist Zeit für das %@-Gebet.";
+
+/* About */
+"A simple and beautiful prayer times app for your menu bar." = "Eine schöne und einfache Gebetszeiten-App für deine Menüleiste.";
+
+/* Prayer Timer Alert */
+"Break Time is Over" = "Die Pause ist vorbei";
+"Time to begin your next activity." = "Zeit, mit deiner nächsten Aktivität zu beginnen.";
+"Dismiss" = "Schließen";
+
+/* Status */
+"Preparing prayer schedule..." = "Gebetszeiten werden vorbereitet...";
+"Still finding your location..." = "Dein Standort wird noch gesucht...";
+"Location request timed out. Set location manually or check Wi-Fi and Location Services." = "Zeitüberschreitung bei der Standortanfrage. Lege den Standort manuell fest oder prüfe WLAN und Standortdienste.";
+"Location Services are off. Enable Location Services in System Settings or set location manually." = "Die Standortdienste sind deaktiviert. Aktiviere sie in den Systemeinstellungen oder lege den Standort manuell fest.";
+"Location access needed" = "Standortzugriff erforderlich";
+"Location access denied." = "Standortzugriff verweigert.";
+"Unsupported location permission state." = "Nicht unterstützter Standort-Berechtigungsstatus.";
+"Unable to determine location. Try setting it manually." = "Standort kann nicht ermittelt werden. Versuche, ihn manuell festzulegen.";
+"Location needs attention" = "Der Standort erfordert Aufmerksamkeit";
+"Refresh Location" = "Standort aktualisieren";
+
+/* Adhan Settings */
+"Azan Sound" = "Adhan-Ton";
+"Adhan Sound" = "Adhan-Ton";
+"All Prayers" = "Alle Gebete";
+"Apply" = "Übernehmen";
+"Stop Adhan" = "Adhan stoppen";
+
+/* High-Latitude Rule */
+"High-Latitude Rule" = "Regel für hohe Breitengrade";
+"Recommended" = "Empfohlen";
+"Middle of the Night" = "Mitte der Nacht";
+"Seventh of the Night" = "Siebtel der Nacht";
+"Twilight Angle" = "Dämmerungswinkel";
+"Recommended for your location (%.1f°): %@" = "Für deinen Standort empfohlen (%.1f°): %@";
+"Override: %@. Recommended for your location is %@." = "Überschrieben: %@. Für deinen Standort empfohlen: %@.";
+"Uses the rule recommended for your location's latitude." = "Verwendet die für deinen Breitengrad empfohlene Regel.";
+"Fajr and Isha are limited to the middle of the night." = "Fajr und Isha werden auf die Mitte der Nacht begrenzt.";
+"Fajr and Isha are limited to the first and last seventh of the night." = "Fajr und Isha werden auf das erste und letzte Siebtel der Nacht begrenzt.";
+"The night is divided by the Fajr/Isha angles; times are computed from a proportional part of the night." = "Die Nacht wird nach den Fajr/Isha-Winkeln geteilt; die Zeiten werden aus einem proportionalen Anteil der Nacht berechnet.";
+
+/* Adhan Types — Fajr */
+"fajrAzan1" = "Mishary Rashid al Afasy (Fajr)";
+"fajrAzan2" = "Doha Qatar (Fajr)";
+
+/* Adhan Types — Standard */
+"standardAzan1" = "Ahmed al Imadi";
+"standardAzan2" = "Majed al Hamathani";
+"standardAzan3" = "Nasser al Qatami";
+
+/* Adhan Types — Other */
+"none" = "Keine";
+"defaultBeep" = "Standardton";
+"custom" = "Eigener Ton";
+
+/* Menu Bar Style options */
+"Icon + Countdown" = "Symbol + Countdown";
+"Icon + Exact Time" = "Symbol + genaue Zeit";
+
+/* Updates */
+"Checking for updates..." = "Nach Updates wird gesucht...";
+"You're up to date." = "Du bist auf dem neuesten Stand.";
+"Check for Updates" = "Nach Updates suchen";
+"Check for Updates Automatically" = "Automatisch nach Updates suchen";
+"Couldn't check for updates." = "Updates konnten nicht geprüft werden.";
+"Try Again" = "Erneut versuchen";
+"Update available: %@" = "Update verfügbar: %@";
+"Open the release page to download" = "Release-Seite zum Herunterladen öffnen";
+
+/* Text size presets */
+"Text Size" = "Textgröße"; "Small" = "Klein"; "Default" = "Standard"; "Large" = "Groß"; "Extra Large" = "Sehr groß";
+
+/* Accessibility settings */
+"Accessibility" = "Bedienungshilfen"; "Text" = "Text"; "Menu Bar" = "Menüleiste"; "Bold Text" = "Fett"; "Uppercase Text" = "Großbuchstaben"; "Larger Menu Bar Text" = "Größere Schrift in der Menüleiste"; "XXL" = "XXL";
+"Make text easier to read across the panel and menu bar." = "Macht Text in Panel und Menüleiste leichter lesbar.";

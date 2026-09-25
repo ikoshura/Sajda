@@ -4,7 +4,7 @@ A minimalist, native macOS menu bar prayer times app built with SwiftUI and AppK
 
 ## Overview
 
-Sajda lives in the macOS menu bar as a background agent (`LSUIElement` — no Dock icon). It displays daily prayer times, countdown to the next prayer, and sends local notifications with optional adhan sounds. The app supports automatic location detection, manual location entry, multiple calculation methods, per-prayer time correction, and full localization (English, Arabic, Indonesian with RTL).
+Sajda lives in the macOS menu bar as a background agent (`LSUIElement` — no Dock icon). It displays daily prayer times, countdown to the next prayer, and sends local notifications with optional adhan sounds. The app supports automatic location detection, manual location entry, multiple calculation methods, per-prayer time correction, and full localization (English, Arabic, Indonesian with RTL, Spanish, French, German, Japanese, Simplified Chinese, Korean).
 
 **Target:** macOS Ventura 13.3+, both Apple Silicon and Intel.
 

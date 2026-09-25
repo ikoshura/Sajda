@@ -108,6 +108,12 @@
 		CC786E6D2E63B1CB007299F3 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		CC786E6F2E63B20E007299F3 /* ar */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ar; path = ar.lproj/Localizable.strings; sourceTree = "<group>"; };
 		CC786E702E63B21D007299F3 /* id */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = id; path = id.lproj/Localizable.strings; sourceTree = "<group>"; };
+		CC886E012E63B21D007299F3 /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/Localizable.strings; sourceTree = "<group>"; };
+		CC886E022E63B21D007299F3 /* fr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fr; path = fr.lproj/Localizable.strings; sourceTree = "<group>"; };
+		CC886E032E63B21D007299F3 /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/Localizable.strings; sourceTree = "<group>"; };
+		CC886E042E63B21D007299F3 /* ja */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ja; path = ja.lproj/Localizable.strings; sourceTree = "<group>"; };
+		CC886E052E63B21D007299F3 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/Localizable.strings"; sourceTree = "<group>"; };
+		CC886E062E63B21D007299F3 /* ko */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ko; path = ko.lproj/Localizable.strings; sourceTree = "<group>"; };
 		CC786E712E63BB26007299F3 /* LanguageManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LanguageManager.swift; sourceTree = "<group>"; };
 		CC786E732E63BD15007299F3 /* VisualEffectView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisualEffectView.swift; sourceTree = "<group>"; };
 		CC969C742E60857A00C8630A /* Sajda.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Sajda.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -400,6 +406,12 @@
 				Base,
 				ar,
 				id,
+				es,
+				fr,
+				de,
+				ja,
+				"zh-Hans",
+				ko,
 			);
 			mainGroup = CC969C6B2E60857A00C8630A;
 			packageReferences = (
@@ -541,6 +553,12 @@
 				CC786E6D2E63B1CB007299F3 /* en */,
 				CC786E6F2E63B20E007299F3 /* ar */,
 				CC786E702E63B21D007299F3 /* id */,
+				CC886E012E63B21D007299F3 /* es */,
+				CC886E022E63B21D007299F3 /* fr */,
+				CC886E032E63B21D007299F3 /* de */,
+				CC886E042E63B21D007299F3 /* ja */,
+				CC886E052E63B21D007299F3 /* zh-Hans */,
+				CC886E062E63B21D007299F3 /* ko */,
 			);
 			name = Localizable.strings;
 			sourceTree = "<group>";

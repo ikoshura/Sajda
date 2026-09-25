@@ -1,0 +1,120 @@
+/* 简体中文 */
+"Fajr" = "晨礼"; "Sunrise" = "日出"; "Dhuhr" = "晌礼"; "Asr" = "晡礼"; "Maghrib" = "昏礼"; "Isha" = "宵礼"; "Tahajud" = "特哈吉德"; "Dhuha" = "杜哈";
+"Sajda Pro" = "Sajda Pro"; "Settings" = "设置"; "About" = "关于"; "Quit" = "退出"; "Quit Sajda Pro" = "退出 Sajda Pro"; "Done" = "完成"; "Cancel" = "取消";
+"prayer_in_countdown" = "%@ 还有%@"; "prayer_at_time" = "%@ %@"; "Location Required" = "需要位置权限"; "Open System Settings" = "打开系统设置"; "Allow Location Access" = "允许位置访问"; "Or, set location manually" = "或手动设置位置"; "Around" = "大约";
+"To provide accurate prayer times, Sajda Pro needs to know your location." = "为了提供准确的礼拜时间，Sajda Pro 需要获取您的位置。"; "Location access is already enabled." = "位置访问已启用。"; "Or, Set Location Manually" = "或手动设置位置"; "Please grant location access in System Settings." = "请在系统设置中允许位置访问。"; "You are using a manual location: **%@**" = "您正在使用手动位置：**%@**"; "Switch to Automatic Location" = "切换到自动位置"; "Change Manual Location" = "更改手动位置"; "Show this window on launch" = "启动时显示此窗口"; "Welcome to Sajda Pro" = "欢迎使用 Sajda Pro";
+"To get started, please provide your location for accurate prayer times." = "开始之前，请提供您的位置以获取准确的礼拜时间。"; "Using manual location: **%@**" = "正在使用手动位置：**%@**"; "Location access is enabled." = "位置访问已启用。"; "Please grant access in System Settings." = "请在系统设置中允许访问。";
+"About Sajda Pro" = "关于 Sajda Pro"; "Version 3.3.1" = "版本 3.3.1"; "by Abrar Zha" = "作者 Abrar Zha"; "Show Welcome Guide on Launch" = "启动时显示欢迎指南"; "Show Welcome Window" = "显示欢迎窗口";
+"General" = "通用"; "Language" = "语言"; "Display" = "显示"; "Menu Bar Style" = "菜单栏样式"; "Compact View" = "紧凑视图"; "24-Hour Time" = "24 小时制"; "Minimal Menu Bar" = "极简菜单栏"; "Accent Color" = "强调色"; "Show Sunnah Prayers" = "显示圣行礼拜"; "Glass Highlight" = "玻璃高亮";
+"Calculation" = "计算"; "Method" = "方法"; "Time Correction" = "时间校正"; "Adjust" = "调整"; "Hanafi Madhhab (for Asr)" = "哈乃斐派（晡礼）"; "Location" = "位置"; "Manual:" = "手动："; "Automatic:" = "自动："; "Use Automatic" = "使用自动";
+"Adjust prayer times to match your local mosque. Hover over the number to reset." = "调整礼拜时间以与当地清真寺一致。将鼠标悬停在数字上可重置。"; "Reset All to Default" = "全部恢复默认";
+"Set Location" = "设置位置"; "Search for a city or paste coordinates..." = "搜索城市或粘贴坐标..."; "Set Location Manually" = "手动设置位置"; "Start typing a city or paste coordinates." = "开始输入城市名或粘贴坐标。"; "No results found." = "未找到结果。";
+"Calculation & Location" = "计算与位置";
+"System & Notifications" = "系统与通知";
+"System" = "系统"; "Run at Login" = "登录时启动"; "Notifications" = "通知"; "Prayer Notifications" = "礼拜通知"; "Notification Sound" = "通知声音"; "Custom File" = "自定义文件"; "Browse..." = "浏览..."; "No file selected" = "未选择文件";
+
+/* New Onboarding Strings */
+"Requesting Permission..." = "正在请求权限...";
+"Skip for now" = "暂时跳过";
+"Current location: %@" = "当前位置：%@";
+"Finding your location..." = "正在获取您的位置...";
+"Refreshing location..." = "正在刷新位置...";
+"Resolving city..." = "正在识别城市...";
+"Animation Style" = "动画样式";
+"None" = "无";
+"Fade" = "淡入淡出";
+"Slide" = "滑动";
+
+/* Countdown */
+"countdown_hm" = "%@时%@分";
+"countdown_m" = "%@分";
+"Now" = "现在";
+"prayer_minimal_countdown" = "%@ -%@";
+"prayer_minimal_exact" = "%@ %@";
+
+/* Menu Bar Modes */
+"Countdown" = "倒计时";
+"Exact Time" = "准确时间";
+"Icon Only" = "仅图标";
+
+/* Notification Sound */
+"Default Beep" = "默认提示音";
+"Custom Sound" = "自定义声音";
+
+/* Notifications */
+"notification_body" = "到了 %@礼拜的时间。";
+
+/* About */
+"A simple and beautiful prayer times app for your menu bar." = "一款简洁美观的菜单栏礼拜时间应用。";
+
+/* Prayer Timer Alert */
+"Break Time is Over" = "休息时间结束";
+"Time to begin your next activity." = "该开始下一项活动了。";
+"Dismiss" = "关闭";
+
+/* Status */
+"Preparing prayer schedule..." = "正在准备礼拜时间表...";
+"Still finding your location..." = "仍在获取您的位置...";
+"Location request timed out. Set location manually or check Wi-Fi and Location Services." = "位置请求超时。请手动设置位置，或检查 Wi-Fi 和定位服务。";
+"Location Services are off. Enable Location Services in System Settings or set location manually." = "定位服务已关闭。请在系统设置中开启定位服务，或手动设置位置。";
+"Location access needed" = "需要位置访问权限";
+"Location access denied." = "位置访问被拒绝。";
+"Unsupported location permission state." = "不支持的位置权限状态。";
+"Unable to determine location. Try setting it manually." = "无法确定位置。请尝试手动设置。";
+"Location needs attention" = "位置需要关注";
+"Refresh Location" = "刷新位置";
+
+/* Adhan Settings */
+"Azan Sound" = "宣礼声音";
+"Adhan Sound" = "宣礼声音";
+"All Prayers" = "所有礼拜";
+"Apply" = "应用";
+"Stop Adhan" = "停止宣礼";
+
+/* High-Latitude Rule */
+"High-Latitude Rule" = "高纬度规则";
+"Recommended" = "推荐";
+"Middle of the Night" = "夜晚中点";
+"Seventh of the Night" = "夜晚七分之一";
+"Twilight Angle" = "晨昏蒙影角度";
+"Recommended for your location (%.1f°): %@" = "为您的位置推荐（%.1f°）：%@";
+"Override: %@. Recommended for your location is %@." = "已覆盖：%@。为您的位置推荐：%@。";
+"Uses the rule recommended for your location's latitude." = "使用为您的所在纬度推荐的规则。";
+"Fajr and Isha are limited to the middle of the night." = "晨礼与宵礼限定在夜晚中点。";
+"Fajr and Isha are limited to the first and last seventh of the night." = "晨礼与宵礼限定在夜晚最初和最后的七分之一。";
+"The night is divided by the Fajr/Isha angles; times are computed from a proportional part of the night." = "夜晚按晨礼/宵礼的角度划分；时间按夜晚的相应比例计算。";
+
+/* Adhan Types — Fajr */
+"fajrAzan1" = "Mishary Rashid al Afasy (Fajr)";
+"fajrAzan2" = "Doha Qatar (Fajr)";
+
+/* Adhan Types — Standard */
+"standardAzan1" = "Ahmed al Imadi";
+"standardAzan2" = "Majed al Hamathani";
+"standardAzan3" = "Nasser al Qatami";
+
+/* Adhan Types — Other */
+"none" = "无";
+"defaultBeep" = "默认提示音";
+"custom" = "自定义声音";
+
+/* Menu Bar Style options */
+"Icon + Countdown" = "图标 + 倒计时";
+"Icon + Exact Time" = "图标 + 准确时间";
+
+/* Updates */
+"Checking for updates..." = "正在检查更新...";
+"You're up to date." = "已是最新。";
+"Check for Updates" = "检查更新";
+"Check for Updates Automatically" = "自动检查更新";
+"Couldn't check for updates." = "无法检查更新。";
+"Try Again" = "重试";
+"Update available: %@" = "有可用更新：%@";
+"Open the release page to download" = "打开发布页面下载";
+
+/* Text size presets */
+"Text Size" = "文字大小"; "Small" = "小"; "Default" = "默认"; "Large" = "大"; "Extra Large" = "特大";
+
+/* Accessibility settings */
+"Accessibility" = "辅助功能"; "Text" = "文本"; "Menu Bar" = "菜单栏"; "Bold Text" = "粗体文字"; "Uppercase Text" = "大写文字"; "Larger Menu Bar Text" = "更大的菜单栏文字"; "XXL" = "XXL";
+"Make text easier to read across the panel and menu bar." = "让面板和菜单栏中的文字更易阅读。";

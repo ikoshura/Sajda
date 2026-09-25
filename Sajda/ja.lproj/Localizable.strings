@@ -1,0 +1,120 @@
+/* 日本語 */
+"Fajr" = "ファジール"; "Sunrise" = "日の出"; "Dhuhr" = "ズフル"; "Asr" = "アスル"; "Maghrib" = "マグリブ"; "Isha" = "イシャー"; "Tahajud" = "タハジード"; "Dhuha" = "ドゥハー";
+"Sajda Pro" = "Sajda Pro"; "Settings" = "設定"; "About" = "情報"; "Quit" = "終了"; "Quit Sajda Pro" = "Sajda Pro を終了"; "Done" = "完了"; "Cancel" = "キャンセル";
+"prayer_in_countdown" = "%@ あと%@"; "prayer_at_time" = "%@ %@"; "Location Required" = "位置情報が必要です"; "Open System Settings" = "システム設定を開く"; "Allow Location Access" = "位置情報へのアクセスを許可"; "Or, set location manually" = "または、位置情報を手動で設定"; "Around" = "およそ";
+"To provide accurate prayer times, Sajda Pro needs to know your location." = "正確な礼拝時刻を表示するには、Sajda Pro があなたの現在地を知る必要があります。"; "Location access is already enabled." = "位置情報へのアクセスは既に有効です。"; "Or, Set Location Manually" = "または、位置情報を手動で設定"; "Please grant location access in System Settings." = "システム設定で位置情報へのアクセスを許可してください。"; "You are using a manual location: **%@**" = "手動設定の位置情報を使用中：**%@**"; "Switch to Automatic Location" = "自動位置検出に切り替え"; "Change Manual Location" = "手動の位置情報を変更"; "Show this window on launch" = "起動時にこのウィンドウを表示"; "Welcome to Sajda Pro" = "Sajda Pro へようこそ";
+"To get started, please provide your location for accurate prayer times." = "開始するには、正確な礼拝時刻のために現在地を設定してください。"; "Using manual location: **%@**" = "手動設定の位置情報：**%@**"; "Location access is enabled." = "位置情報へのアクセスが有効です。"; "Please grant access in System Settings." = "システム設定でアクセスを許可してください。";
+"About Sajda Pro" = "Sajda Pro について"; "Version 3.3.1" = "バージョン 3.3.1"; "by Abrar Zha" = "Abrar Zha 作"; "Show Welcome Guide on Launch" = "起動時にウェルカムガイドを表示"; "Show Welcome Window" = "ウェルカムウィンドウを表示";
+"General" = "一般"; "Language" = "言語"; "Display" = "表示"; "Menu Bar Style" = "メニューバーのスタイル"; "Compact View" = "コンパクト表示"; "24-Hour Time" = "24時間表示"; "Minimal Menu Bar" = "ミニマルなメニューバー"; "Accent Color" = "アクセントカラー"; "Show Sunnah Prayers" = "スンナの礼拝を表示"; "Glass Highlight" = "グラスハイライト";
+"Calculation" = "算出"; "Method" = "方法"; "Time Correction" = "時刻の補正"; "Adjust" = "調整"; "Hanafi Madhhab (for Asr)" = "ハナフィー派（アスル）"; "Location" = "位置情報"; "Manual:" = "手動:"; "Automatic:" = "自動:"; "Use Automatic" = "自動を使用";
+"Adjust prayer times to match your local mosque. Hover over the number to reset." = "お住まいのモスクに合わせて礼拝時刻を調整します。数字にカーソルを合わせるとリセットされます。"; "Reset All to Default" = "すべてデフォルトに戻す";
+"Set Location" = "位置情報を設定"; "Search for a city or paste coordinates..." = "都市名を検索するか、座標を貼り付けてください..."; "Set Location Manually" = "位置情報を手動で設定"; "Start typing a city or paste coordinates." = "都市名の入力を始めるか、座標を貼り付けてください。"; "No results found." = "結果が見つかりませんでした。";
+"Calculation & Location" = "算出と位置情報";
+"System & Notifications" = "システムと通知";
+"System" = "システム"; "Run at Login" = "ログイン時に起動"; "Notifications" = "通知"; "Prayer Notifications" = "礼拝の通知"; "Notification Sound" = "通知音"; "Custom File" = "カスタムファイル"; "Browse..." = "参照..."; "No file selected" = "ファイルが選択されていません";
+
+/* New Onboarding Strings */
+"Requesting Permission..." = "許可をリクエスト中...";
+"Skip for now" = "今回はスキップ";
+"Current location: %@" = "現在地：%@";
+"Finding your location..." = "現在地を検索中...";
+"Refreshing location..." = "現在地を更新中...";
+"Resolving city..." = "都市名を確認中...";
+"Animation Style" = "アニメーションスタイル";
+"None" = "なし";
+"Fade" = "フェード";
+"Slide" = "スライド";
+
+/* Countdown */
+"countdown_hm" = "%@時間%@分";
+"countdown_m" = "%@分";
+"Now" = "今";
+"prayer_minimal_countdown" = "%@ -%@";
+"prayer_minimal_exact" = "%@ %@";
+
+/* Menu Bar Modes */
+"Countdown" = "カウントダウン";
+"Exact Time" = "正確な時刻";
+"Icon Only" = "アイコンのみ";
+
+/* Notification Sound */
+"Default Beep" = "デフォルトのビープ";
+"Custom Sound" = "カスタムサウンド";
+
+/* Notifications */
+"notification_body" = "%@の礼拝の時間です。";
+
+/* About */
+"A simple and beautiful prayer times app for your menu bar." = "メニューバーに置ける、シンプルで美しい礼拝時間アプリです。";
+
+/* Prayer Timer Alert */
+"Break Time is Over" = "休憩終了";
+"Time to begin your next activity." = "次の活動を始める時間です。";
+"Dismiss" = "閉じる";
+
+/* Status */
+"Preparing prayer schedule..." = "礼拝時刻を準備しています...";
+"Still finding your location..." = "まだ現在地を検索しています...";
+"Location request timed out. Set location manually or check Wi-Fi and Location Services." = "位置情報の取得がタイムアウトしました。手動で設定するか、Wi-Fi とロケーションサービスを確認してください。";
+"Location Services are off. Enable Location Services in System Settings or set location manually." = "ロケーションサービスがオフになっています。システム設定で有効にするか、手動で位置情報を設定してください。";
+"Location access needed" = "位置情報へのアクセスが必要です";
+"Location access denied." = "位置情報へのアクセスが拒否されました。";
+"Unsupported location permission state." = "未対応の位置情報許可状態です。";
+"Unable to determine location. Try setting it manually." = "現在地を特定できませんでした。手動で設定してみてください。";
+"Location needs attention" = "位置情報の確認が必要です";
+"Refresh Location" = "現在地を再取得";
+
+/* Adhan Settings */
+"Azan Sound" = "アザーンの音";
+"Adhan Sound" = "アザーンの音";
+"All Prayers" = "すべての礼拝";
+"Apply" = "適用";
+"Stop Adhan" = "アザーンを停止";
+
+/* High-Latitude Rule */
+"High-Latitude Rule" = "高緯度のルール";
+"Recommended" = "推奨";
+"Middle of the Night" = "夜の中央";
+"Seventh of the Night" = "夜の7分の1";
+"Twilight Angle" = "薄明の角度";
+"Recommended for your location (%.1f°): %@" = "あなたの位置への推奨（%.1f°）：%@";
+"Override: %@. Recommended for your location is %@." = "上書き：%@。あなたの位置への推奨は %@ です。";
+"Uses the rule recommended for your location's latitude." = "現在地の緯度に推奨されるルールを使用します。";
+"Fajr and Isha are limited to the middle of the night." = "ファジールとイシャーは夜の中央に制限されます。";
+"Fajr and Isha are limited to the first and last seventh of the night." = "ファジールとイシャーは夜の最初と最後の7分の1に制限されます。";
+"The night is divided by the Fajr/Isha angles; times are computed from a proportional part of the night." = "夜はファジール/イシャーの角度で分割され、時刻は夜の按分された部分から算出されます。";
+
+/* Adhan Types — Fajr */
+"fajrAzan1" = "Mishary Rashid al Afasy (Fajr)";
+"fajrAzan2" = "Doha Qatar (Fajr)";
+
+/* Adhan Types — Standard */
+"standardAzan1" = "Ahmed al Imadi";
+"standardAzan2" = "Majed al Hamathani";
+"standardAzan3" = "Nasser al Qatami";
+
+/* Adhan Types — Other */
+"none" = "なし";
+"defaultBeep" = "デフォルトのビープ";
+"custom" = "カスタムサウンド";
+
+/* Menu Bar Style options */
+"Icon + Countdown" = "アイコン + カウントダウン";
+"Icon + Exact Time" = "アイコン + 正確な時刻";
+
+/* Updates */
+"Checking for updates..." = "更新を確認しています...";
+"You're up to date." = "最新版です。";
+"Check for Updates" = "更新を確認";
+"Check for Updates Automatically" = "自動的に更新を確認";
+"Couldn't check for updates." = "更新を確認できませんでした。";
+"Try Again" = "もう一度試す";
+"Update available: %@" = "新しい更新があります：%@";
+"Open the release page to download" = "ダウンロードするにはリリースページを開いてください";
+
+/* Text size presets */
+"Text Size" = "文字サイズ"; "Small" = "小"; "Default" = "デフォルト"; "Large" = "大"; "Extra Large" = "特大";
+
+/* Accessibility settings */
+"Accessibility" = "アクセシビリティ"; "Text" = "テキスト"; "Menu Bar" = "メニューバー"; "Bold Text" = "太字"; "Uppercase Text" = "大文字"; "Larger Menu Bar Text" = "より大きいメニューバーの文字"; "XXL" = "XXL";
+"Make text easier to read across the panel and menu bar." = "パネルとメニューバーのテキストを読みやすくします。";
