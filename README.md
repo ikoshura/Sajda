@@ -121,7 +121,9 @@ Sajda respects your privacy:
 ## Acknowledgements
 
 - [Adhan](https://github.com/batoulapps/Adhan) - prayer time calculation library
+- [ColorSelector](https://github.com/jaywcjlove/ColorSelector) - colour picker for the highlight colour
 - [FluidMenuBarExtra](https://github.com/lfroms/fluid-menu-bar-extra) - dynamically resizing menu bar window
+- [Mawaqit](https://mawaqit.net) - mosque prayer and iqama timetables behind the mosque mode
 - [NavigationStack](https://github.com/indieSoftware/NavigationStack) - view navigation system
 
 ---
