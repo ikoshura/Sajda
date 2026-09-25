@@ -11,66 +11,8 @@ struct LocationAndCalcSettingsView: View {
     
     @State private var isHeaderHovering = false
 
-    @State private var mosqueQuery = ""
-    @State private var mosqueResults: [MosqueSearchResult] = []
-    @State private var isDownloadingMosque = false
-    @State private var mosqueDownloadFailed = false
-    @State private var mosqueSearchTask: Task<Void, Never>?
-
     private var viewWidth: CGFloat {
         return vm.panelWidth(base: vm.useCompactLayout ? 220 : 260)
-    }
-
-    /// Debounced keyword search (350 ms) against Mawaqit's public endpoint.
-    @MainActor
-    private func scheduleMosqueSearch(_ text: String) {
-        mosqueSearchTask?.cancel()
-        let query = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard query.count >= 2 else {
-            mosqueResults = []
-            return
-        }
-        mosqueSearchTask = Task {
-            try? await Task.sleep(nanoseconds: 350_000_000)
-            guard !Task.isCancelled else { return }
-            do {
-                let hits = try await MawaqitService.searchMosques(matching: query)
-                guard !Task.isCancelled else { return }
-                mosqueResults = hits
-            } catch {
-                guard !Task.isCancelled else { return }
-                mosqueResults = []
-            }
-        }
-    }
-
-    /// Downloads the mosque's yearly calendar, saves it offline, and switches
-    /// the panel, menu bar, and notifications to it.
-    @MainActor
-    private func downloadMosque(_ result: MosqueSearchResult) {
-        isDownloadingMosque = true
-        mosqueDownloadFailed = false
-        Task {
-            do {
-                let mosque = try await MawaqitService.fetchCalendar(slug: result.slug)
-                guard !Task.isCancelled else { return }
-                vm.activateMosqueSchedule(mosque)
-                isDownloadingMosque = false
-                mosqueQuery = ""
-                mosqueResults = []
-            } catch {
-                guard !Task.isCancelled else { return }
-                isDownloadingMosque = false
-                mosqueDownloadFailed = true
-            }
-        }
-    }
-
-    /// Re-downloads the active mosque's calendar (schedule updates, new year).
-    @MainActor
-    private func refreshMosqueSchedule() {
-        guard let slug = vm.mawaqitMosque?.slug else { return }
-        downloadMosque(MosqueSearchResult(slug: slug, label: slug))
     }
 
     var body: some View {
@@ -97,61 +39,9 @@ struct LocationAndCalcSettingsView: View {
                     VStack(alignment: .leading, spacing: 12) {
                         Group {
                             Text("Mosque Timetable").scaledFont(.caption).foregroundColor(Color("SecondaryTextColor"))
-                            if vm.useMawaqitSchedule, let mosque = vm.mawaqitMosque {
-                                // The timetable text itself carries the check (see
-                                // `mawaqit_ready`), so there is no separate icon.
-                                Text(String(format: NSLocalizedString("mawaqit_ready", comment: ""), mosque.name))
-                                    .scaledFont(.caption2)
-                                    .lineLimit(1)
-                                    .truncationMode(.tail)
-                                HStack {
-                                    Button("Refresh") { refreshMosqueSchedule() }.buttonStyle(.bordered)
-                                    Spacer(minLength: 4)
-                                    Button("Use Calculated Times Instead") { vm.disableMosqueSchedule() }.buttonStyle(.bordered)
-                                }
-                                // Fallback iqama gap — used when the mosque
-                                // doesn't publish iqama times. Default +8.
-                                HStack {
-                                    Text("Iqama Delay").scaledFont(.subheadline)
-                                    Spacer()
-                                    SajdaStepper(value: Binding(get: { Double(vm.iqamaDelayMinutes) }, set: { vm.iqamaDelayMinutes = Int($0) }), range: 0...60)
-                                }
-                            }
-                            // Chrome is drawn by the app (see `SajdaSearchField`):
-                            // the native rounded bezel is what used to blink
-                            // black during page transitions in this panel.
-                            SajdaSearchField(placeholder: "Search for a mosque...", text: $mosqueQuery)
-                                .onChange(of: mosqueQuery) { newValue in scheduleMosqueSearch(newValue) }
-                            if isDownloadingMosque {
-                                HStack(spacing: 6) {
-                                    ProgressView().controlSize(.mini)
-                                    Text("Downloading...")
-                                        .scaledFont(.caption2)
-                                        .foregroundColor(.secondary)
-                                }
-                            }
-                            if mosqueDownloadFailed {
-                                Text("Couldn't reach mawaqit.net.")
-                                    .scaledFont(.caption2)
-                                    .foregroundColor(.red)
-                            }
-                            ForEach(mosqueResults) { result in
-                                Button { downloadMosque(result) } label: {
-                                    HStack {
-                                        Text(result.label)
-                                            .lineLimit(1)
-                                            .truncationMode(.tail)
-                                        Spacer()
-                                        Image(systemName: "arrow.down.circle")
-                                            .foregroundColor(.secondary)
-                                    }
-                                    .contentShape(Rectangle())
-                                }
-                                .buttonStyle(.plain)
-                                .disabled(isDownloadingMosque)
-                            }
+                            MosqueTimetablePicker().environmentObject(vm)
                         }
-                        Group {
+                                                Group {
                             Text("Calculation").scaledFont(.caption).foregroundColor(Color("SecondaryTextColor"))
                             HStack { Text("Method").scaledFont(.subheadline); Spacer(); ScaledMenuPicker(selection: $vm.method, options: SajdaCalculationMethod.allCases, maxWidth: 150) { $0.name } }
                             HStack { Text("Time Correction").scaledFont(.subheadline); Spacer(); Button("Adjust") { navigationModel.showView(Self.id, animation: vm.forwardAnimation()) { PrayerTimeCorrectionView() } }.buttonStyle(.bordered) }

@@ -122,6 +122,14 @@ struct SettingsView: View {
                     Text("Display").scaledFont(.caption).foregroundColor(Color("SecondaryTextColor"))
                     HStack { Text("Language").scaledFont(.subheadline); Spacer(); ScaledMenuPicker(selection: $languageManager.language, options: ["en", "ar", "id", "es", "fr", "de", "ja", "zh-Hans", "ko"]) { code in ["en": "English", "ar": "العربية", "id": "Indonesia", "es": "Español", "fr": "Français", "de": "Deutsch", "ja": "日本語", "zh-Hans": "简体中文", "ko": "한국어"][code] ?? code } }
                     HStack { Text("Menu Bar Style").scaledFont(.subheadline); Spacer(); ScaledMenuPicker(selection: $vm.menuBarTextMode, options: MenuBarTextMode.allCases) { NSLocalizedString($0.rawValue, comment: "") } }
+                    // Umm al-Qura Hijri header (matches the system Calendar)
+                    // with a ±2 day correction where the local announcement
+                    // differs.
+                    HStack {
+                        Text("Hijri Date").scaledFont(.subheadline)
+                        Spacer()
+                        SajdaStepper(value: Binding(get: { Double(vm.hijriDateAdjustment) }, set: { vm.hijriDateAdjustment = Int($0) }), range: -2...2)
+                    }
                     StyledToggle(label: "Compact View", isOn: $vm.useCompactLayout)
                     StyledToggle(label: "24-Hour Time", isOn: $vm.use24HourFormat)
                     StyledToggle(label: "Minimal Menu Bar", isOn: $vm.useMinimalMenuBarText).disabled(vm.menuBarTextMode == .hidden)

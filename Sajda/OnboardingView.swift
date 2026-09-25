@@ -12,6 +12,7 @@ struct OnboardingView: View {
     @AppStorage("launchAtLogin") private var launchAtLogin = false
     @State private var showingManualLocationSheet = false
     @State private var isSyncingLaunchAtLogin = false
+    @State private var showingMosqueTimetable = false
     
     // State untuk efek hover
     @State private var isSkipHovering = false
@@ -154,6 +155,34 @@ struct OnboardingView: View {
                     transaction.animation = nil
                 }
 
+                // Prayer-times source: calculated from location, or a
+                // mosque's own timetable (Mawaqit) — same search box as
+                // Settings > Calculation & Location.
+                VStack(alignment: .leading, spacing: 8) {
+                    Button(action: { showingMosqueTimetable.toggle() }) {
+                        HStack(spacing: 6) {
+                            Image(systemName: showingMosqueTimetable ? "chevron.down" : "chevron.right")
+                                .font(.caption.weight(.semibold))
+                                .foregroundColor(.secondary)
+                            Text("Use a mosque timetable instead").font(.subheadline)
+                            Spacer()
+                            if vm.useMawaqitSchedule, let mosque = vm.mawaqitMosque {
+                                Text(mosque.name)
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                    .lineLimit(1)
+                                    .truncationMode(.tail)
+                            }
+                        }
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    if showingMosqueTimetable {
+                        MosqueTimetablePicker(showIqamaDelay: false).environmentObject(vm)
+                    }
+                }
+                .padding(.horizontal, 40)
+
                 Spacer(minLength: 25)
                 
                 VStack(spacing: 12) {
@@ -199,7 +228,7 @@ struct OnboardingView: View {
                 .padding(.bottom, 30)
             }
         }
-        .frame(width: 380, height: 490)
+        .frame(width: 380, height: 560)
         // Rounded window silhouette shared by both paths: the glass view rounds
         // itself on macOS 26+, the fallback VisualEffectView rounds its layer,
         // and this clip rounds the remaining SwiftUI content.

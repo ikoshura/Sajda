@@ -67,6 +67,11 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
     /// the panel's colour scheme flips to keep everything balanced against it
     /// (`accentPanelColorScheme` / `accentPanelTint`).
     @AppStorage("accentPanelTheme") var accentPanelTheme: Bool = false
+    /// Day shift for the header Hijri date, set with the +/- stepper in
+    /// Settings. Defaults to 0 (Umm al-Qura as-is); some locales announce the
+    /// new month a day off, so this nudges it without touching the
+    /// prayer-time source. Republishes so the header redraws immediately.
+    @AppStorage("hijriDateAdjustment") var hijriDateAdjustment: Int = 0 { didSet { objectWillChange.send() } }
     /// Lead time in minutes for the red imminent alert; 0 disables it.
     /// Keeps the former `RedAlertTiming` menu's defaults key (and Int value)
     /// so existing choices carry over. Republishes because the Settings
@@ -958,15 +963,22 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
     }
 
     /// Today's Hijri date for the panel header — Umm al-Qura reckoning with
-    /// localized month names and era, e.g. "15 Rabiʻ II 1448 AH". Arabic renders
-    /// its own numerals and era symbol (هـ), matching every other time in the app.
+    /// localized month names and era, e.g. "15 Rabiʻ II 1448 AH" (matches the
+    /// system Calendar/iPhone reading). `hijriDateAdjustment` still lets the
+    /// user nudge it ± days where the local announcement differs. Arabic
+    /// renders its own numerals and era symbol (هـ), matching every other
+    /// time in the app.
     var hijriDateText: String {
         let formatter = DateFormatter()
         formatter.calendar = Calendar(identifier: .islamicUmmAlQura)
         formatter.locale = displayLocale
         formatter.timeZone = locationTimeZone
         formatter.dateFormat = "d MMMM yyyy G"
-        return formatter.string(from: Date())
+        let base = Date()
+        guard hijriDateAdjustment != 0,
+              let shifted = Calendar(identifier: .gregorian).date(byAdding: .day, value: hijriDateAdjustment, to: base)
+        else { return formatter.string(from: base) }
+        return formatter.string(from: shifted)
     }
 
     /// Nama shalat yang sudah dilokalkan, di-uppercase bila opsi aksesibilitas

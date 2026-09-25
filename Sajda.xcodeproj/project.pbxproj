@@ -13,6 +13,8 @@
 		7BFBE565A1E84CA2915AE0C8 /* Mishary_Rashid_al_Afasy_Fajr_Adhan.caf in Resources */ = {isa = PBXBuildFile; fileRef = EBC237DE638145FF832C3A24 /* Mishary_Rashid_al_Afasy_Fajr_Adhan.caf */; };
 		7E7D402BCC8044B9AB70C508 /* Nasser_al_Qatami_Adhan.caf in Resources */ = {isa = PBXBuildFile; fileRef = C545EF0A5D474B7A869E963A /* Nasser_al_Qatami_Adhan.caf */; };
 		A1B3068783F31CB16A0B04E4 /* AdhanAudioPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B220C2AC258F390A192FF3 /* AdhanAudioPlayer.swift */; };
+		CCAA00072FABBC0200CCDDEE /* MosqueTimetablePicker.swift in Sources */ = {isa = PBXBuildFile; buildActionMask = 2147483647; files = (
+		); fileRef = CCAA00062FABBC0200CCDDEE /* MosqueTimetablePicker.swift */; runOnlyForDeploymentPostprocessing = 0; };
 		CC07FC602E63FD5800924451 /* LocationAndCalcSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC07FC5F2E63FD5800924451 /* LocationAndCalcSettingsView.swift */; };
 		CC07FC622E63FF5100924451 /* SystemAndNotificationsSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC07FC612E63FF5100924451 /* SystemAndNotificationsSettingsView.swift */; };
 		CC07FC662E64122F00924451 /* NavigationStack in Frameworks */ = {isa = PBXBuildFile; productRef = CC07FC652E64122F00924451 /* NavigationStack */; };
@@ -106,6 +108,7 @@
 		CC786E5C2E636A58007299F3 /* timezones.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = timezones.json; sourceTree = "<group>"; };
 		CC786E5E2E637700007299F3 /* AdhanSound.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdhanSound.swift; sourceTree = "<group>"; };
 		CCAA00052FABBC0200CCDDEE /* SajdaSearchField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SajdaSearchField.swift; sourceTree = "<group>"; };
+		CCAA00062FABBC0200CCDDEE /* MosqueTimetablePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MosqueTimetablePicker.swift; sourceTree = "<group>"; };
 		CC786E622E63787E007299F3 /* MenuBarTextMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarTextMode.swift; sourceTree = "<group>"; };
 		CC786E642E638353007299F3 /* SajdaCalculationMethod.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SajdaCalculationMethod.swift; sourceTree = "<group>"; };
 		CC786E662E638425007299F3 /* LocationSearchResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationSearchResult.swift; sourceTree = "<group>"; };
@@ -262,6 +265,7 @@
 				CC786E572E635B46007299F3 /* PrayerTimerAlertView.swift */,
 				CC786E5E2E637700007299F3 /* AdhanSound.swift */,
 				CCAA00052FABBC0200CCDDEE /* SajdaSearchField.swift */,
+				CCAA00062FABBC0200CCDDEE /* MosqueTimetablePicker.swift */,
 				CC786E622E63787E007299F3 /* MenuBarTextMode.swift */,
 				CC786E642E638353007299F3 /* SajdaCalculationMethod.swift */,
 				CCA1B2C3D4E5000000000002 /* HighLatitudeRuleSetting.swift */,
@@ -500,6 +504,7 @@
 				CC786E742E63BD15007299F3 /* VisualEffectView.swift in Sources */,
 				CC786E5F2E637700007299F3 /* AdhanSound.swift in Sources */,
 				CCAA00042FABBC0200CCDDEE /* SajdaSearchField.swift in Sources */,
+				CCAA00072FABBC0200CCDDEE /* MosqueTimetablePicker.swift in Sources */,
 				CCE1BA3A2E61852B003AF03C /* EventMonitor.swift in Sources */,
 				CC4659652E6629C000159A83 /* SajdaStepper.swift in Sources */,
 				CCE1BA3D2E61852B003AF03C /* FluidMenuBarExtra.swift in Sources */,
@@ -706,7 +711,7 @@
 				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 13;
+				CURRENT_PROJECT_VERSION = 14;
 				DEVELOPMENT_ASSET_PATHS = "\"Sajda/Preview Content\"";
 				DEVELOPMENT_TEAM = KTKP595G3B;
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = "";
@@ -721,7 +726,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 4.0.0;
+				MARKETING_VERSION = 4.0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.madda.Sajda;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "";
@@ -740,7 +745,7 @@
 				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 13;
+				CURRENT_PROJECT_VERSION = 14;
 				DEVELOPMENT_ASSET_PATHS = "\"Sajda/Preview Content\"";
 				DEVELOPMENT_TEAM = KTKP595G3B;
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = "";
@@ -755,7 +760,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 4.0.0;
+				MARKETING_VERSION = 4.0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.madda.Sajda;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "";
