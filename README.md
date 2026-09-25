@@ -14,10 +14,8 @@ Prayer times for macOS, done quietly. Sajda lives in your menu bar, shows what m
 
 ## Why Sajda
 
-Most prayer apps want your attention. Sajda wants the opposite. It sits in the menu bar, updates itself, reminds you gently, and never gets in the way of your work.
-
 - **Glanceable.** Icon, countdown, or exact time in the menu bar. Pick the style you like.
-- **Urgent when it matters.** Icon and text turn red together in the last 10 minutes before prayer.
+- **Urgent when it matters.** Set your own alert threshold for the icon and text to turn red before prayer.
 - **Accurate.** Automatic location or any city worldwide, with trusted calculation methods. Follow your own mosque's timetable instead when you prefer.
 - **Private.** No accounts, no analytics, no tracking. Everything happens on your Mac.
 - **Your language.** English, Indonesian, Arabic, Spanish, French, German, Japanese, Korean, and Simplified Chinese.
