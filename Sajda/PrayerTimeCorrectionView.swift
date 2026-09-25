@@ -45,7 +45,9 @@ struct CorrectionRow: View {
                         .font(.system(size: 11, weight: .semibold))
                     Text(vm.dateFormatter.string(from: adjusted))
                         .fontWeight(.semibold)
-                        .foregroundColor(.accentColor)
+                        // Follows the selected highlight colour, like the rest
+                        // of the panel's interactive accents.
+                        .foregroundColor(vm.selectedHighlightColor)
                 } else {
                     Text("00:00 → 00:00").hidden()
                 }

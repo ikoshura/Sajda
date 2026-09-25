@@ -6,7 +6,7 @@ This guide separates local source builds from production distribution. The GitHu
 
 Requirements:
 
-- macOS Ventura 13.3 or newer
+- macOS Sonoma 14.0 or newer
 - Xcode with the macOS SDK installed
 
 Build without a Developer ID certificate:

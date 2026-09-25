@@ -8,7 +8,8 @@ struct ContentView: View {
     
     @EnvironmentObject var vm: PrayerTimeViewModel
     @EnvironmentObject var navigationModel: NavigationModel
-    
+    @Environment(\.colorScheme) private var colorScheme
+
     var body: some View {
         NavigationStackView(Self.id) {
             MainView()
@@ -20,6 +21,15 @@ struct ContentView: View {
         .environment(\.panelFontScale, vm.panelTextSize.fontScale)
         .environment(\.panelBoldText, vm.accessibilityBoldText)
         .font(.system(size: PanelTextSize.baseBodyPointSize * vm.panelTextSize.fontScale, weight: vm.accessibilityBoldText ? .semibold : .regular))
+        // Accent Panel theme: flip the panel's colour scheme so primary/
+        // secondary text, dividers, hovers and native controls re-derive
+        // from their dark/light variants and stay balanced against the tint.
+        // (The tint itself is painted at the window root — see
+        // `AccentPanelTintOverlay` in FluidMenuBarExtraWindow — outside the
+        // content's fixedSize, so it tracks the panel's animated resize
+        // frame-by-frame instead of lagging a layout pass behind.) While the
+        // theme is off the system scheme passes through unchanged.
+        .environment(\.colorScheme, vm.accentPanelTheme ? vm.accentPanelColorScheme : colorScheme)
         // --- PERBAIKAN DI SINI ---
         // Menggunakan properti animationType yang baru, bukan disableAnimations yang sudah dihapus.
         .transaction { transaction in

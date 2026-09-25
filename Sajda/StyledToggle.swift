@@ -11,6 +11,11 @@ struct StyledToggle: View {
     var label: LocalizedStringKey
     @Binding var isOn: Bool
 
+    /// Selected highlight colour ("#RRGGBB"); empty keeps the system accent.
+    /// Read straight from UserDefaults (not through the view model) so the
+    /// switch re-renders the moment a swatch is picked in Settings.
+    @AppStorage("customHighlightColorHex") private var customHighlightColorHex = ""
+
     @Environment(\.isEnabled) private var isEnabled
     @Environment(\.panelFontScale) private var fontScale
 
@@ -42,6 +47,10 @@ struct StyledToggle: View {
                 .toggleStyle(.switch)
                 .labelsHidden()
                 .controlSize(nativeControlSize)
+                // The on-state uses the selected highlight colour so every
+                // switch matches the highlight row and the Accent Panel tint;
+                // nil (no colour selected) keeps the system accent.
+                .tint(PrayerTimeViewModel.controlTint(fromHighlightHex: customHighlightColorHex))
         }
     }
 

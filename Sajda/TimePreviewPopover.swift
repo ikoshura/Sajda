@@ -7,6 +7,15 @@ struct TimePreviewPopover: View {
     let adjustedTime: Date
     let formatter: DateFormatter
 
+    /// Selected highlight colour, read straight from defaults (the same
+    /// pattern as `StyledToggle`) so the preview follows a swatch change
+    /// without needing the view model in the environment.
+    @AppStorage("customHighlightColorHex") private var customHighlightColorHex = ""
+
+    private var adjustedColor: Color {
+        PrayerTimeViewModel.controlTint(fromHighlightHex: customHighlightColorHex) ?? .accentColor
+    }
+
     var body: some View {
         HStack(spacing: 6) {
             Text(formatter.string(from: originalTime))
@@ -20,7 +29,7 @@ struct TimePreviewPopover: View {
             
             Text(formatter.string(from: adjustedTime))
                 .scaledFont(.caption, weight: .semibold)
-                .foregroundColor(.accentColor)
+                .foregroundColor(adjustedColor)
         }
         .padding(.vertical, 6)
         .padding(.horizontal, 10)

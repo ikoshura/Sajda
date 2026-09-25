@@ -8,6 +8,31 @@
 import AppKit
 import SwiftUI
 
+// MARK: - AccentPanelTintOverlay
+
+/// Translucent Accent Panel tint for the whole menu bar panel.
+///
+/// Attached at the window root (see `rootView`) — *outside* the content's
+/// `fixedSize()` — so the tinted rectangle is always the hosting view's live
+/// bounds: it follows the panel's `setFrame(..., animate: true)` movement
+/// frame-by-frame instead of lagging one SwiftUI layout pass behind. The
+/// colour math is shared with `PrayerTimeViewModel`, and `@AppStorage` keeps
+/// it live when the toggle or a highlight swatch changes. The stored alpha
+/// (ColorSelector opacity slider) drives the tint's transparency; anything
+/// without one uses the default translucency.
+struct AccentPanelTintOverlay: View {
+    @AppStorage("accentPanelTheme") private var accentPanelTheme = false
+    @AppStorage("customHighlightColorHex") private var customHighlightColorHex = ""
+
+    var body: some View {
+        if accentPanelTheme {
+            let base = PrayerTimeViewModel.accentPanelTint(fromHighlightHex: customHighlightColorHex)
+            let opacity = PrayerTimeViewModel.accentPanelOpacity(fromHighlightHex: customHighlightColorHex)
+            base.opacity(opacity)
+        }
+    }
+}
+
 final class FluidMenuBarExtraWindow<Content: View>: NSPanel {
     private let content: () -> Content
 
@@ -49,6 +74,13 @@ final class FluidMenuBarExtraWindow<Content: View>: NSPanel {
     private var rootView: some View {
         content()
             .modifier(RootViewModifier(windowTitle: title))
+            // Accent tint behind everything, sized by the window's own
+            // proposal (after RootViewModifier's fixedSize) so its rectangle
+            // can't lag the panel's animated resize movement.
+            .background {
+                AccentPanelTintOverlay()
+                    .ignoresSafeArea()
+            }
             .onSizeUpdate { [weak self] size in
                 self?.contentSizeDidUpdate(to: size)
             }

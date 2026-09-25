@@ -11,11 +11,14 @@ struct MosqueSearchResult: Identifiable, Hashable {
 /// One downloaded mosque schedule — everything the app needs while offline.
 /// `calendar` mirrors Mawaqit's confData: 12 month dictionaries of
 /// day-of-month → `[fajr, sunrise, dhuhr, asr, maghrib, isha]` as "HH:MM".
+/// `iqamaCalendar`, when the mosque publishes it, is `day → [fajr, dhuhr,
+/// asr, maghrib, isha]` (absolute times, same format).
 struct MawaqitMosque: Codable {
     let slug: String
     let name: String
     let fetchedAt: Date
     let calendar: [[String: [String]]]
+    let iqamaCalendar: [[String: [String]]]?
 }
 
 /// Networking, parsing, and storage for the optional Mawaqit mosque timetable.
@@ -95,13 +98,15 @@ enum MawaqitService {
         let conf = try JSONDecoder().decode(ConfData.self, from: Data(raw.utf8))
         guard let calendar = conf.calendar, calendar.count == 12 else { throw FetchError.badData }
         let name = cleanMosqueName(conf.name ?? conf.label ?? extractTitle(from: html) ?? slug)
-        return MawaqitMosque(slug: slug, name: name, fetchedAt: Date(), calendar: calendar)
+        let iqama = conf.iqamaCalendar.flatMap { $0.count == 12 ? $0 : nil }
+        return MawaqitMosque(slug: slug, name: name, fetchedAt: Date(), calendar: calendar, iqamaCalendar: iqama)
     }
 
     private struct ConfData: Decodable {
         let name: String?
         let label: String?
         let calendar: [[String: [String]]]?
+        let iqamaCalendar: [[String: [String]]]?
     }
 
     /// Returns the JSON object of `var|let|const confData = {...}` using a
@@ -169,13 +174,14 @@ enum MawaqitService {
 
     /// Today's (or any day's) six mosque times, or nil when the calendar
     /// doesn't cover the date (e.g. Dec 31 before the new year publishes).
-    static func times(for date: Date, in calendar: [[String: [String]]]) -> [String]? {
+    /// `minimumColumns` is 6 for the adhan calendar and 5 for iqama calendars.
+    static func times(for date: Date, in calendar: [[String: [String]]], minimumColumns: Int = 6) -> [String]? {
         var cal = Calendar(identifier: .gregorian)
         cal.timeZone = .current
         let month = cal.component(.month, from: date) - 1
         let day = cal.component(.day, from: date)
         guard month >= 0, month < calendar.count else { return nil }
-        guard let times = calendar[month]["\(day)"], times.count >= 6 else { return nil }
+        guard let times = calendar[month]["\(day)"], times.count >= minimumColumns else { return nil }
         return times
     }
 

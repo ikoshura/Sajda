@@ -8,6 +8,10 @@ public final class FluidMenuBarExtraStatusItem: NSObject, NSWindowDelegate {
     private let statusItem: NSStatusItem
     private var localEventMonitor: EventMonitor?
     private var globalEventMonitor: EventMonitor?
+    /// Token for the `NSWindow.didBecomeKeyNotification` observer that keeps
+    /// app-owned auxiliary windows (system panels, the colour panel) above this
+    /// status-bar-level panel.
+    private var auxiliaryWindowObserver: NSObjectProtocol?
     public var button: NSStatusBarButton? { statusItem.button }
     /// Tracks whether we currently hold an "expanded interface session" on the
     /// status item (see `setSystemHighlight(_:)`), so begin and end stay balanced.
@@ -73,18 +77,168 @@ public final class FluidMenuBarExtraStatusItem: NSObject, NSWindowDelegate {
         globalEventMonitor = GlobalEventMonitor(mask: [.leftMouseDown, .rightMouseDown]) { [weak self] _ in
             guard let self else { return }
             self.log("globalMonitor: outside click, keyWindow=\(self.window.isKeyWindow)")
-            if self.window.isKeyWindow {
-                self.dismissWindow()
-            }
+            // A global monitor only sees events dispatched to *other* apps, so any
+            // event here is a real click-away. The panel is closed whenever it is
+            // on screen — not only while it happens to hold key focus — because
+            // the colour panel (ColorPicker) can hold key while the popover is
+            // still open.
+            guard self.window.isVisible else { return }
+            self.dismissWindow()
         }
         
         window.delegate = self
+
+        // Panels a control inside the popover opens (open/save panels, the shared
+        // colour panel) are ordinary app windows at a level *below* this
+        // status-bar-level panel, so they would appear behind it and look like a
+        // dead control. Raise them to the panel's own level as soon as they take
+        // key, whatever took key away from the popover.
+        auxiliaryWindowObserver = NotificationCenter.default.addObserver(
+            forName: NSWindow.didBecomeKeyNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] notification in
+            guard let self,
+                  self.window.isVisible,
+                  let keyWindow = notification.object as? NSWindow,
+                  keyWindow !== self.window else { return }
+            self.raiseAuxiliaryWindow(keyWindow)
+        }
+
         localEventMonitor?.start()
         log("status item created: \(statusItem)")
     }
 
-    deinit { NSStatusBar.system.removeStatusItem(statusItem) }
-    
+    deinit {
+        if let auxiliaryWindowObserver { NotificationCenter.default.removeObserver(auxiliaryWindowObserver) }
+        NSStatusBar.system.removeStatusItem(statusItem)
+    }
+
+    /// Keeps an app-owned auxiliary window at the popover's window level, so it
+    /// is never drawn behind it. Windows already above the popover are untouched.
+    private func raiseAuxiliaryWindow(_ auxiliaryWindow: NSWindow) {
+        guard auxiliaryWindow.level.rawValue < window.level.rawValue else { return }
+        auxiliaryWindow.level = window.level
+        log("auxiliary window \(type(of: auxiliaryWindow)) raised to level \(window.level.rawValue)")
+    }
+
+    /// True while another window of this app holds key focus — a system panel a
+    /// control opened, or any app window opened from inside the popover. Such a
+    /// window is not a click-away: only clicks dispatched to *other* apps close
+    /// the popover, and those arrive through the global event monitor.
+    private var isAuxiliaryAppWindowKey: Bool {
+        guard let keyWindow = NSApp.keyWindow else { return false }
+        return keyWindow !== window
+    }
+
+    // MARK: - Keyboard menu-bar focus (blue-outline navigation)
+
+    /// Height of the menu bar strip (points) watched for keyboard focus.
+    private static let keyboardFocusStripHeight: CGFloat = 28
+    /// Horizontal slack around the status item while the keyboard pill moves.
+    private static let keyboardFocusHorizontalMargin: CGFloat = 40
+    /// How long focus must sit away from the item before the panel follows
+    /// the pill and closes — long enough to survive one arrow-key hop.
+    private static let keyboardFocusAwayDelay: TimeInterval = 0.45
+    /// Poll cadence while the panel is open for focus-driven open/close.
+    private static let keyboardFocusPollInterval: TimeInterval = 0.08
+    /// Cancellable delayed close scheduled when focus leaves the item.
+    private var keyboardFocusWorkItem: DispatchWorkItem?
+    /// Last keyboard-focus open state, so the panel toggles exactly on edges.
+    private var wasKeyboardMenuBarFocus = false
+    /// Live "mouse is over my status item" state. `NSEvent.mouseLocation` is
+    /// sampled from the same poll, so hover and keyboard focus can share one
+    /// watcher instead of installing mouse-tracking areas on a status item.
+    private var isMouseUserHover = false
+
+    /// True while the pointer itself sits on this status item.
+    private var isMouseUserHoveringNow: Bool {
+        guard let button = statusItem.button,
+              let window = button.window
+        else { return false }
+        let location = NSEvent.mouseLocation
+        return window.convertToScreen(window.frame).contains(location)
+    }
+
+    /// True while the *keyboard* focus pill sits on this status item —
+    /// priority over mouse hover for the whole session. This is Control-F2
+    /// (Fn-Ctrl-F2) menu-bar navigation with arrows: the pill slides across
+    /// the menu bar without the mouse ever moving. The pill itself is opaque
+    /// to third parties (AppKit exposes no focus-pill API for menu extras),
+    /// so this reads the only public edge available: the mouse is untouched
+    /// while the pointer sits inside a small strip around this item. Mouse
+    /// hover sets `isMouseUserHover` first in the same poll, so a parked
+    /// cursor can never fake a keyboard session.
+    private var isKeyboardMenuBarFocus: Bool {
+        guard !isMouseUserHover else { return false }
+        guard let button = statusItem.button,
+              let window = button.window,
+              let screen = window.screen ?? NSScreen.main
+        else { return false }
+        let location = NSEvent.mouseLocation
+        let buttonFrame = window.convertToScreen(window.frame)
+        let trackingFrame = CGRect(
+            x: buttonFrame.minX - Self.keyboardFocusHorizontalMargin,
+            y: screen.frame.maxY - Self.keyboardFocusStripHeight,
+            width: buttonFrame.width + Self.keyboardFocusHorizontalMargin * 2,
+            height: Self.keyboardFocusStripHeight
+        )
+        return trackingFrame.contains(location)
+    }
+
+    /// Starts the keyboard-focus watcher alongside the session watch, so the
+    /// panel also opens on Ctrl-F2 + arrows, and closes again when the pill
+    /// moves on — the Wi-Fi/battery behaviour.
+    private func startKeyboardFocusWatch() {
+        wasKeyboardMenuBarFocus = false
+        scheduleKeyboardFocusWatch()
+    }
+
+    /// Stops the watcher and drops any pending focus-driven close.
+    private func stopKeyboardFocusWatch() {
+        keyboardFocusWorkItem?.cancel()
+        keyboardFocusWorkItem = nil
+        wasKeyboardMenuBarFocus = false
+    }
+
+    private func scheduleKeyboardFocusWatch() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + Self.keyboardFocusPollInterval) { [weak self] in
+            guard let self, self.window.isVisible else { return }
+            self.keyboardFocusWatchTick()
+            self.scheduleKeyboardFocusWatch()
+        }
+    }
+
+    private func keyboardFocusWatchTick() {
+        isMouseUserHover = isMouseUserHoveringNow
+        let focused = isKeyboardMenuBarFocus
+        guard focused != wasKeyboardMenuBarFocus else { return }
+        wasKeyboardMenuBarFocus = focused
+        if focused {
+            // The pill arrived while the mouse never moved: this is a
+            // keyboard session. Cancel a pending focus-away close and open
+            // exactly like a click would.
+            keyboardFocusWorkItem?.cancel()
+            keyboardFocusWorkItem = nil
+            if !window.isVisible {
+                didPressStatusBarButton(statusItem.button!)
+            }
+        } else {
+            // The pill moved on. Dismiss after a beat so one more arrow hop
+            // can't flap the panel, then mirror the close path click-away
+            // uses (ending a focus session dismisses like AppKit's panels).
+            keyboardFocusWorkItem?.cancel()
+            let workItem = DispatchWorkItem { [weak self] in
+                guard let self else { return }
+                self.keyboardFocusWorkItem = nil
+                guard self.window.isVisible else { return }
+                self.dismissWindow()
+            }
+            keyboardFocusWorkItem = workItem
+            DispatchQueue.main.asyncAfter(deadline: .now() + Self.keyboardFocusAwayDelay, execute: workItem)
+        }
+    }
+
     private func didPressStatusBarButton(_ sender: NSStatusBarButton) {
         log("didPress: \(stateDescription)")
         if window.isVisible {
@@ -98,6 +252,7 @@ public final class FluidMenuBarExtraStatusItem: NSObject, NSWindowDelegate {
         log("didPress: after makeKeyAndOrderFront → \(stateDescription)")
         setSystemHighlight(true)
         startSessionWatch()
+        startKeyboardFocusWatch()
     }
     
     public func windowDidBecomeKey(_ notification: Notification) {
@@ -108,6 +263,17 @@ public final class FluidMenuBarExtraStatusItem: NSObject, NSWindowDelegate {
     
     public func windowDidResignKey(_ notification: Notification) {
         log("windowDidResignKey: \(stateDescription)")
+        // Another window of this app can legitimately take key focus while the
+        // popover stays open: the open/save panel behind "Browse…" for a custom
+        // adhan sound, the shared colour panel, or any app window opened from
+        // inside the popover. Dismissing here would kill that interaction — and
+        // because those windows sit at a lower level they would also be drawn
+        // behind the popover, looking like a dead control.
+        if let keyWindow = NSApp.keyWindow, keyWindow !== window {
+            raiseAuxiliaryWindow(keyWindow)
+            log("windowDidResignKey: \(type(of: keyWindow)) took key → keeping popover open")
+            return
+        }
         if window.isVisible {
             dismissWindow()
         }
@@ -124,6 +290,7 @@ public final class FluidMenuBarExtraStatusItem: NSObject, NSWindowDelegate {
         }
         isDismissing = true
         stopSessionWatch()
+        stopKeyboardFocusWatch()
         log("dismissWindow: begin → \(stateDescription)")
 
         globalEventMonitor?.stop()
@@ -207,6 +374,14 @@ public final class FluidMenuBarExtraStatusItem: NSObject, NSWindowDelegate {
     private func sessionWatchTick() {
         guard window.isVisible else {
             stopSessionWatch()
+            return
+        }
+        if isAuxiliaryAppWindowKey {
+            // A panel opened from inside the popover (open/save, colour) is up.
+            // AppKit can drop the expanded-interface session while the user is
+            // still interacting with it, which must not tear the popover down.
+            sessionWatchSeenSession = true
+            scheduleSessionWatch(generation: sessionWatchGeneration)
             return
         }
         if hasExpandedInterfaceSession() {

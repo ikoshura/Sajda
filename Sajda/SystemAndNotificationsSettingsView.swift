@@ -62,6 +62,25 @@ struct SystemAndNotificationsSettingsView: View {
                             ScaledMenuPicker(selection: $applyToAllAdhanType, options: AdhanType.allCases) { $0.displayName }
 
                             Button("Apply") {
+                                if applyToAllAdhanType == .custom {
+                                    // Custom needs a real file: pick one now and
+                                    // share it with every prayer (each row can
+                                    // still be re-browsed afterwards). Cancelling
+                                    // leaves the configs untouched instead of
+                                    // writing unusable empty paths.
+                                    NSApp.activate(ignoringOtherApps: true)
+                                    let openPanel = NSOpenPanel()
+                                    openPanel.canChooseFiles = true
+                                    openPanel.canChooseDirectories = false
+                                    openPanel.allowsMultipleSelection = false
+                                    openPanel.allowedContentTypes = [.audio]
+                                    guard openPanel.runModal() == .OK,
+                                          let path = openPanel.url?.absoluteString else { return }
+                                    for prayer in allPrayers {
+                                        vm.setSoundConfig(PrayerSoundConfig(adhanType: .custom, customFilePath: path), for: prayer)
+                                    }
+                                    return
+                                }
                                 for prayer in allPrayers {
                                     vm.setSoundConfig(PrayerSoundConfig(adhanType: applyToAllAdhanType), for: prayer)
                                 }
@@ -176,6 +195,14 @@ struct PrayerSoundRow: View {
                         newConfig.adhanType = newType
                         if newType != .custom { newConfig.customFilePath = "" }
                         onUpdateConfig(newConfig)
+                        // Choosing Custom with no file yet goes straight to
+                        // the file chooser (dispatched so the modal can't
+                        // open while the menu is still tracking); otherwise
+                        // the row only gains a Browse link and the switch
+                        // looks like it did nothing.
+                        if newType == .custom && newConfig.customFilePath.isEmpty {
+                            DispatchQueue.main.async { onBrowse() }
+                        }
                     }
                 ), options: options) { $0.displayName }
             }

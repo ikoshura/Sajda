@@ -98,23 +98,29 @@ struct LocationAndCalcSettingsView: View {
                         Group {
                             Text("Mosque Timetable").scaledFont(.caption).foregroundColor(Color("SecondaryTextColor"))
                             if vm.useMawaqitSchedule, let mosque = vm.mawaqitMosque {
-                                HStack(spacing: 6) {
-                                    Image(systemName: "checkmark.circle.fill")
-                                        .foregroundColor(.green)
-                                    Text(String(format: NSLocalizedString("mawaqit_ready", comment: ""), mosque.name))
-                                        .lineLimit(1)
-                                        .truncationMode(.tail)
-                                    Spacer()
-                                }
-                                .scaledFont(.caption2)
+                                // The timetable text itself carries the check (see
+                                // `mawaqit_ready`), so there is no separate icon.
+                                Text(String(format: NSLocalizedString("mawaqit_ready", comment: ""), mosque.name))
+                                    .scaledFont(.caption2)
+                                    .lineLimit(1)
+                                    .truncationMode(.tail)
                                 HStack {
                                     Button("Refresh") { refreshMosqueSchedule() }.buttonStyle(.bordered)
                                     Spacer(minLength: 4)
                                     Button("Use Calculated Times Instead") { vm.disableMosqueSchedule() }.buttonStyle(.bordered)
                                 }
+                                // Fallback iqama gap — used when the mosque
+                                // doesn't publish iqama times. Default +8.
+                                HStack {
+                                    Text("Iqama Delay").scaledFont(.subheadline)
+                                    Spacer()
+                                    SajdaStepper(value: Binding(get: { Double(vm.iqamaDelayMinutes) }, set: { vm.iqamaDelayMinutes = Int($0) }), range: 0...60)
+                                }
                             }
-                            TextField(NSLocalizedString("Search for a mosque...", comment: ""), text: $mosqueQuery)
-                                .textFieldStyle(.roundedBorder)
+                            // Chrome is drawn by the app (see `SajdaSearchField`):
+                            // the native rounded bezel is what used to blink
+                            // black during page transitions in this panel.
+                            SajdaSearchField(placeholder: "Search for a mosque...", text: $mosqueQuery)
                                 .onChange(of: mosqueQuery) { newValue in scheduleMosqueSearch(newValue) }
                             if isDownloadingMosque {
                                 HStack(spacing: 6) {

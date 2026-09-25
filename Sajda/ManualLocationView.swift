@@ -34,8 +34,9 @@ struct ManualLocationView: View {
             
             Divider().padding(.horizontal, 12).drawingGroup()
             
-            TextField(LocalizedStringKey("Search for a city or paste coordinates..."), text: $vm.locationSearchQuery)
-                .textFieldStyle(.roundedBorder)
+            // Chrome drawn by the app (see `SajdaSearchField`) instead of the
+            // native rounded bezel, which could blink black mid-transition.
+            SajdaSearchField(placeholder: "Search for a city or paste coordinates...", text: $vm.locationSearchQuery)
                 .padding(.horizontal, 12)
             
             ScrollView {

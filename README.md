@@ -7,7 +7,7 @@ Prayer times for macOS, done quietly. Sajda lives in your menu bar, shows what m
 > Now with a Liquid Glass interface. A refractive glass panel, frosted interior, and native glass controls that feel at home on the latest macOS.
 
 [![Latest Release](https://img.shields.io/github/v/release/ikoshura/Sajda)](https://github.com/ikoshura/Sajda/releases)
-[![macOS Ventura 13.3+](https://img.shields.io/badge/macOS-Ventura%2013.3%2B-blue)](https://github.com/ikoshura/Sajda/releases)
+[![macOS Sonoma 14.0+](https://img.shields.io/badge/macOS-Sonoma%2014.0%2B-blue)](https://github.com/ikoshura/Sajda/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 ---
@@ -61,14 +61,14 @@ xattr -r -d com.apple.quarantine /Applications/Sajda.app
 
 ## System Requirements
 
-- macOS Ventura 13.3 or later
+- macOS Sonoma 14.0 or later
 - Apple Silicon or Intel
 
 ---
 
 ## Build from Source
 
-Requirements: macOS Ventura 13.3+, Xcode with macOS SDK.
+Requirements: macOS Sonoma 14.0+, Xcode with macOS SDK.
 
 ```bash
 xcodebuild \

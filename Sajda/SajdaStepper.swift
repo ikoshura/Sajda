@@ -6,6 +6,9 @@ struct SajdaStepper: View {
     @Binding var value: Double
     var range: ClosedRange<Double> = -60...60
     var step: Double = 1
+    /// When false the field shows the bare number (e.g. "10") instead of the
+    /// signed form ("+10") used for correction-style values.
+    var showsSign: Bool = true
 
     @State private var textValue: String = ""
     @FocusState private var isFocused: Bool
@@ -60,7 +63,7 @@ struct SajdaStepper: View {
     }
 
     private func formatValue(_ val: Double) -> String {
-        String(format: "%+.0f", val)
+        showsSign ? String(format: "%+.0f", val) : String(format: "%.0f", val)
     }
 
     private func updateValue(from text: String) {

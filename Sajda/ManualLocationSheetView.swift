@@ -21,8 +21,7 @@ struct ManualLocationSheetView: View {
             }
             .padding(.top, 8)
 
-            TextField("Search for a city or paste coordinates...", text: $vm.locationSearchQuery)
-                .textFieldStyle(.roundedBorder)
+            SajdaSearchField(placeholder: "Search for a city or paste coordinates...", text: $vm.locationSearchQuery)
             
             if vm.isLocationSearching {
                 // --- KUNCI PERBAIKAN 1 ---

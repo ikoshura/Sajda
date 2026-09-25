@@ -61,6 +61,17 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
     @AppStorage("useAccentColor") var useAccentColor: Bool = true
     /// User-picked next-prayer highlight color ("#RRGGBB"); empty = accent default.
     @AppStorage("customHighlightColorHex") var customHighlightColorHex: String = ""
+    /// Shows the big countdown header above the panel schedule.
+    @AppStorage("showCountdownHeader") var showCountdownHeader: Bool = true
+    /// When on, the whole menu bar panel is tinted with the accent colour and
+    /// the panel's colour scheme flips to keep everything balanced against it
+    /// (`accentPanelColorScheme` / `accentPanelTint`).
+    @AppStorage("accentPanelTheme") var accentPanelTheme: Bool = false
+    /// Lead time in minutes for the red imminent alert; 0 disables it.
+    /// Keeps the former `RedAlertTiming` menu's defaults key (and Int value)
+    /// so existing choices carry over. Republishes because the Settings
+    /// +/- stepper must redraw immediately.
+    @AppStorage("redAlertTiming") var redAlertMinutes: Int = 10 { didSet { objectWillChange.send() } }
     /// Downloaded Mawaqit mosque schedule; loaded from disk on first use.
     @Published var mawaqitMosque: MawaqitMosque?
     /// When true the panel, menu bar, and notifications read the mosque
@@ -499,6 +510,28 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
             return
         }
 
+        // Sunnah prayers stay usable in mosque mode, counted locally: Tahajud
+        // from the *ongoing* night (yesterday's mosque Isha → today's Fajr,
+        // only while still before today's Fajr) and Dhuha 20 minutes after
+        // the mosque's sunrise.
+        var extras: [(name: String, time: Date)] = []
+        if showSunnahPrayers {
+            let now = Date()
+            let yesterday = now.addingTimeInterval(-86_400)
+            if now < fajr,
+               let yesterdayDay = MawaqitService.times(for: yesterday, in: mosque.calendar),
+               yesterdayDay.count >= 6,
+               let yesterdayIsha = dateFromHM(yesterdayDay[5], on: yesterday) {
+                let night = fajr.timeIntervalSince(yesterdayIsha)
+                if night > 0 {
+                    extras.append(("Tahajud", yesterdayIsha.addingTimeInterval(night * (2 / 3.0))))
+                }
+            }
+            if let sunrise = dateFromHM(day[1]) {
+                extras.append(("Dhuha", sunrise.addingTimeInterval(20 * 60)))
+            }
+        }
+
         // Tomorrow's Fajr for the after-Isha highlight. At the year's edge the
         // new calendar may not be published yet, so fall back to today's Fajr
         // clock time on tomorrow's date (the estimate the Mawaqit applet uses).
@@ -508,11 +541,13 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
             ?? dateFromHM(day[0], on: tomorrow)
             ?? fajr.addingTimeInterval(86_400)
 
+        var entries: [(name: String, time: Date)] = [
+            ("Fajr", fajr), ("Dhuhr", dhuhr), ("Asr", asr),
+            ("Maghrib", maghrib), ("Isha", isha),
+        ]
+        entries.append(contentsOf: extras)
         DispatchQueue.main.async {
-            self.todayTimes = [
-                "Fajr": fajr, "Dhuhr": dhuhr, "Asr": asr,
-                "Maghrib": maghrib, "Isha": isha,
-            ]
+            self.todayTimes = Dictionary(uniqueKeysWithValues: entries.map { ($0.name, $0.time) })
             self.tomorrowFajrTime = fajrTomorrow
             self.updateNextPrayer()
             self.updateNotifications()
@@ -547,6 +582,35 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
     func disableMosqueSchedule() {
         useMawaqitSchedule = false  // didSet → updatePrayerTimes()
     }
+
+    /// Minutes after the adhan for the iqama when the mosque doesn't publish
+    /// its own iqama times — set with the +/- stepper in Settings (default 8).
+    /// Republishes because the stepper must redraw immediately.
+    @AppStorage("iqamaDelayMinutes") var iqamaDelayMinutes: Int = 8 { didSet { objectWillChange.send() } }
+
+    /// Iqama time for the next prayer (mosque mode only): the mosque's published
+    /// absolute iqama for the occurrence's day when available, otherwise the
+    /// adhan time plus `iqamaDelayMinutes`, counted locally. Sunnah prayers
+    /// have no congregation, so they get no iqama.
+    var nextPrayerIqamaDate: Date? {
+        guard useMawaqitSchedule,
+              let mosque = mawaqitMosque,
+              let occ = nextPrayerOccurrenceDate,
+              let index = Self.mosquePrayerIndex[nextPrayerName] else { return nil }
+        // The occurrence can be tomorrow's Fajr (after Isha), so the calendar is
+        // read for the occurrence's own day instead of always today.
+        if let iqama = mosque.iqamaCalendar,
+           let entry = MawaqitService.times(for: occ, in: iqama, minimumColumns: 5),
+           index < entry.count,
+           let published = dateFromHM(entry[index], on: occ), published >= occ {
+            return published
+        }
+        return occ.addingTimeInterval(Double(iqamaDelayMinutes) * 60)
+    }
+
+    /// Mosque calendar column per prayer: [fajr, dhuhr, asr, maghrib, isha]
+    /// (the adhan calendar's sunrise column is skipped).
+    private static let mosquePrayerIndex = ["Fajr": 0, "Dhuhr": 1, "Asr": 2, "Maghrib": 3, "Isha": 4]
 
     /// Panel caption: the mosque's name while the mosque timetable is active.
     var panelLocationCaption: String {
@@ -635,7 +699,9 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
         }
 
         let diff = Int(nextDate.timeIntervalSince(Date()))
-        isPrayerImminent = (diff <= 600 && diff > 0)
+        // Red alert: the imminent styling starts `redAlertMinutes` minutes
+        // before the prayer; 0 never triggers it.
+        isPrayerImminent = (redAlertMinutes > 0 && diff <= redAlertMinutes * 60 && diff > 0)
 
         // hh:mm:ss for the panel's countdown header (same locale digits as
         // the menu-bar countdown).
@@ -674,10 +740,100 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
         var hex = customHighlightColorHex
         guard !hex.isEmpty else { return nil }
         if hex.hasPrefix("#") { hex.removeFirst() }
-        guard hex.count == 6, let v = UInt32(hex, radix: 16) else { return nil }
-        return Color(red: Double((v >> 16) & 0xFF) / 255.0,
-                     green: Double((v >> 8) & 0xFF) / 255.0,
-                     blue: Double(v & 0xFF) / 255.0)
+        guard hex.count == 6 || hex.count == 8, UInt32(hex, radix: 16) != nil else { return nil }
+        // RGB only: the row fill itself stays solid so the highlight text
+        // keeps its contrast — the slider alpha drives the panel tint alone.
+        return Self.color(fromHex: String(hex.prefix(6)))
+    }
+
+    /// Highlight palette offered instead of a system colour picker: the picker's
+    /// `NSColorPanel` cannot be interacted with reliably from inside a
+    /// non-activating menu bar panel, so the choice is a fixed set of presets.
+    /// `key` is localized at the call site, `hex` is the persisted value.
+    static let highlightColorPresets: [(key: String, hex: String)] = [
+        ("color_blue", "#007AFF"),
+        ("color_purple", "#AF52DE"),
+        ("color_pink", "#FF2D55"),
+        ("color_red", "#FF3B30"),
+        ("color_orange", "#FF9500"),
+        ("color_yellow", "#FFCC00"),
+        ("color_green", "#34C759"),
+        ("color_graphite", "#8E8E93"),
+    ]
+
+    /// `Color` for a "#RRGGBB[AA]" (or "RRGGBB[AA]") string; malformed input
+    /// falls back to the accent colour so a swatch is never invisible. The
+    /// alpha byte keeps the slider value for controls that read the picked
+    /// colour back (ColorSelector guestimates, popover re-opens).
+    static func color(fromHex hex: String) -> Color {
+        var clean = hex.trimmingCharacters(in: .whitespacesAndNewlines)
+        if clean.hasPrefix("#") { clean.removeFirst() }
+        let rgbHex: String
+        var alpha = 1.0
+        if clean.count == 8, let rgb = UInt32(String(clean.prefix(6)), radix: 16),
+           let alphaByte = UInt32(String(clean.suffix(2)), radix: 16) {
+            rgbHex = String(clean.prefix(6))
+            alpha = Double(alphaByte) / 255.0
+            return Color(red: Double((rgb >> 16) & 0xFF) / 255.0,
+                         green: Double((rgb >> 8) & 0xFF) / 255.0,
+                         blue: Double(rgb & 0xFF) / 255.0,
+                         opacity: alpha)
+        } else if clean.count == 6, UInt32(clean, radix: 16) != nil {
+            rgbHex = clean
+        } else {
+            return .accentColor
+        }
+        guard let value = UInt32(rgbHex, radix: 16) else { return .accentColor }
+        return Color(red: Double((value >> 16) & 0xFF) / 255.0,
+                     green: Double((value >> 8) & 0xFF) / 255.0,
+                     blue: Double(value & 0xFF) / 255.0)
+    }
+
+    /// "#RRGGBB[AA]" for a picked SwiftUI colour (sRGB) — the inverse of
+    /// `color(fromHex:)`, used to store a ColorSelector choice. Fully opaque
+    /// colours collapse to 6 digits (matching the palette format); anything
+    /// else keeps the explicit alpha byte from the opacity slider.
+    static func hexString(from color: Color) -> String {
+        guard let rgb = NSColor(color).usingColorSpace(.sRGB) else { return "" }
+        func channel(_ component: CGFloat) -> Int { Int((component * 255).rounded()) }
+        let r = channel(rgb.redComponent), g = channel(rgb.greenComponent)
+        let b = channel(rgb.blueComponent), a = rgb.alphaComponent
+        guard a < 0.999 else {
+            return String(format: "#%02X%02X%02X", r, g, b)
+        }
+        let alpha = Int((min(max(a, 0), 1) * 255).rounded())
+        return String(format: "#%02X%02X%02X%02X", r, g, b, alpha)
+    }
+
+    /// On-state tint for native controls (switches, checkboxes): the selected
+    /// highlight colour when one is picked — so every toggle matches the
+    /// highlight row and the Accent Panel tint — or nil to keep the system
+    /// accent when no colour is selected.
+    static func controlTint(fromHighlightHex hex: String) -> Color? {
+        var clean = hex.trimmingCharacters(in: .whitespacesAndNewlines)
+        if clean.hasPrefix("#") { clean.removeFirst() }
+        guard !clean.isEmpty, clean.count == 6 || clean.count == 8, UInt32(clean, radix: 16) != nil else { return nil }
+        // RGB only: switches, checkboxes, and the About icon/Done fill stay
+        // solid — alpha (slider) never reaches them.
+        return color(fromHex: String(clean.prefix(6)))
+    }
+
+    /// Selected highlight colour used as the panel's interactive accent: the
+    /// picked custom colour (RGB only, so the picker's alpha never washes
+    /// text out), or the system accent when no colour is selected. Single
+    /// source for the surfaces that colour text or icons with it — the
+    /// correction preview, time popovers, About page.
+    var selectedHighlightColor: Color {
+        Self.controlTint(fromHighlightHex: customHighlightColorHex) ?? .accentColor
+    }
+
+    /// True while the picked highlight is one of the two red-ish presets
+    /// (#FF3B30 red, #FF2D55 pink) — the only picks that would swallow the
+    /// panel's red alert instead of standing apart from it.
+    static func highlightCollidesWithRedAlert(fromHighlightHex hex: String) -> Bool {
+        var clean = hex
+        if clean.hasPrefix("#") { clean.removeFirst() }
+        return ["FF3B30", "FF2D55"].contains(clean.uppercased())
     }
 
     /// Single source for the next-prayer highlight on the panel row and the
@@ -686,6 +842,15 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
     func nextPrayerHighlight(imminent override: Bool? = nil) -> (fill: Color, text: Color) {
         let imminent = override ?? isPrayerImminent
         if imminent {
+            // The two red-ish picks would swallow the red alert (same hue as
+            // the highlight fill and/or the Accent Panel), so for those — and
+            // only while one of those red surfaces is actually showing — the
+            // *alert* flips to amber with black text. Inside the panel only:
+            // the picked colour itself stays untouched everywhere else.
+            if useAccentColor || accentPanelTheme,
+               Self.highlightCollidesWithRedAlert(fromHighlightHex: customHighlightColorHex) {
+                return (Color(red: 1.0, green: 0xCC / 255.0, blue: 0.0), .black)
+            }
             return useAccentColor
                 ? (Color(red: 1.0, green: 0x42 / 255.0, blue: 0x46 / 255.0), .white)
                 : (Color("HighlightColor"), .red)
@@ -696,13 +861,112 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
         return (Color("HoverColor"), .primary)
     }
 
-    /// "#RRGGBB" for persisting a picked highlight color.
-    static func hexString(from color: Color) -> String {
-        guard let rgb = NSColor(color).usingColorSpace(.sRGB) else { return "" }
-        return String(format: "#%02X%02X%02X",
-                      Int(round(rgb.redComponent * 255)),
-                      Int(round(rgb.greenComponent * 255)),
-                      Int(round(rgb.blueComponent * 255)))
+    // MARK: - Accent Panel Theme
+
+    /// System accent as sRGB components. The `AccentColor` asset ships the
+    /// empty system-default template entry, so `NSColor.controlAccentColor` —
+    /// the colour `Color.accentColor` resolves to — is read directly.
+    private static var systemAccentComponents: (r: Double, g: Double, b: Double) {
+        if let rgb = NSColor.controlAccentColor.usingColorSpace(.sRGB) {
+            return (rgb.redComponent, rgb.greenComponent, rgb.blueComponent)
+        }
+        return (0.0, 0.478, 1.0)   // System blue fallback.
+    }
+
+    /// Colour the panel tint is derived from: the user's selected highlight
+    /// colour when one is picked — so the tinted panel and the highlighted
+    /// row share the same colour — otherwise the system accent. Static so
+    /// `AccentPanelTintOverlay` (at the window root) shares the exact same
+    /// math without needing a view model instance.
+    static func accentPanelBaseComponents(fromHighlightHex hex: String) -> (r: Double, g: Double, b: Double) {
+        var hex = hex
+        if hex.hasPrefix("#") { hex.removeFirst() }
+        let rgbHex = String(hex.prefix(6))
+        if rgbHex.count == 6, let value = UInt32(rgbHex, radix: 16) {
+            return (Double((value >> 16) & 0xFF) / 255.0,
+                    Double((value >> 8) & 0xFF) / 255.0,
+                    Double(value & 0xFF) / 255.0)
+        }
+        return Self.systemAccentComponents
+    }
+
+    /// Transparency the Accent Panel tint applies: the alpha byte of an
+    /// 8-digit pick (the ColorSelector opacity slider), else the default
+    /// translucency. Floor-minimum, so full-left is a glassy whisper and
+    /// full-right is solid colour.
+    static func accentPanelOpacity(fromHighlightHex hex: String) -> Double {
+        var clean = hex.trimmingCharacters(in: .whitespacesAndNewlines)
+        if clean.hasPrefix("#") { clean.removeFirst() }
+        guard clean.count == 8, let alpha = UInt32(String(clean.suffix(2)), radix: 16) else { return 0.7 }
+        return max(Double(alpha) / 255.0, 0.05)
+    }
+
+    /// WCAG relative luminance: 0 = black, 1 = white.
+    private static func relativeLuminance(_ r: Double, _ g: Double, _ b: Double) -> Double {
+        func linearize(_ c: Double) -> Double {
+            c <= 0.04045 ? c / 12.92 : pow((c + 0.055) / 1.055, 2.4)
+        }
+        return 0.2126 * linearize(r) + 0.7152 * linearize(g) + 0.0722 * linearize(b)
+    }
+
+    /// True when light text balances better on the accent-tinted panel. At or
+    /// below the 0.45 luminance cutoff the tint is shaded toward black (see
+    /// `accentPanelTint`); above it the tint is lightened toward white and
+    /// dark text wins.
+    static func accentPanelPrefersLightText(fromHighlightHex hex: String) -> Bool {
+        let c = accentPanelBaseComponents(fromHighlightHex: hex)
+        return relativeLuminance(c.r, c.g, c.b) <= 0.45
+    }
+
+    /// Panel colour scheme while `accentPanelTheme` is on: drives the dark/
+    /// light variants of every asset colour (secondary text, dividers, hover,
+    /// border) and the native controls so the rest of the panel matches the
+    /// tint instead of fighting it.
+    static func accentPanelColorScheme(fromHighlightHex hex: String) -> ColorScheme {
+        accentPanelPrefersLightText(fromHighlightHex: hex) ? .dark : .light
+    }
+
+    /// Accent panel tint, applied *translucently* at the window root (see
+    /// `AccentPanelTintOverlay`) so the Liquid Glass blur keeps showing
+    /// through: the base colour shaded toward black (light text) or toward
+    /// white (dark text). The heavy shading on the light-text side pays for
+    /// the bright backdrop that shows through the translucent tint, keeping
+    /// white text above ~4.5:1 even over a white desktop.
+    static func accentPanelTint(fromHighlightHex hex: String) -> Color {
+        let c = accentPanelBaseComponents(fromHighlightHex: hex)
+        if accentPanelPrefersLightText(fromHighlightHex: hex) {
+            return Color(red: c.r * 0.5, green: c.g * 0.5, blue: c.b * 0.5)
+        }
+        return Color(red: c.r + (1 - c.r) * 0.4,
+                     green: c.g + (1 - c.g) * 0.4,
+                     blue: c.b + (1 - c.b) * 0.4)
+    }
+
+    // Instance mirrors for views that already hold the view model, so both
+    // call styles stay in lockstep with the window-root tint overlay.
+
+    var accentPanelPrefersLightText: Bool {
+        Self.accentPanelPrefersLightText(fromHighlightHex: customHighlightColorHex)
+    }
+
+    var accentPanelColorScheme: ColorScheme {
+        Self.accentPanelColorScheme(fromHighlightHex: customHighlightColorHex)
+    }
+
+    var accentPanelTint: Color {
+        Self.accentPanelTint(fromHighlightHex: customHighlightColorHex)
+    }
+
+    /// Today's Hijri date for the panel header — Umm al-Qura reckoning with
+    /// localized month names and era, e.g. "15 Rabiʻ II 1448 AH". Arabic renders
+    /// its own numerals and era symbol (هـ), matching every other time in the app.
+    var hijriDateText: String {
+        let formatter = DateFormatter()
+        formatter.calendar = Calendar(identifier: .islamicUmmAlQura)
+        formatter.locale = displayLocale
+        formatter.timeZone = locationTimeZone
+        formatter.dateFormat = "d MMMM yyyy G"
+        return formatter.string(from: Date())
     }
 
     /// Nama shalat yang sudah dilokalkan, di-uppercase bila opsi aksesibilitas
@@ -854,6 +1118,10 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
         var configs = prayerSoundConfigs
         configs[prayerName] = config
         prayerSoundConfigs = configs
+        // Republish immediately so the sound rows (menu selection, Browse
+        // link, file name) update on the spot instead of waiting for the
+        // next unrelated view-model change.
+        objectWillChange.send()
     }
     var isPrayerDataAvailable: Bool { !todayTimes.isEmpty }
     var isRTL: Bool { languageManager.language == "ar" }

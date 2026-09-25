@@ -2,6 +2,7 @@
 
 import SwiftUI
 import NavigationStack
+import ColorSelector
 
 struct SettingsView: View {
     static let id = "SettingsNavigationStack"
@@ -17,14 +18,45 @@ struct SettingsView: View {
     @State private var isAdhanHovering = false
     @State private var isAccessibilityHovering = false
     @State private var isSyncingLaunchAtLogin = false
+    @State private var showHighlightColorPicker = false
+    /// Whether this picker's popover is meant to be up right now. Set from
+    /// the same taps that flip `showHighlightColorPicker`, and read back on
+    /// the guarded navigation instead of the popover's own fade timing.
+    @State private var isHighlightColorPickerOpen = false
 
-    /// Bridges the stored highlight hex to the ColorPicker; picking writes
-    /// "#RRGGBB", the Default button clears it back to the accent color.
-    private var highlightColorBinding: Binding<Color> {
-        Binding(
-            get: { vm.customHighlightColor ?? .accentColor },
-            set: { vm.customHighlightColorHex = PrayerTimeViewModel.hexString(from: $0) }
-        )
+    /// Single identifier for "is the colour-selector popup up right now".
+    /// True when the drawer is open; false when never opened or already
+    /// dismissed (e.g. by an outside click). The back button reads this:
+    /// open → close + ~0.55 s delay, closed → pop instantly, no delay.
+    private var isColorSelectorPopupOpen: Bool {
+        showHighlightColorPicker || isHighlightColorPickerOpen
+    }
+
+    /// Close the colour-picker drawer, then run `work` once its dismiss
+    /// animation AND the panel resize it drives have both settled. The
+    /// drawer's `.popover` fade plus the window's animated `setFrame`
+    /// together run ~0.4 s from the click (state flip → next-runloop
+    /// dismiss start → ~0.25–0.35 s frame animation). Firing the page pop
+    /// at 0.3 s lands mid-resize, so both `setFrame` animations overlap
+    /// and fight — that's the top-bottom-top jump. Waiting ~0.55 s only
+    /// when the drawer was actually open keeps the already-closed path
+    /// instant.
+    private func afterPickerClosed(_ work: @escaping () -> Void) {
+        if isColorSelectorPopupOpen {
+            showHighlightColorPicker = false
+            isHighlightColorPickerOpen = false
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.55, execute: work)
+        } else {
+            work()
+        }
+    }
+
+    /// Record that the drawer's popover is meant to be up. Kept in the same
+    /// places the picker's `isPresented` binding flips, so the navigation
+    /// buttons above can tell an open drawer from one that was already
+    /// dismissed by an outside click.
+    private func noteHighlightColorPicker(presented: Bool) {
+        isHighlightColorPickerOpen = presented
     }
 
     private var viewWidth: CGFloat {
@@ -32,11 +64,32 @@ struct SettingsView: View {
         return vm.panelWidth(base: vm.useCompactLayout ? 220 : 260)
     }
 
+    /// ColorSelector writes the picked colour as "#RRGGBB[AA]" (alpha from
+    /// the opacity slider); nil means "no custom colour yet". Picking one
+    /// enables accent mode, exactly like tapping a palette swatch.
+    private var highlightColorSelection: Binding<Color?> {
+        Binding(
+            get: { PrayerTimeViewModel.color(fromHex: vm.customHighlightColorHex) },
+            set: { picked in
+                guard let picked else { return }
+                vm.customHighlightColorHex = PrayerTimeViewModel.hexString(from: picked)
+                if !vm.useAccentColor { vm.useAccentColor = true }
+            }
+        )
+    }
+
     var body: some View {
         NavigationStackView(Self.id) {
             VStack(alignment: .leading, spacing: 6) {
                 Button(action: {
-                    navigationModel.hideView(ContentView.id, animation: vm.backwardAnimation())
+                    // One click: close the drawer first, then pop once its
+                    // dismiss + panel resize have both settled. 0.3 s fired
+                    // mid-resize so the two `setFrame` animations overlapped
+                    // and fought (the jump); ~0.55 s only applies when the
+                    // drawer was actually open, otherwise the pop is instant.
+                    afterPickerClosed {
+                        navigationModel.hideView(ContentView.id, animation: vm.backwardAnimation())
+                    }
                 }) {
                     HStack {
                         Image(systemName: vm.backChevron).scaledFont(.body, weight: .semibold)
@@ -73,18 +126,64 @@ struct SettingsView: View {
                     StyledToggle(label: "24-Hour Time", isOn: $vm.use24HourFormat)
                     StyledToggle(label: "Minimal Menu Bar", isOn: $vm.useMinimalMenuBarText).disabled(vm.menuBarTextMode == .hidden)
                     StyledToggle(label: "Accent Color", isOn: $vm.useAccentColor)
-                    HStack {
-                        Text("Highlight Color").scaledFont(.subheadline)
-                        Spacer()
-                        ColorPicker("", selection: highlightColorBinding, supportsOpacity: false)
-                            .labelsHidden()
-                        Button("Default") { vm.customHighlightColorHex = "" }
-                            .controlSize(.mini)
-                            .disabled(vm.customHighlightColorHex.isEmpty)
+                    // Tints the whole panel; the panel's colour scheme flips
+                    // to balance text and controls against the tint.
+                    StyledToggle(label: "Accent Panel", isOn: $vm.accentPanelTheme)
+                    VStack(alignment: .leading, spacing: 6) {
+                        HStack {
+                            Text("Highlight Color").scaledFont(.subheadline)
+                            Spacer()
+                            Button("Default") { vm.customHighlightColorHex = "" }
+                                .controlSize(.mini)
+                                .disabled(vm.customHighlightColorHex.isEmpty)
+                        }
+                        // Fixed palette instead of a system colour picker: the
+                        // picker's NSColorPanel never becomes usable inside this
+                        // non-activating menu bar panel.
+                        HStack(spacing: 4) {
+                            ForEach(PrayerTimeViewModel.highlightColorPresets, id: \.hex) { preset in
+                                HighlightColorSwatch(
+                                    hex: preset.hex,
+                                    nameKey: preset.key,
+                                    isSelected: vm.customHighlightColorHex.caseInsensitiveCompare(preset.hex) == .orderedSame
+                                ) {
+                                    vm.customHighlightColorHex = preset.hex
+                                    // The custom fill only shows while accent mode
+                                    // is on, so picking one enables it instead of
+                                    // appearing to do nothing.
+                                    if !vm.useAccentColor { vm.useAccentColor = true }
+                                }
+                            }
+                            // Any-colour picker (jaywcjlove/ColorSelector): a
+                            // native SwiftUI popover, unlike NSColorPanel, so it
+                            // works inside this non-activating menu bar panel.
+                            ColorSelectorButton(
+                                popover: Binding(
+                                    get: { showHighlightColorPicker },
+                                    set: {
+                                        showHighlightColorPicker = $0
+                                        noteHighlightColorPicker(presented: $0)
+                                    }
+                                ),
+                                selection: highlightColorSelection,
+                                controlSize: .constant(.mini)
+                            )
+                                .colorSelectorPopover(selection: highlightColorSelection, isPresented: $showHighlightColorPicker)
+                            Spacer(minLength: 0)
+                        }
                     }
-                    .disabled(!vm.useAccentColor)
-                    .opacity(vm.useAccentColor ? 1 : 0.5)
+                    // How long before prayer the red imminent alert starts;
+                    // 0 disables it (shown as "Off"). Default is 10 minutes.
+                    HStack {
+                        Text("Red Alert").scaledFont(.subheadline)
+                        Spacer()
+                        if vm.redAlertMinutes == 0 {
+                            Text("Red Alert Off").scaledFont(.caption).foregroundColor(Color("SecondaryTextColor"))
+                        }
+                        SajdaStepper(value: Binding(get: { Double(vm.redAlertMinutes) }, set: { vm.redAlertMinutes = Int($0) }), range: 0...60, showsSign: false)
+                    }
                     StyledToggle(label: "Glass Highlight", isOn: $vm.useGlassPrayerHighlight)
+                    StyledToggle(label: "Show Countdown Header", isOn: $vm.showCountdownHeader)
                     StyledToggle(label: "Show Sunnah Prayers", isOn: $vm.showSunnahPrayers)
                 }
                 .controlSize(.small)
@@ -95,17 +194,35 @@ struct SettingsView: View {
                 Rectangle().fill(Color("DividerColor")).frame(height: 1).padding(.horizontal, 12)
 
                 VStack(alignment: .leading, spacing: 0) {
-                    Button(action: { navigationModel.showView(Self.id, animation: vm.forwardAnimation()) { LocationAndCalcSettingsView() } }) {
+                    Button(action: {
+                        if showHighlightColorPicker || isHighlightColorPickerOpen {
+                            showHighlightColorPicker = false
+                            isHighlightColorPickerOpen = false
+                        }
+                        navigationModel.showView(Self.id, animation: vm.forwardAnimation()) { LocationAndCalcSettingsView() }
+                    }) {
                         HStack { Text("Calculation & Location").scaledFont(.subheadline); Spacer(); Image(systemName: vm.forwardChevron).scaledFont(.caption, weight: .bold).foregroundColor(.secondary) }
                         .padding(.vertical, 5).padding(.horizontal, 8).liquidHover(isCalcHovering)
                     }.buttonStyle(.plain).padding(.horizontal, 5).onHover { hovering in isCalcHovering = hovering }
 
-                    Button(action: { navigationModel.showView(Self.id, animation: vm.forwardAnimation()) { SystemAndNotificationsSettingsView() } }) {
+                    Button(action: {
+                        if showHighlightColorPicker || isHighlightColorPickerOpen {
+                            showHighlightColorPicker = false
+                            isHighlightColorPickerOpen = false
+                        }
+                        navigationModel.showView(Self.id, animation: vm.forwardAnimation()) { SystemAndNotificationsSettingsView() }
+                    }) {
                         HStack { Text("Adhan Sound").scaledFont(.subheadline); Spacer(); Image(systemName: vm.forwardChevron).scaledFont(.caption, weight: .bold).foregroundColor(.secondary) }
                         .padding(.vertical, 5).padding(.horizontal, 8).liquidHover(isAdhanHovering)
                     }.buttonStyle(.plain).padding(.horizontal, 5).onHover { hovering in isAdhanHovering = hovering }
 
-                    Button(action: { navigationModel.showView(Self.id, animation: vm.forwardAnimation()) { AccessibilitySettingsView() } }) {
+                    Button(action: {
+                        if showHighlightColorPicker || isHighlightColorPickerOpen {
+                            showHighlightColorPicker = false
+                            isHighlightColorPickerOpen = false
+                        }
+                        navigationModel.showView(Self.id, animation: vm.forwardAnimation()) { AccessibilitySettingsView() }
+                    }) {
                         HStack { Text("Accessibility").scaledFont(.subheadline); Spacer(); Image(systemName: vm.forwardChevron).scaledFont(.caption, weight: .bold).foregroundColor(.secondary) }
                         .padding(.vertical, 5).padding(.horizontal, 8).liquidHover(isAccessibilityHovering)
                     }.buttonStyle(.plain).padding(.horizontal, 5).onHover { hovering in isAccessibilityHovering = hovering }
@@ -130,5 +247,38 @@ struct SettingsView: View {
         DispatchQueue.main.async {
             isSyncingLaunchAtLogin = false
         }
+    }
+}
+
+/// One preset in the highlight palette: a filled circle with a selection ring.
+/// Sized to sit on the settings rows' small control size, and labelled with the
+/// localized colour name for hover help and VoiceOver.
+private struct HighlightColorSwatch: View {
+    let hex: String
+    let nameKey: String
+    let isSelected: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Circle()
+                .fill(PrayerTimeViewModel.color(fromHex: hex))
+                .frame(width: 14, height: 14)
+                .overlay(Circle().stroke(Color.primary.opacity(0.25), lineWidth: 0.5))
+                .overlay {
+                    // The selection ring hugs the swatch so it can never overlap
+                    // its neighbour in the compact (220 pt) panel layout.
+                    if isSelected {
+                        Circle().stroke(Color.primary.opacity(0.9), lineWidth: 1.5)
+                    }
+                }
+                // Slightly larger than the dot: a 14 pt target is easy to miss.
+                .frame(width: 18, height: 18)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .help(Text(NSLocalizedString(nameKey, comment: "")))
+        .accessibilityLabel(Text(NSLocalizedString(nameKey, comment: "")))
+        .accessibilityAddTraits(isSelected ? [.isSelected] : [])
     }
 }
