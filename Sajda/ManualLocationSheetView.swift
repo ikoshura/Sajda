@@ -48,8 +48,15 @@ struct ManualLocationSheetView: View {
                     VStack(spacing: 2) {
                         ForEach(vm.locationSearchResults) { result in
                             Button(action: {
-                                vm.setManualLocation(city: result.name, coordinates: result.coordinates)
-                                dismiss()
+                                // Same deferred pop as ManualLocationView: the
+                                // mode switch + dismiss in one cycle crashed
+                                // the app when leaving timetable mode.
+                                let city = result.name
+                                let coords = result.coordinates
+                                vm.setManualLocation(city: city, coordinates: coords)
+                                DispatchQueue.main.async {
+                                    dismiss()
+                                }
                             }) {
                                 HStack {
                                     VStack(alignment: .leading) {

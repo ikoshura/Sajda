@@ -291,7 +291,11 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
         let manualLocationData: [String: Any] = ["name": locationNameToSave, "latitude": coordinates.latitude, "longitude": coordinates.longitude]
         UserDefaults.standard.set(manualLocationData, forKey: "manualLocationData")
         isUsingManualLocation = true
+        // Leaving mosque-timetable mode: the picked coordinates are the new
+        // source. (Setting this last recalculates from the fresh coords via
+        // its didSet; setting it earlier would recalc from stale ones.)
         currentCoordinates = coordinates
+        useMawaqitSchedule = false
         authorizationStatus = locMgr.authorizationStatus
         locationSearchQuery = ""
         locationSearchResults = []
@@ -342,6 +346,8 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
 
         manualLocationFallbackForAutomaticSwitch = loadManualLocation()
         isUsingManualLocation = false
+        // Leaving mosque-timetable mode: automatic location is the new source.
+        useMawaqitSchedule = false
 
         currentCoordinates = nil
         todayTimes = [:]
@@ -584,8 +590,14 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
     }
 
     /// Drops back to coordinate-based calculation (the file is kept for reuse).
+    /// When there are no coordinates to calculate from (e.g. location was
+    /// never granted), starts the location flow so the user lands on a live
+    /// permission/search state instead of stale timetable times.
     func disableMosqueSchedule() {
         useMawaqitSchedule = false  // didSet → updatePrayerTimes()
+        if currentCoordinates == nil && !isUsingManualLocation {
+            startLocationProcess()
+        }
     }
 
     /// Minutes after the adhan for the iqama when the mosque doesn't publish
@@ -1189,6 +1201,8 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
         completeLocationRequest()
 
         isUsingManualLocation = false
+        // Leaving mosque-timetable mode: a refresh means live location again.
+        useMawaqitSchedule = false
         UserDefaults.standard.removeObject(forKey: "manualLocationData")
         manualLocationFallbackForAutomaticSwitch = nil
 

@@ -79,7 +79,15 @@ struct LocationAndCalcSettingsView: View {
                                     )
                                 }
                             }
-                            HStack { Button("Change Manual Location") { navigationModel.showView(Self.id, animation: vm.forwardAnimation()) { ManualLocationView(isModal: false) } }.buttonStyle(.bordered); Spacer(); if vm.isUsingManualLocation { Button("Use Automatic") { vm.switchToAutomaticLocation() }.buttonStyle(.bordered) } }
+                            // Timetable mode replaces both buttons with a single
+                            // exit back to calculated times (manual or automatic,
+                            // whichever was active); the normal two-button row
+                            // returns once calculation mode is back.
+                            if vm.useMawaqitSchedule {
+                                HStack { Button("Use Calculated Times") { vm.disableMosqueSchedule() }.buttonStyle(.bordered); Spacer() }
+                            } else {
+                                HStack { Button("Change Manual Location") { navigationModel.showView(Self.id, animation: vm.forwardAnimation()) { ManualLocationView(isModal: false) } }.buttonStyle(.bordered); Spacer(); if vm.isUsingManualLocation { Button("Use Automatic") { vm.switchToAutomaticLocation() }.buttonStyle(.bordered) } }
+                            }
                         }
                     }
                     .controlSize(.small)

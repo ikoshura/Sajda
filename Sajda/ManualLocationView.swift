@@ -48,8 +48,18 @@ struct ManualLocationView: View {
                     VStack(spacing: 2) {
                         ForEach(vm.locationSearchResults) { result in
                             Button(action: {
-                                vm.setManualLocation(city: result.name, coordinates: result.coordinates)
-                                handleBackButton()
+                                // Apply the coordinates first, then pop on the
+                                // next runloop: the mode switch publishes
+                                // several @Published/AppStorage changes and
+                                // popping the NavigationStack in the same
+                                // cycle as those updates crashed the app when
+                                // leaving mosque-timetable mode.
+                                let city = result.name
+                                let coords = result.coordinates
+                                vm.setManualLocation(city: city, coordinates: coords)
+                                DispatchQueue.main.async {
+                                    handleBackButton()
+                                }
                             }) {
                                 HStack {
                                     VStack(alignment: .leading) {
