@@ -97,11 +97,7 @@ struct SettingsView: View {
     /// pages use for the same `Animation Style` setting — the library's
     /// `sajdaCrossfade` (`.easeInOut(0.25)`) and `push`/`pop` (`.easeOut`).
     private var tabAnimation: Animation? {
-        switch vm.animationType {
-        case .none: return nil
-        case .fade: return .easeInOut(duration: 0.25)
-        case .slide: return .easeOut
-        }
+        return nil
     }
 
     /// Transition for the tab content swap. Fade keeps the library's
@@ -110,20 +106,7 @@ struct SettingsView: View {
     /// the outgoing one leaves to the leading edge, mirrored when travelling
     /// backwards to the left.
     private var tabTransition: AnyTransition {
-        switch vm.animationType {
-        case .none:
-            return .identity
-        case .fade:
-            return .asymmetric(
-                insertion: .opacity.combined(with: .scale(scale: 0.97)),
-                removal: .opacity
-            )
-        case .slide:
-            return .asymmetric(
-                insertion: .move(edge: tabTravel == .forward ? .trailing : .leading),
-                removal: .move(edge: tabTravel == .forward ? .leading : .trailing)
-            )
-        }
+        return .identity
     }
 
     /// Switches the active tab: records which way the tab bar travels, then
