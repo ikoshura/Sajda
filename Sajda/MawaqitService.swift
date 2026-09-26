@@ -194,6 +194,30 @@ enum MawaqitService {
             .appendingPathComponent("mawaqit_mosque.json")
     }
 
+    /// Per-favorite offline cache: `mawaqit_mosque_<slug>.json`, so starred
+    /// mosques switch instantly without re-downloading and never clobber the
+    /// active schedule file.
+    private static func cacheURL(for slug: String) -> URL {
+        let safe = slug.replacingOccurrences(of: "/", with: "_")
+        return storeURL.deletingLastPathComponent()
+            .appendingPathComponent("mawaqit_mosque_\(safe).json")
+    }
+
+    static func load(slug: String) -> MawaqitMosque? {
+        guard let data = try? Data(contentsOf: cacheURL(for: slug)) else { return nil }
+        return try? JSONDecoder().decode(MawaqitMosque.self, from: data)
+    }
+
+    static func saveToCache(_ mosque: MawaqitMosque) throws {
+        try FileManager.default.createDirectory(
+            at: storeURL.deletingLastPathComponent(),
+            withIntermediateDirectories: true
+        )
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        try encoder.encode(mosque).write(to: cacheURL(for: mosque.slug), options: .atomic)
+    }
+
     static func load() -> MawaqitMosque? {
         guard let data = try? Data(contentsOf: storeURL) else { return nil }
         return try? JSONDecoder().decode(MawaqitMosque.self, from: data)

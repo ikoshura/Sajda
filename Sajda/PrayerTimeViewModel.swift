@@ -61,7 +61,15 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
     /// swaps its content branch when the precede flag flips, which recreates
     /// the pushed SettingsView with fresh @State — a fresh `.display` is what
     /// used to flash over Appearance during the fade back to Main.
+    /// Selected Settings tab (Display / Appearance / Prayer Times / System),
+    /// persisted so a NavigationStack pop can't reset it mid-exit: the library
+    /// swaps its content branch when the precede flag flips, which recreates
+    /// the pushed SettingsView with fresh @State — a fresh `.display` is what
+    /// used to flash over Appearance during the fade back to Main.
     @AppStorage("settingsSelectedTab") var settingsSelectedTab: String = "display"
+    /// When on, reopening Settings keeps the last-used tab; when off, Settings
+    /// always opens on Display.
+    @AppStorage("settingsTabLocked") var settingsTabLocked: Bool = false
     @AppStorage("useMinimalMenuBarText") var useMinimalMenuBarText: Bool = false { didSet { updateAndDisplayTimes() } }
     @AppStorage("showSunnahPrayers") var showSunnahPrayers: Bool = false { didSet { updatePrayerTimes() } }
     @AppStorage("useAccentColor") var useAccentColor: Bool = true
@@ -85,6 +93,15 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
     @AppStorage("redAlertTiming") var redAlertMinutes: Int = 10 { didSet { objectWillChange.send() } }
     /// Downloaded Mawaqit mosque schedule; loaded from disk on first use.
     @Published var mawaqitMosque: MawaqitMosque?
+    /// Saved favorite cities + mosque timetables (max 5), loaded from disk.
+    @Published var favoritePlaces: [FavoritePlace] = FavoritePlace.load()
+    /// True once the user has ever starred a favorite (persists after
+    /// removal) — drives the first-run guide hint on the main screen.
+    @AppStorage("hasEverSavedFavorite") var hasEverSavedFavorite: Bool = false
+    /// Slug of a favorite mosque currently downloading (spinner in the list).
+    @Published var favoriteMosqueLoadingSlug: String?
+    /// Read-only view of the active coordinates for favorite matching.
+    var currentCoordinatesForFavorites: CLLocationCoordinate2D? { currentCoordinates }
     /// When true the panel, menu bar, and notifications read the mosque
     /// calendar instead of calculating from coordinates.
     @AppStorage("useMawaqitSchedule") var useMawaqitSchedule: Bool = false { didSet { updatePrayerTimes() } }

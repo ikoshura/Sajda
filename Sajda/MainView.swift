@@ -10,6 +10,40 @@ struct MainView: View {
     @State private var isSettingsHovering = false
     @State private var isAboutHovering = false
     @State private var isQuitHovering = false
+    @State private var isLocationHovering = false
+    /// Location row. A push to the Favorites page (same NavigationStack
+    /// mechanism as Settings/About): tapping opens FavoritesView, and the
+    /// accordion state lives on that page's @State — so it is born shut on
+    /// every open and every return, with no reset logic anywhere. Outer 4pt
+    /// + inner 8pt = 12pt, the same gutter PrayerListView's rows use.
+    @ViewBuilder
+    private var locationFavoritesBlock: some View {
+        Button(action: {
+            navigationModel.showView(ContentView.id, animation: vm.forwardAnimation()) { FavoritesView() }
+        }) {
+            HStack(spacing: 4) {
+                Text(vm.panelLocationCaption)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+                Spacer(minLength: 4)
+                Image(systemName: vm.forwardChevron)
+                    .scaledFont(.caption, weight: .bold)
+                    .foregroundColor(.secondary)
+            }
+            .scaledFont(.caption).foregroundColor(Color("SecondaryTextColor"))
+            .padding(.vertical, 5).padding(.horizontal, 8)
+            .liquidHover(isLocationHovering)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .padding(.horizontal, 4)
+        .onHover { hovering in isLocationHovering = hovering }
+        .help(Text(NSLocalizedString("Show favorites", comment: "")))
+        .accessibilityLabel(Text(NSLocalizedString("Favorites", comment: "")))
+        .accessibilityHint(Text(NSLocalizedString("Opens the favorites list", comment: "")))
+        .accessibilityAddTraits(.isButton)
+    }
+
     private var viewWidth: CGFloat { return vm.panelWidth(base: vm.useCompactLayout ? 220 : 260) }
 
     var body: some View {
@@ -45,17 +79,20 @@ struct MainView: View {
                 .frame(height: 0.5)
                 .padding(.horizontal, 12)
 
-            // Location (or mosque) caption sits above the countdown card, so the
-            // big card stays the first thing the eye lands on.
-            if vm.isPrayerDataAvailable {
-                HStack { Text(vm.panelLocationCaption); Spacer() }
-                    .scaledFont(.caption).foregroundColor(Color("SecondaryTextColor")).padding(.horizontal, 12)
-            }
-
-            if vm.isPrayerDataAvailable, vm.showCountdownHeader, vm.nextPrayerOccurrenceDate != nil {
+            // Countdown card (when on) keeps the top slot under the divider.
+            // Location block moves around it: above the prayer list when the
+            // card is off, below the list when the card is on.
+            let showCountdownCard = vm.isPrayerDataAvailable && vm.showCountdownHeader && vm.nextPrayerOccurrenceDate != nil
+            if showCountdownCard {
                 NextPrayerCountdownHeader()
             }
 
+            if vm.isPrayerDataAvailable && !showCountdownCard {
+                locationFavoritesBlock
+            }
+
+            // Keep the prayer list snug under whatever sits above it —
+            // compact 4pt rhythm through PrayerListView's rows.
             if vm.isPrayerDataAvailable {
                 PrayerListView()
             } else {
@@ -63,7 +100,18 @@ struct MainView: View {
                 PermissionRequestView()
                 Spacer()
             }
-            
+
+            if vm.isPrayerDataAvailable && showCountdownCard {
+                // Separator between the prayer list and the location row
+                // (countdown-active layout only — otherwise the row sits
+                // directly under the top divider).
+                Rectangle()
+                    .fill(Color("DividerColor"))
+                    .frame(height: 0.5)
+                    .padding(.horizontal, 12)
+                locationFavoritesBlock
+            }
+
             // One separator after the prayer times, then a single compact
             // line of SF Symbols: Quit on the leading edge, About and
             // Settings trailing. The text labels move to hover tooltips and
@@ -107,9 +155,12 @@ struct MainView: View {
                     .accessibilityLabel(Text(NSLocalizedString("About", comment: "")))
 
                     Button(action: {
-                        // Always enter Settings on Display; the tab persists in
+                        // Unlocked always enters on Display; locked keeps the
+                        // last-used tab. The tab persists in
                         // vm.settingsSelectedTab so the exit fade can't flash.
-                        vm.settingsSelectedTab = "display"
+                        if !vm.settingsTabLocked {
+                            vm.settingsSelectedTab = "display"
+                        }
                         navigationModel.showView(ContentView.id, animation: vm.forwardAnimation()) { SettingsView() }
                     }) {
                         Image(systemName: "gearshape")
@@ -133,6 +184,7 @@ struct MainView: View {
         .padding(.top, 2)
         .padding(.bottom, 2)
         .frame(width: viewWidth)
+
     }
 }
 

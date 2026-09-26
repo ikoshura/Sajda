@@ -20,6 +20,8 @@ struct MosqueTimetablePicker: View {
     @State private var isDownloadingMosque = false
     @State private var mosqueDownloadFailed = false
     @State private var mosqueSearchTask: Task<Void, Never>?
+    @State private var hoveringResultSlug: String?
+    @State private var hoveringStarSlug: String?
 
     /// Debounced keyword search (350 ms) against Mawaqit's public endpoint.
     @MainActor
@@ -116,19 +118,46 @@ struct MosqueTimetablePicker: View {
                     .foregroundColor(.red)
             }
             ForEach(mosqueResults) { result in
-                Button { downloadMosque(result) } label: {
-                    HStack {
-                        Text(result.label)
-                            .lineLimit(1)
-                            .truncationMode(.tail)
-                        Spacer()
-                        Image(systemName: "arrow.down.circle")
-                            .foregroundColor(.secondary)
+                // Same lock-style treatment as the city results: the download
+                // row's hover spans the full line (under the star); the star
+                // sits on top with its own pill. While the star is hovered
+                // the row pill is suppressed.
+                ZStack(alignment: .trailing) {
+                    Button { downloadMosque(result) } label: {
+                        HStack {
+                            Text(result.label)
+                                .lineLimit(1)
+                                .truncationMode(.tail)
+                            Spacer()
+                            Image(systemName: "arrow.down.circle")
+                                .foregroundColor(.secondary)
+                        }
+                        .padding(.vertical, 4).padding(.horizontal, 6)
+                        // Reserve room for the overlaid star so the label and
+                        // download arrow never slide underneath it.
+                        .padding(.trailing, 30)
+                        .contentShape(Rectangle())
+                        .liquidHover(hoveringResultSlug == result.slug && hoveringStarSlug == nil)
                     }
-                    .contentShape(Rectangle())
+                    .buttonStyle(.plain)
+                    .disabled(isDownloadingMosque)
+                    .onHover { isHovering in hoveringResultSlug = isHovering ? result.slug : nil }
+                    // Star toggles the favorite without downloading: starring
+                    // prefetches the calendar in the background so tapping it
+                    // (here or on the main screen) switches instantly.
+                    Button { vm.toggleMosqueFavorite(slug: result.slug, label: result.label) } label: {
+                        Image(systemName: vm.isMosqueFavorite(slug: result.slug) ? "star.fill" : "star")
+                            .foregroundColor(vm.isMosqueFavorite(slug: result.slug) ? vm.selectedHighlightColor : .secondary)
+                            .padding(.vertical, 4).padding(.horizontal, 6)
+                            .contentShape(Rectangle())
+                            .liquidHover(hoveringStarSlug == result.slug)
+                    }
+                    .buttonStyle(.plain)
+                    .focusable(false)
+                    .disabled(isDownloadingMosque)
+                    .onHover { isHovering in hoveringStarSlug = isHovering ? result.slug : nil }
+                    .help(Text(NSLocalizedString(vm.isMosqueFavorite(slug: result.slug) ? "Remove from Favorites" : "Add to Favorites", comment: "")))
                 }
-                .buttonStyle(.plain)
-                .disabled(isDownloadingMosque)
             }
         }
     }

@@ -48,6 +48,7 @@ struct SettingsView: View {
     @AppStorage("launchAtLogin") private var launchAtLogin = false
     @AppStorage(UpdateChecker.autoCheckKey) private var autoCheckForUpdates = false
     @State private var isHeaderHovering = false
+    @State private var isLockHovering = false
     @State private var isCalcHovering = false
     @State private var isAdhanHovering = false
     @State private var isAccessibilityHovering = false
@@ -137,33 +138,57 @@ struct SettingsView: View {
     var body: some View {
         NavigationStackView(Self.id) {
             VStack(alignment: .leading, spacing: 6) {
-                Button(action: {
-            showHighlightColorPicker = false
-            navigationModel.hideView(ContentView.id, animation: vm.backwardAnimation())
-            // Reset to Display AFTER the exit transition finishes: resetting
-            // now would snap the exiting view to Display mid-fade (the
-            // original flash), while never resetting would reopen Settings on
-            // the last-used tab. Delays mirror the exit curves (0.25s fade,
-            // ~0.35s slide).
-            let delay: Double
-            switch vm.animationType {
-            case .none: delay = 0
-            case .fade: delay = 0.3
-            case .slide: delay = 0.4
-            }
-            DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
-                vm.settingsSelectedTab = SettingsSection.display.rawValue
-            }
-                }) {
-            HStack {
-            Image(systemName: vm.backChevron).scaledFont(.body, weight: .semibold)
-            Text("Settings").scaledFont(.body, weight: .bold)
-            Spacer()
-            }
-            .padding(.vertical, 5).padding(.horizontal, 8)
-            .liquidHover(isHeaderHovering)
-                }.buttonStyle(.plain).padding(.horizontal, 5).padding(.top, 2).onHover { hovering in isHeaderHovering = hovering }
-                
+                // Header overlay: the back button spans the full row so its
+                // hover pill reaches the lock area, while the lock sits on top
+                // with its own pill. While the lock is hovered the back pill
+                // is suppressed, so only the lock highlights.
+                ZStack(alignment: .trailing) {
+                    Button(action: {
+                        showHighlightColorPicker = false
+                        navigationModel.hideView(ContentView.id, animation: vm.backwardAnimation())
+                        // Reset to Display AFTER the exit transition finishes (unless the
+                        // tab is locked): resetting now would snap the exiting view to
+                        // Display mid-fade (the original flash). Delays mirror the exit
+                        // curves (0.25s fade, ~0.35s slide).
+                        if !vm.settingsTabLocked {
+                            let delay: Double
+                            switch vm.animationType {
+                            case .none: delay = 0
+                            case .fade: delay = 0.3
+                            case .slide: delay = 0.4
+                            }
+                            DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+                                vm.settingsSelectedTab = SettingsSection.display.rawValue
+                            }
+                        }
+                    }) {
+                        HStack {
+                            Image(systemName: vm.backChevron).scaledFont(.body, weight: .semibold)
+                            Text("Settings").scaledFont(.body, weight: .bold)
+                            Spacer()
+                        }
+                        .padding(.vertical, 5).padding(.horizontal, 8)
+                        .liquidHover(isHeaderHovering && !isLockHovering)
+                    }
+                    .buttonStyle(.plain)
+                    .onHover { hovering in isHeaderHovering = hovering }
+                    // Tab pin at the trailing edge: locked keeps the last-used tab
+                    // when Settings is reopened; unlocked always reopens on Display.
+                    Button(action: { vm.settingsTabLocked.toggle() }) {
+                        Image(systemName: vm.settingsTabLocked ? "lock.fill" : "lock.open")
+                            .scaledFont(.body, weight: .semibold)
+                            .foregroundColor(vm.settingsTabLocked ? vm.selectedHighlightColor : .secondary)
+                            .padding(.vertical, 5).padding(.horizontal, 8)
+                            .liquidHover(isLockHovering)
+                    }
+                    .buttonStyle(.plain)
+                    .focusable(false)
+                    .onHover { hovering in isLockHovering = hovering }
+                    .help(Text(NSLocalizedString(vm.settingsTabLocked ? "Unlock Settings tab" : "Lock Settings tab", comment: "")))
+                    .accessibilityLabel(Text(NSLocalizedString(vm.settingsTabLocked ? "Unlock Settings tab" : "Lock Settings tab", comment: "")))
+                }
+                .padding(.horizontal, 5).padding(.top, 2)
+
                 Rectangle()
             .fill(Color("DividerColor"))
             .frame(height: 0.5)

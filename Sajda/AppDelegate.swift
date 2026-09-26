@@ -42,6 +42,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
         NotificationCenter.default.addObserver(self, selector: #selector(adhanDidStart(_:)), name: .adhanDidStart, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(adhanDidStop(_:)), name: .adhanDidStop, object: nil)
 
+
         if self.showOnboardingAtLaunch {
             self.showOnboardingWindow()
         }
@@ -90,6 +91,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
     @objc private func adhanDidStop(_ notification: Notification) {
         DispatchQueue.main.async { self.canStopAdhan = false }
     }
+
 
     /// In-menu action (replaces the old NSStatusItem context menu item).
     func stopAdhanFromMenu() {
