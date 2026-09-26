@@ -56,6 +56,12 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
     private var tomorrowFajrTime: Date?
 
     @AppStorage("animationType") var animationType: AnimationType = .fade
+    /// Selected Settings tab (Display / Appearance / Prayer Times / System),
+    /// persisted so a NavigationStack pop can't reset it mid-exit: the library
+    /// swaps its content branch when the precede flag flips, which recreates
+    /// the pushed SettingsView with fresh @State — a fresh `.display` is what
+    /// used to flash over Appearance during the fade back to Main.
+    @AppStorage("settingsSelectedTab") var settingsSelectedTab: String = "display"
     @AppStorage("useMinimalMenuBarText") var useMinimalMenuBarText: Bool = false { didSet { updateAndDisplayTimes() } }
     @AppStorage("showSunnahPrayers") var showSunnahPrayers: Bool = false { didSet { updatePrayerTimes() } }
     @AppStorage("useAccentColor") var useAccentColor: Bool = true

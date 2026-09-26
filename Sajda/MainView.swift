@@ -107,6 +107,9 @@ struct MainView: View {
                     .accessibilityLabel(Text(NSLocalizedString("About", comment: "")))
 
                     Button(action: {
+                        // Always enter Settings on Display; the tab persists in
+                        // vm.settingsSelectedTab so the exit fade can't flash.
+                        vm.settingsSelectedTab = "display"
                         navigationModel.showView(ContentView.id, animation: vm.forwardAnimation()) { SettingsView() }
                     }) {
                         Image(systemName: "gearshape")

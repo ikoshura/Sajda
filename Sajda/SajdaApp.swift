@@ -30,6 +30,7 @@ struct SajdaMenuBarApp: App {
                     if appDelegate.navigationModel.hasAlternativeViewShowing {
                         appDelegate.navigationModel.hideView(ContentView.id, animation: nil)
                     }
+                    appDelegate.vm.settingsSelectedTab = "display"
                 }
         } label: {
             SajdaMenuBarLabel()

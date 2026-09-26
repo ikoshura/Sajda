@@ -76,6 +76,9 @@ struct SajdaControlCenterMenu: View {
     private func resetNavigationIfNeeded() {
         guard navigationModel.hasAlternativeViewShowing else { return }
         navigationModel.hideView(ContentView.id, animation: nil)
+        // Panel closed/torn down: no exit animation to protect, so the next
+        // open enters Settings on Display.
+        vm.settingsSelectedTab = "display"
     }
 }
 

@@ -52,9 +52,14 @@ struct SettingsView: View {
     @State private var isAdhanHovering = false
     @State private var isAccessibilityHovering = false
     @State private var isSyncingLaunchAtLogin = false
-    /// Single-open accordion: only one section is expanded at a time. Display
-    /// starts open so the page's top still shows real settings on entry.
-    @State private var expandedSection: SettingsSection = .display
+    /// Active Settings tab, persisted in `vm.settingsSelectedTab` (not `@State`):
+    /// NavigationStack swaps its content branch when the pop's precede flag
+    /// flips, recreating the pushed SettingsView with fresh state — fresh
+    /// `.display` is what used to flash over Appearance during the fade back
+    /// to Main. Display starts open so the page still shows real settings.
+    private var expandedSection: SettingsSection {
+        SettingsSection(rawValue: vm.settingsSelectedTab) ?? .display
+    }
     @State private var showHighlightColorPicker = false
     @State private var hoveringTab: SettingsSection? = nil
     /// Travel direction of the last tab change. Drives the slide edges; the
@@ -134,9 +139,14 @@ struct SettingsView: View {
         // SwiftUI takes the *removal* transition from the body built before the
         // swap, so the direction has to land in an earlier update — otherwise
         // the outgoing tab slides the way of the previous change.
+        // Writes to `vm.settingsSelectedTab` (a @Published @AppStorage on the
+        // view model) rather than local @State: NavigationStack recreates the
+        // pushed SettingsView mid-pop (precede-branch swap), and fresh @State
+        // would snap back to `.display` — the Display-tab flash over
+        // Appearance on the way back to Main.
         DispatchQueue.main.async {
             withAnimation(tabAnimation) {
-                expandedSection = section
+                vm.settingsSelectedTab = section.rawValue
             }
         }
     }
@@ -147,6 +157,20 @@ struct SettingsView: View {
                 Button(action: {
             showHighlightColorPicker = false
             navigationModel.hideView(ContentView.id, animation: vm.backwardAnimation())
+            // Reset to Display AFTER the exit transition finishes: resetting
+            // now would snap the exiting view to Display mid-fade (the
+            // original flash), while never resetting would reopen Settings on
+            // the last-used tab. Delays mirror the exit curves (0.25s fade,
+            // ~0.35s slide).
+            let delay: Double
+            switch vm.animationType {
+            case .none: delay = 0
+            case .fade: delay = 0.3
+            case .slide: delay = 0.4
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+                vm.settingsSelectedTab = SettingsSection.display.rawValue
+            }
                 }) {
             HStack {
             Image(systemName: vm.backChevron).scaledFont(.body, weight: .semibold)

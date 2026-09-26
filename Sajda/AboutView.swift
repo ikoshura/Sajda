@@ -180,7 +180,7 @@ struct AboutView: View {
                 titleKey: "Acknowledgements",
                 isExpanded: acknowledgementsExpanded,
                 collapsedChevron: vm.forwardChevron,
-                onToggle: { withAnimation(.macControlCenterMenuResize) { acknowledgementsExpanded.toggle() } }
+                onToggle: { acknowledgementsExpanded.toggle() }
             ) {
                 ForEach(acknowledgements) { item in
                     Button(action: { NSWorkspace.shared.open(item.url) }) {
