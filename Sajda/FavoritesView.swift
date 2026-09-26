@@ -29,7 +29,7 @@ struct FavoritesView: View {
                 }) {
                     HStack {
                         Image(systemName: vm.backChevron).scaledFont(.body, weight: .semibold)
-                        Text(NSLocalizedString("Favorites", comment: "")).scaledFont(.body, weight: .bold)
+                        Text(NSLocalizedString("Location", comment: "")).scaledFont(.body, weight: .bold)
                         Spacer()
                     }
                     .padding(.vertical, 5).padding(.horizontal, 8)

@@ -48,38 +48,37 @@ struct FavoritesSection: View {
 
     /// One-tap return to system location (also exits timetable mode —
     /// same safe ordering as the Settings button, so the flip can't crash).
-    /// Outer HStack (not the Button) owns the padding + hover so the
-    /// highlight pill is exactly the same size as every favorite row.
+    /// The Button's label owns the row padding + trailing slot so the hit
+    /// area is exactly the hover pill (no dead strips at the pill's edges).
     private var automaticRow: some View {
         let isActive = !vm.isUsingManualLocation && !vm.useMawaqitSchedule
-        return HStack(spacing: 0) {
-            Button(action: { vm.switchToAutomaticLocation() }) {
-                HStack(spacing: 6) {
-                    Image(systemName: "location.circle.fill")
-                        .scaledFont(.caption)
-                        .foregroundColor(isActive ? vm.selectedHighlightColor : .secondary)
-                        .frame(width: 16)
-                    Text(NSLocalizedString("Use Automatic Location", comment: ""))
-                        .scaledFont(.subheadline, weight: isActive ? .semibold : .regular)
-                        .lineLimit(1)
-                        .truncationMode(.tail)
-                    Spacer(minLength: 4)
+        return Button(action: { vm.switchToAutomaticLocation() }) {
+            HStack(spacing: 6) {
+                Image(systemName: "location.circle.fill")
+                    .scaledFont(.caption)
+                    .foregroundColor(isActive ? vm.selectedHighlightColor : .secondary)
+                    .frame(width: 16)
+                Text(NSLocalizedString("Use Automatic Location", comment: ""))
+                    .scaledFont(.subheadline, weight: isActive ? .semibold : .regular)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+                Spacer(minLength: 4)
+                // Fixed trailing slot: the checkmark sits at the exact x the
+                // stars use on the rows below. Inside the label, so it is
+                // clickable like the rest of the pill.
+                if isActive {
+                    Image(systemName: "checkmark")
+                        .scaledFont(.caption, weight: .semibold)
+                        .foregroundColor(vm.selectedHighlightColor)
+                        .frame(width: 20)
+                } else {
+                    Color.clear.frame(width: 20)
                 }
-                .contentShape(Rectangle())
             }
-            .buttonStyle(.plain)
-            // Fixed trailing slot: the checkmark sits at the exact x the
-            // stars use on the rows below.
-            if isActive {
-                Image(systemName: "checkmark")
-                    .scaledFont(.caption, weight: .semibold)
-                    .foregroundColor(vm.selectedHighlightColor)
-                    .frame(width: 20)
-            } else {
-                Color.clear.frame(width: 20)
-            }
+            .padding(.vertical, 5).padding(.horizontal, 8)
+            .contentShape(Rectangle())
         }
-        .padding(.vertical, 5).padding(.horizontal, 8)
+        .buttonStyle(.plain)
         .liquidHover(isAutomaticHovering)
         .onHover { hovering in
             isAutomaticHovering = hovering
@@ -116,10 +115,11 @@ struct FavoritesSection: View {
                     .foregroundColor(.secondary)
                     .frame(width: 20)
             }
+            // Padding inside the label: the button covers the whole hover pill.
+            .padding(.vertical, 5).padding(.horizontal, 8)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .padding(.vertical, 5).padding(.horizontal, 8)
         .liquidHover(isCityHovering)
         .onHover { hovering in isCityHovering = hovering }
     }
@@ -146,10 +146,11 @@ struct FavoritesSection: View {
                     .foregroundColor(.secondary)
                     .frame(width: 20)
             }
+            // Padding inside the label: the button covers the whole hover pill.
+            .padding(.vertical, 5).padding(.horizontal, 8)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .padding(.vertical, 5).padding(.horizontal, 8)
         .liquidHover(isMosqueHovering)
         .onHover { hovering in isMosqueHovering = hovering }
     }
@@ -157,27 +158,35 @@ struct FavoritesSection: View {
     private func favoriteRow(_ favorite: FavoritePlace) -> some View {
         let isActive = vm.isFavoriteActive(favorite)
         let isLoading = vm.favoriteMosqueLoadingSlug == favorite.slug && favorite.kind == .mosque
-        return HStack(spacing: 0) {
-            Button(action: { Task { @MainActor in vm.activateFavorite(favorite) } }) {
-                HStack(spacing: 6) {
-                    Image(systemName: favorite.kind == .mosque ? "building.columns" : "mappin.circle")
-                        .scaledFont(.caption)
-                        .foregroundColor(isActive ? vm.selectedHighlightColor : .secondary)
-                        .frame(width: 16)
-                    VStack(alignment: .leading, spacing: 1) {
-                        Text(favorite.name)
-                            .scaledFont(.subheadline, weight: isActive ? .semibold : .regular)
+        // The row Button's label owns the padding + full-width content
+        // (including a reserved 20pt slot for the star), so the hit area is
+        // exactly the hover pill — no dead strips at the pill's edges and no
+        // dead column around the star. The star overlays that slot as its
+        // own button, at the same x it had as an HStack sibling.
+        return Button(action: { Task { @MainActor in vm.activateFavorite(favorite) } }) {
+            HStack(spacing: 6) {
+                Image(systemName: favorite.kind == .mosque ? "building.columns" : "mappin.circle")
+                    .scaledFont(.caption)
+                    .foregroundColor(isActive ? vm.selectedHighlightColor : .secondary)
+                    .frame(width: 16)
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(favorite.name)
+                        .scaledFont(.subheadline, weight: isActive ? .semibold : .regular)
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+                    if !favorite.subtitle.isEmpty {
+                        Text(favorite.subtitle)
+                            .scaledFont(.caption2)
+                            .foregroundColor(Color("SecondaryTextColor"))
                             .lineLimit(1)
                             .truncationMode(.tail)
-                        if !favorite.subtitle.isEmpty {
-                            Text(favorite.subtitle)
-                                .scaledFont(.caption2)
-                                .foregroundColor(Color("SecondaryTextColor"))
-                                .lineLimit(1)
-                                .truncationMode(.tail)
-                        }
                     }
-                    Spacer(minLength: 4)
+                }
+                Spacer(minLength: 4)
+                // Trailing symbols in one zero-spacing group so the
+                // checkmark keeps the exact x it had next to the star; the
+                // star overlay sits on the second (reserved) 20pt slot.
+                HStack(spacing: 0) {
                     if isLoading {
                         ProgressView().controlSize(.mini)
                             .frame(width: 20)
@@ -192,24 +201,32 @@ struct FavoritesSection: View {
                         // same size) whether the row shows a checkmark or not.
                         Color.clear.frame(width: 20)
                     }
+                    // Reserved slot underneath the star overlay: preserves the
+                    // checkmark's x, and the button's hit area extends under the
+                    // bands of that column the star glyph doesn't cover.
+                    Color.clear.frame(width: 20)
                 }
-                .contentShape(Rectangle())
             }
-            .buttonStyle(.plain)
-            .disabled(isLoading)
-            // Star removes from favorites; same fixed 20pt slot as the
-            // checkmarks, so every trailing symbol shares one x.
+            .padding(.vertical, 5).padding(.horizontal, 8)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .disabled(isLoading)
+        // Star removes from favorites; overlays the reserved trailing slot
+        // so it stays a separate action without leaving dead hit zones.
+        .overlay(alignment: .trailing) {
             Button(action: { vm.removeFavorite(id: favorite.id) }) {
                 Image(systemName: "star.fill")
                     .scaledFont(.caption)
                     .foregroundColor(vm.selectedHighlightColor)
-                    .frame(width: 20)
+                    .frame(width: 20, height: 14)
+                    .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             .focusable(false)
             .help(Text(NSLocalizedString("Remove from Favorites", comment: "")))
+            .padding(.trailing, 8)
         }
-        .padding(.vertical, 5).padding(.horizontal, 8)
         .liquidHover(hoveringFavoriteID == favorite.id)
         .onHover { hovering in
             hoveringFavoriteID = hovering ? favorite.id : nil

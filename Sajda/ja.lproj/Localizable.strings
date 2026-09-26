@@ -5,7 +5,7 @@
 "To provide accurate prayer times, Sajda Pro needs to know your location." = "正確な礼拝時刻を表示するには、Sajda Pro があなたの現在地を知る必要があります。"; "Location access is already enabled." = "位置情報へのアクセスは既に有効です。"; "Or, Set Location Manually" = "または、位置情報を手動で設定"; "Please grant location access in System Settings." = "システム設定で位置情報へのアクセスを許可してください。"; "You are using a manual location: **%@**" = "手動設定の位置情報を使用中：**%@**"; "Switch to Automatic Location" = "自動位置検出に切り替え"; "Change Manual Location" = "手動の位置情報を変更"; "Show this window on launch" = "起動時にこのウィンドウを表示"; "Welcome to Sajda Pro" = "Sajda Pro へようこそ";
 "To get started, please provide your location for accurate prayer times." = "開始するには、正確な礼拝時刻のために現在地を設定してください。"; "Using manual location: **%@**" = "手動設定の位置情報：**%@**"; "Location access is enabled." = "位置情報へのアクセスが有効です。"; "Please grant access in System Settings." = "システム設定でアクセスを許可してください。";
 "About Sajda Pro" = "Sajda Pro について"; "Version 3.3.1" = "バージョン 3.3.1"; "by Abrar Zha" = "Abrar Zha 作"; "Show Welcome Guide on Launch" = "起動時にウェルカムガイドを表示"; "Show Welcome Window" = "ウェルカムウィンドウを表示";
-"General" = "一般"; "Language" = "言語"; "Display" = "表示"; "Menu Bar Style" = "メニューバーのスタイル"; "Compact View" = "コンパクト表示"; "24-Hour Time" = "24時間表示"; "Minimal Menu Bar" = "ミニマルなメニューバー"; "Accent Color" = "アクセントカラー"; "Hijri Date" = "ヒジュラ暦の日付"; "Accent Panel" = "アクセントパネル"; "Red Alert" = "赤アラート"; "Red Alert Off" = "オフ"; "Red Alert 5 Minutes" = "5分"; "Red Alert 10 Minutes" = "10分"; "Red Alert 15 Minutes" = "15分"; "Iqama Delay" = "イカーマの遅延"; "Show Sunnah Prayers" = "スンナの礼拝を表示"; "Glass Highlight" = "グラスハイライト"; "Show Countdown Header" = "カウントダウンヘッダーを表示";
+"General" = "一般"; "Language" = "言語"; "Display" = "表示"; "Menu Bar Style" = "メニューバーのスタイル"; "Compact View" = "コンパクト表示"; "24-Hour Time" = "24時間表示"; "Minimal Menu Bar" = "ミニマルなメニューバー"; "Accent Color" = "アクセントカラー"; "Hijri Date" = "ヒジュラ暦の日付"; "Accent Panel" = "アクセントパネル"; "Red Alert" = "赤アラート"; "Red Alert Off" = "オフ"; "Red Alert 5 Minutes" = "5分"; "Red Alert 10 Minutes" = "10分"; "Red Alert 15 Minutes" = "15分"; "Iqama Delay" = "イカーマの遅延"; "Show Sunnah Prayers" = "スンナの礼拝を表示"; "Glass Highlight" = "グラスハイライト"; "Show Seconds" = "秒を表示"; "Show Countdown Header" = "カウントダウンヘッダーを表示";
 "Calculation" = "算出"; "Method" = "方法"; "Time Correction" = "時刻の補正"; "Adjust" = "調整"; "Hanafi Madhhab (for Asr)" = "ハナフィー派（アスル）"; "Location" = "位置情報"; "Manual:" = "手動:"; "Automatic:" = "自動:"; "Use Automatic" = "自動を使用";
 "Adjust prayer times to match your local mosque. Hover over the number to reset." = "お住まいのモスクに合わせて礼拝時刻を調整します。数字にカーソルを合わせるとリセットされます。"; "Reset All to Default" = "すべてデフォルトに戻す";
 "Set Location" = "位置情報を設定"; "Search for a city or paste coordinates..." = "都市名を検索するか、座標を貼り付けてください..."; "Set Location Manually" = "位置情報を手動で設定"; "Start typing a city or paste coordinates." = "都市名の入力を始めるか、座標を貼り付けてください。"; "No results found." = "結果が見つかりませんでした。";
@@ -124,7 +124,7 @@
 "adhan_at_time" = "アザーン %@";
 "around_at_time" = "およそ %@";
 "iqama_at_time" = "イカーマ %@";
-"Highlight Color" = "ハイライトカラー";
+"Custom Color" = "カスタムカラー";
 "color_blue" = "ブルー";
 "color_purple" = "パープル";
 "color_pink" = "ピンク";
@@ -145,5 +145,6 @@
 "Use a mosque timetable instead" = "モスクの時刻表を使う";
 "Use Calculated Times" = "計算時刻を使う";
 "Appearance" = "外観";
-"Prayer Times" = "礼拝時刻";
+"Prayer" = "礼拝";
 "Acknowledgements" = "謝辞";
+"Opens the location list" = "場所のリストを開きます";

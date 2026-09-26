@@ -49,6 +49,16 @@ struct SajdaControlCenterMenu: View {
             .font(.system(size: PanelTextSize.baseBodyPointSize * vm.panelTextSize.fontScale, weight: vm.accessibilityBoldText ? .semibold : .regular))
             .accentPanelScheme(vm)
             .background { AccentPanelTintOverlay().ignoresSafeArea() }
+            // Layout changes that are NOT navigation-driven — settings toggles
+            // that add/remove panel rows, the Stop Adhan strip, text-size
+            // presets, Compact View width, language switches — resize the
+            // window at the Control Center pace instead of snapping. Page
+            // pushes/pops keep their own animation (sajdaCrossfade /
+            // sajdaPush / sajdaPop — re-curved to the same pace) and are
+            // intentionally not keyed here: two animations on the same
+            // transition would fight over the curve. See
+            // `NavigationAnimation.sajdaResizePace`.
+            .animation(.macControlCenterMenuResize, value: panelLayoutSignature)
             .transaction { transaction in
                 if vm.animationType == .none { transaction.disablesAnimations = true }
             }
@@ -68,6 +78,24 @@ struct SajdaControlCenterMenu: View {
                 NotificationCenter.default.post(name: .popoverDidOpen, object: nil)
             }
         }
+    }
+
+    /// Signature of every piece of state — outside navigation, which brings
+    /// its own matched animation — that can change the panel's size. Keying
+    /// the resize animation on it keeps the curve scoped to real layout
+    /// changes: a hover state, popover, or color pick never touches this key.
+    private var panelLayoutSignature: String {
+        [
+            "\(vm.isPrayerDataAvailable)",
+            "\(vm.showCountdownHeader)",
+            "\(vm.showSunnahPrayers)",
+            "\(vm.useCompactLayout)",
+            "\(vm.menuBarTextMode)",
+            "\(vm.isAdhanPlaying)",
+            "\(vm.panelTextSize)",
+            "\(vm.accessibilityBoldText)",
+            languageManager.language,
+        ].joined(separator: "-")
     }
 
     /// Pops every pushed page (Settings, About, their sub-pages) back to

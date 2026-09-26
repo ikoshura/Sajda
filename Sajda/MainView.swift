@@ -38,9 +38,9 @@ struct MainView: View {
         .buttonStyle(.plain)
         .padding(.horizontal, 4)
         .onHover { hovering in isLocationHovering = hovering }
-        .help(Text(NSLocalizedString("Show favorites", comment: "")))
-        .accessibilityLabel(Text(NSLocalizedString("Favorites", comment: "")))
-        .accessibilityHint(Text(NSLocalizedString("Opens the favorites list", comment: "")))
+        .help(Text(NSLocalizedString("Location", comment: "")))
+        .accessibilityLabel(Text(NSLocalizedString("Location", comment: "")))
+        .accessibilityHint(Text(NSLocalizedString("Opens the location list", comment: "")))
         .accessibilityAddTraits(.isButton)
     }
 

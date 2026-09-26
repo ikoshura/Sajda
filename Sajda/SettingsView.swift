@@ -36,7 +36,7 @@ struct SettingsView: View {
             case .system: return "System"
             case .display: return "Display"
             case .appearance: return "Appearance"
-            case .prayerTimes: return "Prayer Times"
+            case .prayerTimes: return "Prayer"
             }
         }
     }
@@ -323,6 +323,9 @@ struct SettingsView: View {
             // The "check now" side effect lives on the content well, so the
             // invisible copies of this tab cannot fire it more than once.
             StyledToggle(label: "Check for Updates Automatically", isOn: $autoCheckForUpdates)
+            // Seconds only exist in the countdown modes: the exact-time modes
+            // print a fixed clock time, and Icon Only prints no text at all.
+            StyledToggle(label: "Show Seconds", isOn: $vm.menuBarShowSeconds).disabled(!vm.menuBarTextMode.isCountdown)
             HStack {
                 Text("Animation Style").scaledFont(.subheadline)
                 Spacer()
@@ -357,7 +360,7 @@ struct SettingsView: View {
             StyledToggle(label: "Accent Panel", isOn: $vm.accentPanelTheme)
             VStack(alignment: .leading, spacing: 6) {
                 HStack {
-                    Text("Highlight Color").scaledFont(.subheadline)
+                    Text("Custom Color").scaledFont(.subheadline)
                     Spacer()
                     Button("Default") { vm.customHighlightColorHex = "" }
                         .controlSize(.mini)
@@ -391,7 +394,7 @@ struct SettingsView: View {
                         .colorSelectorPopover(selection: highlightColorSelection, isPresented: pickerPresented)
                     Spacer(minLength: 0)
                 }
-            } // closes the Highlight Color inner stack
+            } // closes the Custom Color inner stack
             StyledToggle(label: "Glass Highlight", isOn: $vm.useGlassPrayerHighlight)
         }
     }

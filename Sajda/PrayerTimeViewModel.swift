@@ -56,12 +56,12 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
     private var tomorrowFajrTime: Date?
 
     @AppStorage("animationType") var animationType: AnimationType = .fade
-    /// Selected Settings tab (Display / Appearance / Prayer Times / System),
+    /// Selected Settings tab (Display / Appearance / Prayer / System),
     /// persisted so a NavigationStack pop can't reset it mid-exit: the library
     /// swaps its content branch when the precede flag flips, which recreates
     /// the pushed SettingsView with fresh @State — a fresh `.display` is what
     /// used to flash over Appearance during the fade back to Main.
-    /// Selected Settings tab (Display / Appearance / Prayer Times / System),
+    /// Selected Settings tab (Display / Appearance / Prayer / System),
     /// persisted so a NavigationStack pop can't reset it mid-exit: the library
     /// swaps its content branch when the precede flag flips, which recreates
     /// the pushed SettingsView with fresh @State — a fresh `.display` is what
@@ -106,7 +106,7 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
     /// calendar instead of calculating from coordinates.
     @AppStorage("useMawaqitSchedule") var useMawaqitSchedule: Bool = false { didSet { updatePrayerTimes() } }
     // Gaya Liquid Glass di atas highlight waktu sholat berikutnya (opsional).
-    @AppStorage("useGlassPrayerHighlight") var useGlassPrayerHighlight: Bool = false
+    @AppStorage("useGlassPrayerHighlight") var useGlassPrayerHighlight: Bool = true
     @AppStorage("isNotificationsEnabled") var isNotificationsEnabled: Bool = true { didSet { updateNotifications() } }
     @AppStorage("useCompactLayout") var useCompactLayout: Bool = false
     @AppStorage("panelTextSize") var panelTextSize: PanelTextSize = .default
@@ -116,6 +116,9 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
     @AppStorage("accessibilityBoldText") var accessibilityBoldText: Bool = false { didSet { updateMenuTitle() } }
     @AppStorage("accessibilityUppercaseText") var accessibilityUppercaseText: Bool = false { didSet { updateMenuTitle() } }
     @AppStorage("menuBarLargerText") var menuBarLargerText: Bool = false { didSet { updateMenuTitle() } }
+    /// Ticks the menu bar countdown with seconds (`Fajr in 25:03`) instead of
+    /// whole minutes. Only meaningful for the countdown text modes.
+    @AppStorage("menuBarShowSeconds") var menuBarShowSeconds: Bool = false { didSet { updateMenuTitle() } }
     @AppStorage("use24HourFormat") var use24HourFormat: Bool = false { didSet { updateAndDisplayTimes() } }
 
     /// Lebar panel yang diskalakan sesuai ukuran teks terpilih agar font
@@ -201,7 +204,7 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
         switch animationType {
         case .none: return nil
         case .fade: return .sajdaCrossfade
-        case .slide: return .push
+        case .slide: return .sajdaPush
         }
     }
 
@@ -209,7 +212,7 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
         switch animationType {
         case .none: return nil
         case .fade: return .sajdaCrossfade
-        case .slide: return .pop
+        case .slide: return .sajdaPop
         }
     }
 
@@ -1004,7 +1007,10 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
         let formatter = DateFormatter()
         formatter.calendar = Calendar(identifier: .islamicUmmAlQura)
         formatter.locale = displayLocale
-        formatter.timeZone = locationTimeZone
+        // Same zone as the prayer times: in mosque mode the day being shown
+        // is the one `MawaqitService.times` looked up (Mac day), not the
+        // stale manual-location day.
+        formatter.timeZone = displayTimeZone
         formatter.dateFormat = "d MMMM yyyy G"
         let base = Date()
         guard hijriDateAdjustment != 0,
@@ -1030,6 +1036,30 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
         return text
     }
 
+    /// Countdown string for the status item. Minute-granular by default
+    /// (`countdown`); with "Show Seconds" on it ticks as `mm:ss` — `h:mm:ss`
+    /// once there is an hour to show — using the same locale digits as the
+    /// panel's countdown header, so the two can never disagree.
+    private var menuBarCountdown: String {
+        guard menuBarShowSeconds, menuBarTextMode.isCountdown else { return countdown }
+        guard let nextDate = nextPrayerOccurrenceDate else { return countdown }
+        let diff = Int(nextDate.timeIntervalSince(Date()))
+        guard diff > 0 else { return NSLocalizedString("Now", comment: "") }
+
+        let digits = NumberFormatter()
+        digits.locale = displayLocale
+        digits.minimumIntegerDigits = 2
+        digits.maximumIntegerDigits = 2
+        let comp = { (value: Int) in digits.string(from: NSNumber(value: value)) ?? String(format: "%02d", value) }
+
+        let hours = diff / 3600
+        let minutes = (diff % 3600) / 60
+        let seconds = diff % 60
+        return hours > 0
+            ? "\(hours):\(comp(minutes)):\(comp(seconds))"
+            : "\(comp(minutes)):\(comp(seconds))"
+    }
+
     func updateMenuTitle() {
         guard isPrayerDataAvailable else { self.menuTitle = NSAttributedString(string: "Sajda Pro"); return }
         var textToShow = ""
@@ -1038,10 +1068,11 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
         case .hidden:
             textToShow = ""
         case .countdown, .iconCountdown:
+            let countdownText = menuBarCountdown
             if useMinimalMenuBarText {
-                textToShow = String(format: NSLocalizedString("prayer_minimal_countdown", comment: ""), localizedPrayerName, countdown)
+                textToShow = String(format: NSLocalizedString("prayer_minimal_countdown", comment: ""), localizedPrayerName, countdownText)
             } else {
-                textToShow = String(format: NSLocalizedString("prayer_in_countdown", comment: ""), localizedPrayerName, countdown)
+                textToShow = String(format: NSLocalizedString("prayer_in_countdown", comment: ""), localizedPrayerName, countdownText)
             }
         case .exactTime, .iconExactTime:
             guard let nextDate = nextPrayerOccurrenceDate else { textToShow = "Sajda Pro"; break }
@@ -1060,17 +1091,38 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
             attributes[.foregroundColor] = NSColor.systemRed
         }
         // Aksesibilitas: judul menu bar bisa diperbesar dan/atau ditebalkan
-        // agar tetap terbaca tanpa zoom sistem.
-        if menuBarLargerText || accessibilityBoldText {
+        // agar tetap terbaca tanpa zoom sistem. Dengan "Show Seconds" aktif
+        // fontnya memakai digit monospaced supaya lebar status item tidak
+        // bergoyang setiap detik.
+        if menuBarLargerText || accessibilityBoldText || menuBarShowSeconds {
             let size = menuBarLargerText ? NSFont.systemFontSize + 3 : NSFont.systemFontSize
-            attributes[.font] = NSFont.systemFont(ofSize: size, weight: accessibilityBoldText ? .bold : .regular)
+            let weight: NSFont.Weight = accessibilityBoldText ? .bold : .regular
+            attributes[.font] = menuBarShowSeconds
+                ? NSFont.monospacedDigitSystemFont(ofSize: size, weight: weight)
+                : NSFont.systemFont(ofSize: size, weight: weight)
         }
         self.menuTitle = NSAttributedString(string: textToShow, attributes: attributes)
     }
 
+    /// Timezone every surface renders prayer times and the Hijri header in.
+    ///
+    /// Calculated times are true instants for the chosen location, so they
+    /// render in `locationTimeZone`. Mosque-timetable times are the raw
+    /// "HH:MM" wall-clock strings the mosque publishes, parsed in
+    /// `TimeZone.current` by `dateFromHM`/`MawaqitService.times` — they must
+    /// render in that same zone. Otherwise a leftover manual-location zone
+    /// leaks into mosque mode: switching manual location → Tokyo (UTC+9) and
+    /// then activating a mosque shifted every row by the zone difference
+    /// (Grande Mosquée de Paris Fajr showed 08:11 instead of 06:11 from a
+    /// UTC+7 Mac). Switching back to automatic "fixed" it only because that
+    /// path resets `locationTimeZone` to `.current`.
+    var displayTimeZone: TimeZone {
+        useMawaqitSchedule ? .current : locationTimeZone
+    }
+
     var dateFormatter: DateFormatter {
         let formatter = DateFormatter()
-        formatter.timeZone = self.locationTimeZone
+        formatter.timeZone = self.displayTimeZone
         formatter.locale = displayLocale
         if use24HourFormat {
             formatter.dateFormat = "HH:mm"

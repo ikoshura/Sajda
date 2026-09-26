@@ -5,7 +5,7 @@
 "To provide accurate prayer times, Sajda Pro needs to know your location." = "为了提供准确的礼拜时间，Sajda Pro 需要获取您的位置。"; "Location access is already enabled." = "位置访问已启用。"; "Or, Set Location Manually" = "或手动设置位置"; "Please grant location access in System Settings." = "请在系统设置中允许位置访问。"; "You are using a manual location: **%@**" = "您正在使用手动位置：**%@**"; "Switch to Automatic Location" = "切换到自动位置"; "Change Manual Location" = "更改手动位置"; "Show this window on launch" = "启动时显示此窗口"; "Welcome to Sajda Pro" = "欢迎使用 Sajda Pro";
 "To get started, please provide your location for accurate prayer times." = "开始之前，请提供您的位置以获取准确的礼拜时间。"; "Using manual location: **%@**" = "正在使用手动位置：**%@**"; "Location access is enabled." = "位置访问已启用。"; "Please grant access in System Settings." = "请在系统设置中允许访问。";
 "About Sajda Pro" = "关于 Sajda Pro"; "Version 3.3.1" = "版本 3.3.1"; "by Abrar Zha" = "作者 Abrar Zha"; "Show Welcome Guide on Launch" = "启动时显示欢迎指南"; "Show Welcome Window" = "显示欢迎窗口";
-"General" = "通用"; "Language" = "语言"; "Display" = "显示"; "Menu Bar Style" = "菜单栏样式"; "Compact View" = "紧凑视图"; "24-Hour Time" = "24 小时制"; "Minimal Menu Bar" = "极简菜单栏"; "Accent Color" = "强调色"; "Accent Panel" = "强调色面板"; "Red Alert" = "红色提醒"; "Red Alert Off" = "关闭"; "Red Alert 5 Minutes" = "5 分钟"; "Red Alert 10 Minutes" = "10 分钟"; "Red Alert 15 Minutes" = "15 分钟"; "Hijri Date" = "伊斯兰历日期"; "Iqama Delay" = "伊卡玛延迟"; "Show Sunnah Prayers" = "显示圣行礼拜"; "Glass Highlight" = "玻璃高亮"; "Show Countdown Header" = "显示倒计时标题";
+"General" = "通用"; "Language" = "语言"; "Display" = "显示"; "Menu Bar Style" = "菜单栏样式"; "Compact View" = "紧凑视图"; "24-Hour Time" = "24 小时制"; "Minimal Menu Bar" = "极简菜单栏"; "Accent Color" = "强调色"; "Accent Panel" = "强调色面板"; "Red Alert" = "红色提醒"; "Red Alert Off" = "关闭"; "Red Alert 5 Minutes" = "5 分钟"; "Red Alert 10 Minutes" = "10 分钟"; "Red Alert 15 Minutes" = "15 分钟"; "Hijri Date" = "伊斯兰历日期"; "Iqama Delay" = "伊卡玛延迟"; "Show Sunnah Prayers" = "显示圣行礼拜"; "Glass Highlight" = "玻璃高亮"; "Show Seconds" = "显示秒数"; "Show Countdown Header" = "显示倒计时标题";
 "Calculation" = "计算"; "Method" = "方法"; "Time Correction" = "时间校正"; "Adjust" = "调整"; "Hanafi Madhhab (for Asr)" = "哈乃斐派（晡礼）"; "Location" = "位置"; "Manual:" = "手动："; "Automatic:" = "自动："; "Use Automatic" = "使用自动";
 "Adjust prayer times to match your local mosque. Hover over the number to reset." = "调整礼拜时间以与当地清真寺一致。将鼠标悬停在数字上可重置。"; "Reset All to Default" = "全部恢复默认";
 "Set Location" = "设置位置"; "Search for a city or paste coordinates..." = "搜索城市或粘贴坐标..."; "Set Location Manually" = "手动设置位置"; "Start typing a city or paste coordinates." = "开始输入城市名或粘贴坐标。"; "No results found." = "未找到结果。";
@@ -124,7 +124,7 @@
 "adhan_at_time" = "宣礼 %@";
 "around_at_time" = "大约 %@";
 "iqama_at_time" = "成拜 %@";
-"Highlight Color" = "高亮颜色";
+"Custom Color" = "自定义颜色";
 "color_blue" = "蓝色";
 "color_purple" = "紫色";
 "color_pink" = "粉色";
@@ -145,5 +145,6 @@
 "Use a mosque timetable instead" = "使用清真寺时间表";
 "Use Calculated Times" = "使用计算时间";
 "Appearance" = "外观";
-"Prayer Times" = "礼拜时间";
+"Prayer" = "礼拜";
 "Acknowledgements" = "致谢";
+"Opens the location list" = "打开位置列表";

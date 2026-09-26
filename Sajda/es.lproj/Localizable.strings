@@ -5,7 +5,7 @@
 "To provide accurate prayer times, Sajda Pro needs to know your location." = "Para ofrecer horarios de oración precisos, Sajda Pro necesita conocer tu ubicación."; "Location access is already enabled." = "El acceso a la ubicación ya está activado."; "Or, Set Location Manually" = "O establece la ubicación manualmente"; "Please grant location access in System Settings." = "Concede acceso a la ubicación en Ajustes del Sistema."; "You are using a manual location: **%@**" = "Estás usando una ubicación manual: **%@**"; "Switch to Automatic Location" = "Cambiar a ubicación automática"; "Change Manual Location" = "Cambiar ubicación manual"; "Show this window on launch" = "Mostrar esta ventana al iniciar"; "Welcome to Sajda Pro" = "Te damos la bienvenida a Sajda Pro";
 "To get started, please provide your location for accurate prayer times." = "Para comenzar, proporciona tu ubicación para obtener horarios de oración precisos."; "Using manual location: **%@**" = "Usando ubicación manual: **%@**"; "Location access is enabled." = "El acceso a la ubicación está activado."; "Please grant access in System Settings." = "Concede el acceso en Ajustes del Sistema.";
 "About Sajda Pro" = "Información sobre Sajda Pro"; "Version 3.3.1" = "Versión 3.3.1"; "by Abrar Zha" = "por Abrar Zha"; "Show Welcome Guide on Launch" = "Mostrar la guía de bienvenida al iniciar"; "Show Welcome Window" = "Mostrar ventana de bienvenida";
-"General" = "General"; "Language" = "Idioma"; "Display" = "Pantalla"; "Menu Bar Style" = "Estilo de la barra de menús"; "Compact View" = "Vista compacta"; "24-Hour Time" = "Formato de 24 horas"; "Minimal Menu Bar" = "Barra de menús minimalista"; "Accent Color" = "Color de énfasis"; "Hijri Date" = "Fecha hiyrí"; "Accent Panel" = "Panel de acento"; "Red Alert" = "Alerta roja"; "Red Alert Off" = "Desactivado"; "Red Alert 5 Minutes" = "5 minutos"; "Red Alert 10 Minutes" = "10 minutos"; "Red Alert 15 Minutes" = "15 minutos"; "Iqama Delay" = "Retraso de Iqama"; "Show Sunnah Prayers" = "Mostrar oraciones sunnah"; "Glass Highlight" = "Realce de cristal"; "Show Countdown Header" = "Mostrar encabezado de cuenta atrás";
+"General" = "General"; "Language" = "Idioma"; "Display" = "Pantalla"; "Menu Bar Style" = "Estilo de la barra de menús"; "Compact View" = "Vista compacta"; "24-Hour Time" = "Formato de 24 horas"; "Minimal Menu Bar" = "Barra de menús minimalista"; "Accent Color" = "Color de énfasis"; "Hijri Date" = "Fecha hiyrí"; "Accent Panel" = "Panel de acento"; "Red Alert" = "Alerta roja"; "Red Alert Off" = "Desactivado"; "Red Alert 5 Minutes" = "5 minutos"; "Red Alert 10 Minutes" = "10 minutos"; "Red Alert 15 Minutes" = "15 minutos"; "Iqama Delay" = "Retraso de Iqama"; "Show Sunnah Prayers" = "Mostrar oraciones sunnah"; "Glass Highlight" = "Realce de cristal"; "Show Seconds" = "Mostrar segundos"; "Show Countdown Header" = "Mostrar encabezado de cuenta atrás";
 "Calculation" = "Cálculo"; "Method" = "Método"; "Time Correction" = "Corrección de horario"; "Adjust" = "Ajustar"; "Hanafi Madhhab (for Asr)" = "Madhab hanafí (para Asr)"; "Location" = "Ubicación"; "Manual:" = "Manual:"; "Automatic:" = "Automática:"; "Use Automatic" = "Usar automática";
 "Adjust prayer times to match your local mosque. Hover over the number to reset." = "Ajusta los horarios de oración para que coincidan con tu mezquita. Pasa el cursor sobre el número para restablecerlo."; "Reset All to Default" = "Restablecer todo";
 "Set Location" = "Establecer ubicación"; "Search for a city or paste coordinates..." = "Busca una ciudad o pega coordenadas..."; "Set Location Manually" = "Establecer ubicación manualmente"; "Start typing a city or paste coordinates." = "Empieza a escribir una ciudad o pega coordenadas."; "No results found." = "No se encontraron resultados.";
@@ -124,7 +124,7 @@
 "adhan_at_time" = "Adhan a las %@";
 "around_at_time" = "Aprox. %@";
 "iqama_at_time" = "Iqama a las %@";
-"Highlight Color" = "Color de resaltado";
+"Custom Color" = "Color personalizado";
 "color_blue" = "Azul";
 "color_purple" = "Morado";
 "color_pink" = "Rosa";
@@ -145,5 +145,6 @@
 "Use a mosque timetable instead" = "Usar el horario de una mezquita";
 "Use Calculated Times" = "Usar horas calculadas";
 "Appearance" = "Apariencia";
-"Prayer Times" = "Horarios de oración";
+"Prayer" = "Oración";
 "Acknowledgements" = "Agradecimientos";
+"Opens the location list" = "Abre la lista de ubicaciones";
