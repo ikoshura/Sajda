@@ -42,10 +42,10 @@ struct LanguageManagerView<Content: View>: View {
 }
 
 // Ekstensi untuk Bundle (tetap di file yang sama)
-var bundleKey: UInt8 = 0
+private enum BundleLanguageKey { static var key: UInt8 = 0 }
 class AnyLanguageBundle: Bundle, @unchecked Sendable {
     override func localizedString(forKey key: String, value: String?, table tableName: String?) -> String {
-        guard let path = objc_getAssociatedObject(self, &bundleKey) as? String,
+        guard let path = objc_getAssociatedObject(self, &BundleLanguageKey.key) as? String,
               let bundle = Bundle(path: path) else {
             return super.localizedString(forKey: key, value: value, table: tableName)
         }
@@ -56,6 +56,6 @@ extension Bundle {
     static func setLanguage(_ language: String) {
         defer { object_setClass(Bundle.main, AnyLanguageBundle.self) }
         let value = language == "en" ? nil : Bundle.main.path(forResource: language, ofType: "lproj")
-        objc_setAssociatedObject(Bundle.main, &bundleKey, value, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+        objc_setAssociatedObject(Bundle.main, &BundleLanguageKey.key, value, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
     }
 }

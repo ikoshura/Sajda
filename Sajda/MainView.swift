@@ -15,6 +15,9 @@ struct MainView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 8) {
+                // Left edge lines up with the location caption and prayer rows
+                // below (the panel's 12pt gutter); no arrow here — the main
+                // page has nothing to go back to.
                 Text("Sajda").scaledFont(.body, weight: .bold)
                 Spacer()
                 if vm.isPrayerDataAvailable && vm.menuBarTextMode == .hidden {
@@ -30,7 +33,12 @@ struct MainView: View {
                     .minimumScaleFactor(0.6)
                     .layoutPriority(-1)
             }
-            .padding(.horizontal, 12).padding(.top, 4)
+            // Same vertical row metrics as the pushed pages' headers (5pt inner
+            // vertical padding) so the title sits at the same height as the
+            // Settings / Adhan Sound / Accessibility titles.
+            .padding(.vertical, 2)
+            .padding(.horizontal, 12)
+            .padding(.top, 1)
 
             Rectangle()
                 .fill(Color("DividerColor"))
@@ -115,7 +123,13 @@ struct MainView: View {
                 }
                 .padding(.horizontal, 5)
             }
-        }.padding(.vertical, 8).frame(width: viewWidth)
+        }
+        // Trimmed from 8pt: the library's ~6pt menu chrome already provides
+        // the panel's edge inset, so the extra pad read as dead air above the
+        // header and below the footer row.
+        .padding(.top, 2)
+        .padding(.bottom, 2)
+        .frame(width: viewWidth)
     }
 }
 

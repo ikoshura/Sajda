@@ -2,6 +2,7 @@
 
 import SwiftUI
 import NavigationStack
+import MacControlCenterUI
 
 struct AboutView: View {
     @EnvironmentObject var vm: PrayerTimeViewModel
@@ -78,6 +79,7 @@ struct AboutView: View {
                             .multilineTextAlignment(.center).padding(.horizontal)
                     }
                     updateSection
+                    acknowledgementsSection
                     // --- PERUBAHAN DI SINI ---
                     // Mengganti tombol kustom dengan tombol native macOS.
                     Rectangle()
@@ -106,7 +108,11 @@ struct AboutView: View {
                     .padding(.bottom, 12)
 
                 }.frame(maxWidth: .infinity, maxHeight: .infinity)
-            }.padding(.vertical, 8)
+            }
+            // Trimmed from 8pt: the menu container already supplies the
+            // panel's edge inset, so the extra pad doubled the dead air.
+            .padding(.top, 2)
+            .padding(.bottom, 2)
             .frame(width: viewWidth)
             .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
         }
@@ -119,6 +125,97 @@ struct AboutView: View {
     // MARK: - In-app update check (GitHub Releases API)
 
     @ObservedObject private var updater = UpdateChecker.shared
+
+    /// Library + data credits from the README, collapsible via the shared
+    /// settings accordion (starts collapsed so the About page keeps its
+    /// compact default height). Descriptions are English source strings —
+    /// no per-language entries yet — while the header reuses the global
+    /// "Acknowledgements" key.
+    @State private var acknowledgementsExpanded = false
+
+    private struct Acknowledgement: Identifiable {
+        let id: String
+        let url: URL
+        let blurb: String
+    }
+
+    private var acknowledgements: [Acknowledgement] {
+        [
+            Acknowledgement(
+                id: "Adhan",
+                url: URL(string: "https://github.com/batoulapps/Adhan")!,
+                blurb: "Prayer time calculation library"
+            ),
+            Acknowledgement(
+                id: "ColorSelector",
+                url: URL(string: "https://github.com/jaywcjlove/ColorSelector")!,
+                blurb: "Colour picker for the highlight colour"
+            ),
+            Acknowledgement(
+                id: "FluidMenuBarExtra",
+                url: URL(string: "https://github.com/lfroms/fluid-menu-bar-extra")!,
+                blurb: "Dynamically resizing menu bar window"
+            ),
+            Acknowledgement(
+                id: "MacControlCenterUI",
+                url: URL(string: "https://github.com/orchetect/MacControlCenterUI")!,
+                blurb: "Menu builder and controls that mimic macOS Control Center"
+            ),
+            Acknowledgement(
+                id: "Mawaqit",
+                url: URL(string: "https://mawaqit.net")!,
+                blurb: "Mosque prayer and iqama timetables behind the mosque mode"
+            ),
+            Acknowledgement(
+                id: "NavigationStack",
+                url: URL(string: "https://github.com/indieSoftware/NavigationStack")!,
+                blurb: "View navigation system"
+            ),
+        ]
+    }
+
+    private var acknowledgementsSection: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            SettingsAccordion(
+                titleKey: "Acknowledgements",
+                isExpanded: acknowledgementsExpanded,
+                collapsedChevron: vm.forwardChevron,
+                onToggle: { withAnimation(.macControlCenterMenuResize) { acknowledgementsExpanded.toggle() } }
+            ) {
+                ForEach(acknowledgements) { item in
+                    Button(action: { NSWorkspace.shared.open(item.url) }) {
+                        VStack(alignment: .leading, spacing: 1) {
+                            Text(verbatim: item.id)
+                                .scaledFont(.subheadline, weight: .medium)
+                                .foregroundColor(.primary)
+                            Text(verbatim: item.blurb)
+                                .scaledFont(.caption2)
+                                .foregroundColor(Color("SecondaryTextColor"))
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.vertical, 5)
+                        .padding(.horizontal, 8)
+                        .liquidHover(isAcknowledgementHover(id: item.id))
+                    }
+                    .buttonStyle(.plain)
+                    .onHover { hovering in
+                        if hovering {
+                            hoveringAcknowledgementID = item.id
+                        } else if hoveringAcknowledgementID == item.id {
+                            hoveringAcknowledgementID = nil
+                        }
+                    }
+                }
+            }
+            .padding(.horizontal, 5)
+        }
+    }
+
+    @State private var hoveringAcknowledgementID: String? = nil
+
+    private func isAcknowledgementHover(id: String) -> Bool {
+        hoveringAcknowledgementID == id
+    }
 
     private var updateSection: some View {
         VStack(spacing: 8) {

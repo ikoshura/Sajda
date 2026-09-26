@@ -90,7 +90,7 @@ struct PrayerTimeCorrectionView: View {
     @State private var isResetAllHovering = false
 
     private var viewWidth: CGFloat {
-        return vm.panelWidth(base: vm.useCompactLayout ? 200 : 240)
+        return vm.panelWidth(base: vm.useCompactLayout ? 220 : 260)
     }
 
     var body: some View {
@@ -100,14 +100,12 @@ struct PrayerTimeCorrectionView: View {
                 navigationModel.hideView(LocationAndCalcSettingsView.id, animation: vm.backwardAnimation())
             }) {
                 HStack {
-                    Image(systemName: vm.backChevron)
-                        .font(.system(size: 14, weight: .semibold))
-                    Text("Time Correction")
-                        .scaledFont(.subheadline, weight: .bold)
+                    Image(systemName: vm.backChevron).scaledFont(.body, weight: .semibold)
+                    Text("Time Correction").scaledFont(.body, weight: .bold)
                     Spacer()
                 }
-                .padding(.vertical, 4).padding(.horizontal, 6)
-                .liquidHover(isHeaderHovering, cornerRadius: 4)
+                .padding(.vertical, 5).padding(.horizontal, 8)
+                .liquidHover(isHeaderHovering)
             }
             .buttonStyle(.plain)
             .padding(.horizontal, 5).padding(.top, 2)
@@ -151,7 +149,7 @@ struct PrayerTimeCorrectionView: View {
                     .transition(.opacity.combined(with: .move(edge: .top)))
                 }
             }
-            .padding(.horizontal, 12)
+            .padding(.horizontal, 16)
             .padding(.vertical, 8)
             .animation(.easeInOut(duration: 0.2), value: hasCorrections())
             .controlSize(.mini)

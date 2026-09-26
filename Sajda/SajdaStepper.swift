@@ -35,7 +35,7 @@ struct SajdaStepper: View {
             TextField("", text: $textValue, onCommit: {
                 updateValue(from: textValue)
             })
-            .scaledFont(.callout, design: .monospaced)
+            .scaledFont(.callout)
             .textFieldStyle(.plain)
             .multilineTextAlignment(.center)
             .frame(width: 35)

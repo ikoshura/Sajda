@@ -64,7 +64,10 @@ struct AccessibilitySettingsView: View {
                 }
                 .scrollIndicators(.hidden)
             }
-            .padding(.vertical, 8)
+            // Trimmed from 8pt: the menu container already supplies the
+            // panel's edge inset (internal scroll padding above is untouched).
+            .padding(.top, 2)
+            .padding(.bottom, 2)
             .frame(width: viewWidth)
         }
     }

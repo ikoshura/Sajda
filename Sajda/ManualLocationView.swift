@@ -80,7 +80,10 @@ struct ManualLocationView: View {
                 }
             }
         }
-        .padding(.vertical, 8)
+        // Trimmed from 8pt: the menu container already supplies the panel's
+        // edge inset, so the extra pad doubled the dead air.
+        .padding(.top, 2)
+        .padding(.bottom, 2)
         .frame(width: viewWidth)
         .onDisappear {
             vm.locationSearchQuery = ""

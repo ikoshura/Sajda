@@ -19,6 +19,7 @@
 		CC07FC622E63FF5100924451 /* SystemAndNotificationsSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC07FC612E63FF5100924451 /* SystemAndNotificationsSettingsView.swift */; };
 		CC07FC662E64122F00924451 /* NavigationStack in Frameworks */ = {isa = PBXBuildFile; productRef = CC07FC652E64122F00924451 /* NavigationStack */; };
 		CCAA00032FAABB0100CCDDEE /* ColorSelector in Frameworks */ = {isa = PBXBuildFile; productRef = CCAA00022FAABB0100CCDDEE /* ColorSelector */; };
+		CCF100032E6600000066D003 /* MacControlCenterUI in Frameworks */ = {isa = PBXBuildFile; productRef = CCF100022E6600000066D002 /* MacControlCenterUI */; };
 		CC4659612E661CC400159A83 /* TextFieldStepper.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC4659602E661CC400159A83 /* TextFieldStepper.swift */; };
 		CC4659652E6629C000159A83 /* SajdaStepper.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC4659642E6629C000159A83 /* SajdaStepper.swift */; };
 		CC786E4E2E634B65007299F3 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC786E4D2E634B65007299F3 /* OnboardingView.swift */; };
@@ -37,6 +38,8 @@
 		CC786E722E63BB26007299F3 /* LanguageManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC786E712E63BB26007299F3 /* LanguageManager.swift */; };
 		CC786E742E63BD15007299F3 /* VisualEffectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC786E732E63BD15007299F3 /* VisualEffectView.swift */; };
 		CC969C782E60857A00C8630A /* SajdaApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC969C772E60857A00C8630A /* SajdaApp.swift */; };
+		CCF100072E6600000066D007 /* SajdaControlCenterMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCF100062E6600000066D006 /* SajdaControlCenterMenu.swift */; };
+		CCF100052E6600000066D005 /* SajdaNotifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCF100042E6600000066D004 /* SajdaNotifications.swift */; };
 		CC969C7A2E60857A00C8630A /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC969C792E60857A00C8630A /* ContentView.swift */; };
 		CC969C7C2E60857D00C8630A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CC969C7B2E60857D00C8630A /* Assets.xcassets */; };
 		CC969C7F2E60857D00C8630A /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CC969C7E2E60857D00C8630A /* Preview Assets.xcassets */; };
@@ -48,7 +51,6 @@
 		CC9C2F012E61385B00BAE49A /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC9C2F002E61385B00BAE49A /* AppDelegate.swift */; };
 		CCA1B2C3D4E5000000000001 /* HighLatitudeRuleSetting.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCA1B2C3D4E5000000000002 /* HighLatitudeRuleSetting.swift */; };
 		CCDEFEE62E65231F005D6B45 /* TimePreviewPopover.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCDEFEE52E65231F005D6B45 /* TimePreviewPopover.swift */; };
-		CCE079712E6438100026054C /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCE079702E6438100026054C /* main.swift */; };
 		CCE1BA3A2E61852B003AF03C /* EventMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCE1BA302E61839F003AF03C /* EventMonitor.swift */; };
 		CCE1BA3B2E61852B003AF03C /* RootViewModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCE1BA332E6183A0003AF03C /* RootViewModifier.swift */; };
 		CCE1BA3C2E61852B003AF03C /* FluidMenuBarExtraStatusItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCE1BA312E61839F003AF03C /* FluidMenuBarExtraStatusItem.swift */; };
@@ -69,6 +71,7 @@
 		CCED21882E65FE650066D0EB /* AnimationType.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCED21872E65FE650066D0EB /* AnimationType.swift */; };
 		CCED21912E6600000066D0EB /* PanelTextSize.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCED21902E6600000066D0EB /* PanelTextSize.swift */; };
 		CCED21932E6600000066D0EB /* AccessibilitySettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCED21922E6600000066D0EB /* AccessibilitySettingsView.swift */; };
+		CCED21952E6600000066D0EB /* SettingsAccordion.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCED21942E6600000066D0EB /* SettingsAccordion.swift */; };
 		CCFD21DA2E62BEEB00A80402 /* PrayerTimeCorrectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCFD21D92E62BEEB00A80402 /* PrayerTimeCorrectionView.swift */; };
 /* End PBXBuildFile section */
 
@@ -125,6 +128,8 @@
 		CC786E732E63BD15007299F3 /* VisualEffectView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisualEffectView.swift; sourceTree = "<group>"; };
 		CC969C742E60857A00C8630A /* Sajda.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Sajda.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		CC969C772E60857A00C8630A /* SajdaApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SajdaApp.swift; sourceTree = "<group>"; };
+		CCF100062E6600000066D006 /* SajdaControlCenterMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SajdaControlCenterMenu.swift; sourceTree = "<group>"; };
+		CCF100042E6600000066D004 /* SajdaNotifications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SajdaNotifications.swift; sourceTree = "<group>"; };
 		CC969C792E60857A00C8630A /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		CC969C7B2E60857D00C8630A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		CC969C7E2E60857D00C8630A /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
@@ -140,7 +145,6 @@
 		CC9C2F002E61385B00BAE49A /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		CCA1B2C3D4E5000000000002 /* HighLatitudeRuleSetting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HighLatitudeRuleSetting.swift; sourceTree = "<group>"; };
 		CCDEFEE52E65231F005D6B45 /* TimePreviewPopover.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimePreviewPopover.swift; sourceTree = "<group>"; };
-		CCE079702E6438100026054C /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		CCE1BA2E2E61839E003AF03C /* UpdateSizeAction.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UpdateSizeAction.swift; sourceTree = "<group>"; };
 		CCE1BA2F2E61839E003AF03C /* FluidMenuBarExtra.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FluidMenuBarExtra.swift; sourceTree = "<group>"; };
 		CCE1BA302E61839F003AF03C /* EventMonitor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EventMonitor.swift; sourceTree = "<group>"; };
@@ -160,6 +164,7 @@
 		CCED21872E65FE650066D0EB /* AnimationType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnimationType.swift; sourceTree = "<group>"; };
 		CCED21902E6600000066D0EB /* PanelTextSize.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PanelTextSize.swift; sourceTree = "<group>"; };
 		CCED21922E6600000066D0EB /* AccessibilitySettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessibilitySettingsView.swift; sourceTree = "<group>"; };
+		CCED21942E6600000066D0EB /* SettingsAccordion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsAccordion.swift; sourceTree = "<group>"; };
 		CCFD21D92E62BEEB00A80402 /* PrayerTimeCorrectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrayerTimeCorrectionView.swift; sourceTree = "<group>"; };
 		EBC237DE638145FF832C3A24 /* Mishary_Rashid_al_Afasy_Fajr_Adhan.caf */ = {isa = PBXFileReference; lastKnownFileType = audio.caf; path = Mishary_Rashid_al_Afasy_Fajr_Adhan.caf; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -172,6 +177,7 @@
 				CCEC0E3F2E60A3A0001E9B1E /* Adhan in Frameworks */,
 				CC07FC662E64122F00924451 /* NavigationStack in Frameworks */,
 				CCAA00032FAABB0100CCDDEE /* ColorSelector in Frameworks */,
+				CCF100032E6600000066D003 /* MacControlCenterUI in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -239,6 +245,8 @@
 				CC786E592E6369EA007299F3 /* TimeZoneLocate */,
 				8AA22B02554C4B9D85933DAF /* Resources/Audio */,
 				CC969C772E60857A00C8630A /* SajdaApp.swift */,
+				CCF100062E6600000066D006 /* SajdaControlCenterMenu.swift */,
+				CCF100042E6600000066D004 /* SajdaNotifications.swift */,
 				CC969C792E60857A00C8630A /* ContentView.swift */,
 				CCE1BA442E6198C1003AF03C /* ManualLocationView.swift */,
 				CC969C7B2E60857D00C8630A /* Assets.xcassets */,
@@ -274,13 +282,13 @@
 				CC786E732E63BD15007299F3 /* VisualEffectView.swift */,
 				CC07FC5F2E63FD5800924451 /* LocationAndCalcSettingsView.swift */,
 				CC07FC612E63FF5100924451 /* SystemAndNotificationsSettingsView.swift */,
-				CCE079702E6438100026054C /* main.swift */,
 				CCDEFEE52E65231F005D6B45 /* TimePreviewPopover.swift */,
 				CCED21832E65F7BE0066D0EB /* NavigationAnimations.swift */,
 				CCED21852E65F9770066D0EB /* NavigationAnimation+Custom.swift */,
 				CCED21872E65FE650066D0EB /* AnimationType.swift */,
 				CCED21902E6600000066D0EB /* PanelTextSize.swift */,
 				CCED21922E6600000066D0EB /* AccessibilitySettingsView.swift */,
+				CCED21942E6600000066D0EB /* SettingsAccordion.swift */,
 				CC4659602E661CC400159A83 /* TextFieldStepper.swift */,
 				CC4659642E6629C000159A83 /* SajdaStepper.swift */,
 				A1B220C2AC258F390A192FF3 /* AdhanAudioPlayer.swift */,
@@ -346,6 +354,7 @@
 				CCEC0E3E2E60A3A0001E9B1E /* Adhan */,
 				CC07FC652E64122F00924451 /* NavigationStack */,
 				CCAA00022FAABB0100CCDDEE /* ColorSelector */,
+				CCF100022E6600000066D002 /* MacControlCenterUI */,
 			);
 			productName = Sajda;
 			productReference = CC969C742E60857A00C8630A /* Sajda.app */;
@@ -431,6 +440,7 @@
 				CCEC0E3D2E60A3A0001E9B1E /* XCRemoteSwiftPackageReference "adhan-swift" */,
 				CC07FC642E64122F00924451 /* XCRemoteSwiftPackageReference "NavigationStack" */,
 				CCAA00012FAABB0100CCDDEE /* XCRemoteSwiftPackageReference "ColorSelector" */,
+				CCF100012E6600000066D001 /* XCLocalSwiftPackageReference "../MacControlCenterUI" */,
 			);
 			productRefGroup = CC969C752E60857A00C8630A /* Products */;
 			projectDirPath = "";
@@ -483,7 +493,6 @@
 			files = (
 				CC9C2F012E61385B00BAE49A /* AppDelegate.swift in Sources */,
 				CCE1BA3C2E61852B003AF03C /* FluidMenuBarExtraStatusItem.swift in Sources */,
-				CCE079712E6438100026054C /* main.swift in Sources */,
 				CCFD21DA2E62BEEB00A80402 /* PrayerTimeCorrectionView.swift in Sources */,
 				CC969CA72E60989F00C8630A /* PrayerTimeViewModel.swift in Sources */,
 				CC786E582E635B46007299F3 /* PrayerTimerAlertView.swift in Sources */,
@@ -495,6 +504,7 @@
 				CCED21882E65FE650066D0EB /* AnimationType.swift in Sources */,
 				CCED21912E6600000066D0EB /* PanelTextSize.swift in Sources */,
 				CCED21932E6600000066D0EB /* AccessibilitySettingsView.swift in Sources */,
+				CCED21952E6600000066D0EB /* SettingsAccordion.swift in Sources */,
 				CC07FC622E63FF5100924451 /* SystemAndNotificationsSettingsView.swift in Sources */,
 				CC786E632E63787E007299F3 /* MenuBarTextMode.swift in Sources */,
 				CCEC0E452E60B08D001E9B1E /* AboutView.swift in Sources */,
@@ -522,6 +532,8 @@
 				CC786E652E638353007299F3 /* SajdaCalculationMethod.swift in Sources */,
 				CCA1B2C3D4E5000000000001 /* HighLatitudeRuleSetting.swift in Sources */,
 				CC969C782E60857A00C8630A /* SajdaApp.swift in Sources */,
+				CCF100072E6600000066D007 /* SajdaControlCenterMenu.swift in Sources */,
+				CCF100052E6600000066D005 /* SajdaNotifications.swift in Sources */,
 				CCE1BA3E2E61852B003AF03C /* UpdateSizeAction.swift in Sources */,
 				CCED21842E65F7BE0066D0EB /* NavigationAnimations.swift in Sources */,
 				CCE1BA3B2E61852B003AF03C /* RootViewModifier.swift in Sources */,
@@ -711,7 +723,7 @@
 				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 16;
+				CURRENT_PROJECT_VERSION = 17;
 				DEVELOPMENT_ASSET_PATHS = "\"Sajda/Preview Content\"";
 				DEVELOPMENT_TEAM = KTKP595G3B;
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = "";
@@ -726,7 +738,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 4.0.3;
+				MARKETING_VERSION = 4.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.madda.Sajda;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "";
@@ -745,7 +757,7 @@
 				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 16;
+				CURRENT_PROJECT_VERSION = 17;
 				DEVELOPMENT_ASSET_PATHS = "\"Sajda/Preview Content\"";
 				DEVELOPMENT_TEAM = KTKP595G3B;
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = "";
@@ -760,7 +772,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 4.0.3;
+				MARKETING_VERSION = 4.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.madda.Sajda;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "";
@@ -882,6 +894,13 @@
 		};
 /* End XCConfigurationList section */
 
+/* Begin XCLocalSwiftPackageReference section */
+		CCF100012E6600000066D001 /* XCLocalSwiftPackageReference "../MacControlCenterUI" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ../MacControlCenterUI;
+		};
+/* End XCLocalSwiftPackageReference section */
+
 /* Begin XCRemoteSwiftPackageReference section */
 		CC07FC642E64122F00924451 /* XCRemoteSwiftPackageReference "NavigationStack" */ = {
 			isa = XCRemoteSwiftPackageReference;
@@ -924,6 +943,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = CCAA00012FAABB0100CCDDEE /* XCRemoteSwiftPackageReference "ColorSelector" */;
 			productName = ColorSelector;
+		};
+		CCF100022E6600000066D002 /* MacControlCenterUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CCF100012E6600000066D001 /* XCLocalSwiftPackageReference "../MacControlCenterUI" */;
+			productName = MacControlCenterUI;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
