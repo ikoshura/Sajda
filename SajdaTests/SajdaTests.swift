@@ -35,7 +35,149 @@ final class SajdaTests: XCTestCase {
         }
     }
 
+    // MARK: - Cached-schedule merge
+
+    /// A per-favorite cache written by an older build carries no Jumu'ah or
+    /// iqama fields. Activating that copy is what made the Jumu'ah footer
+    /// disappear on a mosque → city → mosque round trip, so the merge has to
+    /// restore exactly the fields the fresh copy is missing — and nothing else.
+    func testMergingRestoresMissingSessionsWithoutTouchingAnythingElse() {
+        let stale = MawaqitMosque(slug: "mosque", name: "Old Name", fetchedAt: Date(timeIntervalSince1970: 0),
+                                   calendar: [[String: [String]]]())
+        let fresh = MawaqitMosque(slug: "mosque", name: "New Name", fetchedAt: Date(timeIntervalSince1970: 100),
+                                   calendar: [[String: [String]]](repeating: [:], count: 12),
+                                   jumuaSessions: ["13:30", "14:30"],
+                                   iqamaCalendar: [[String: [String]]](repeating: [:], count: 12))
+        let merged = MawaqitService.merging(stale, with: fresh)
+
+        // The missing fields come across…
+        XCTAssertEqual(merged.jumuaSessions, ["13:30", "14:30"])
+        XCTAssertNotNil(merged.iqamaCalendar)
+        // …and everything the stale copy already had is left alone: it is the
+        // copy being activated, so its own calendar and metadata must survive.
+        XCTAssertEqual(merged.name, "Old Name")
+        XCTAssertEqual(merged.fetchedAt, Date(timeIntervalSince1970: 0))
+        XCTAssertTrue(merged.calendar.isEmpty)
+    }
+
+    /// A complete copy is returned untouched, and merging from a copy that has
+    /// nothing either leaves the empties as nil rather than as empty arrays —
+    /// `nil` and `[]` mean the same thing downstream, but nil round-trips
+    /// through JSON as absent instead of as noise on every save.
+    func testMergingIsANoOpWhenNothingIsMissing() {
+        let iqama = [[String: [String]]](repeating: [:], count: 12)
+        let complete = MawaqitMosque(slug: "m", name: "N", fetchedAt: Date(), calendar: [],
+                                     jumuaSessions: ["13:30"], iqamaCalendar: iqama)
+        let merged = MawaqitService.merging(complete, with: MawaqitMosque(slug: "m", name: "Other", fetchedAt: Date(), calendar: []))
+        XCTAssertEqual(merged.jumuaSessions, ["13:30"])
+        XCTAssertNotNil(merged.iqamaCalendar)
+
+        let bare = MawaqitService.merging(MawaqitMosque(slug: "m", name: "N", fetchedAt: Date(), calendar: []),
+                                          with: MawaqitMosque(slug: "m", name: "N", fetchedAt: Date(), calendar: []))
+        XCTAssertNil(bare.jumuaSessions)
+        XCTAssertNil(bare.iqamaCalendar)
+    }
+
+    // MARK: - Mosque iqama offsets
+
+    /// Mawaqit publishes the mosque's own iqama gaps as signed minute strings,
+    /// five of them in a fixed prayer order (sunrise has no iqama). The app
+    /// follows these in mosque mode instead of estimating, so the sign has to
+    /// be stripped without swallowing the value.
+    func testMinutesFromSignedOffset() {
+        XCTAssertEqual(MawaqitService.minutesFromSignedOffset("+20"), 20)
+        XCTAssertEqual(MawaqitService.minutesFromSignedOffset("+0"), 0)
+        // A missing sign (older entries) is still a valid gap.
+        XCTAssertEqual(MawaqitService.minutesFromSignedOffset("10"), 10)
+        XCTAssertEqual(MawaqitService.minutesFromSignedOffset("  +7 "), 7)
+        // An iqama can't precede its adhan, and junk is simply unusable.
+        XCTAssertNil(MawaqitService.minutesFromSignedOffset("-5"))
+        XCTAssertNil(MawaqitService.minutesFromSignedOffset("+abc"))
+        XCTAssertNil(MawaqitService.minutesFromSignedOffset(""))
+        XCTAssertNil(MawaqitService.minutesFromSignedOffset("+"))
+    }
+
+    /// The five offsets are positional, so they have to land on the right
+    /// prayer names — a shift by one would silently give Asr the Dhuhr iqama.
+    func testIqamaOffsetsMapOntoTheRightPrayers() {
+        var calendar = Array(repeating: [String: [String]](), count: 12)
+        calendar[0]["1"] = ["+20", "+10", "+10", "+7", "+10"]
+        let offsets = MawaqitService.iqamaOffsets(for: date(year: 2026, month: 1, day: 1), in: calendar)
+        XCTAssertEqual(offsets, ["Fajr": 20, "Dhuhr": 10, "Asr": 10, "Maghrib": 7, "Isha": 10])
+    }
+
+    /// One bad entry must not cost the other four, and a mosque that publishes
+    /// nothing usable has to come back empty so the caller falls back to the
+    /// user's own gap rather than showing a bogus iqama.
+    func testIqamaOffsetsDegradeGracefully() {
+        var calendar = Array(repeating: [String: [String]](), count: 12)
+        calendar[0]["1"] = ["+20", "?", "+10", "+7", "+10"]
+        let partial = MawaqitService.iqamaOffsets(for: date(year: 2026, month: 1, day: 1), in: calendar)
+        XCTAssertNil(partial["Dhuhr"])
+        XCTAssertEqual(partial["Fajr"], 20)
+        XCTAssertEqual(partial["Isha"], 10)
+
+        // A short row can't fill all five; the rest fall back.
+        var short = Array(repeating: [String: [String]](), count: 12)
+        short[0]["1"] = ["+20", "+10"]
+        let shortOffsets = MawaqitService.iqamaOffsets(for: date(year: 2026, month: 1, day: 1), in: short)
+        XCTAssertEqual(shortOffsets, ["Fajr": 20, "Dhuhr": 10])
+
+        // No calendar at all, the wrong number of months, and a date the
+        // calendar doesn't cover all come back empty.
+        XCTAssertTrue(MawaqitService.iqamaOffsets(for: date(year: 2026, month: 1, day: 1), in: nil).isEmpty)
+        XCTAssertTrue(MawaqitService.iqamaOffsets(for: date(year: 2026, month: 1, day: 1),
+                                                in: [[String: [String]]](repeating: [:], count: 3)).isEmpty)
+        XCTAssertTrue(MawaqitService.iqamaOffsets(for: date(year: 2026, month: 3, day: 9), in: calendar).isEmpty)
+    }
+
+    /// Local-timezone date at midnight, for the calendar lookups above.
+    private func date(year: Int, month: Int, day: Int) -> Date {
+        var cal = Calendar(identifier: .gregorian)
+        cal.timeZone = .current
+        return cal.date(from: DateComponents(year: year, month: month, day: day))!
+    }
+
     // MARK: - Jumu'ah sessions
+
+    /// Mawaqit publishes the Friday gatherings in three separate confData
+    /// fields, not as a list. Only the first was read, which is why a mosque
+    /// running two khutbahs (Aubervilliers: 13:30 + 14:30) showed a single
+    /// session. Every populated field has to come through, in order.
+    func testJumuaTimesKeepsEveryPublishedSession() {
+        XCTAssertEqual(MawaqitService.jumuaTimes(["13:30", "14:30", nil]), ["13:30", "14:30"])
+        XCTAssertEqual(MawaqitService.jumuaTimes(["13:41", nil, nil]), ["13:41"])
+        XCTAssertEqual(
+            MawaqitService.jumuaTimes(["12:30", "13:00", "14:15"]),
+            ["12:30", "13:00", "14:15"]
+        )
+    }
+
+    /// A gap in the middle of the three fields (a mosque with a first and a
+    /// third khutbah but no second) must not leave a hole, and a blank or
+    /// malformed value must not become a bogus midnight session.
+    func testJumuaTimesDropsBlanksAndJunk() {
+        XCTAssertEqual(MawaqitService.jumuaTimes(["13:30", nil, "14:30"]), ["13:30", "14:30"])
+        XCTAssertEqual(MawaqitService.jumuaTimes([nil, "  ", nil]), [])
+        XCTAssertEqual(MawaqitService.jumuaTimes(["", "-", nil]), [])
+        XCTAssertEqual(MawaqitService.jumuaTimes([nil, nil, nil]), [])
+        // Surrounding whitespace from the page is trimmed, not rejected.
+        XCTAssertEqual(MawaqitService.jumuaTimes([" 13:30 ", nil, nil]), ["13:30"])
+    }
+
+    /// "HH:MM" → minutes past midnight, guarding the range so a malformed
+    /// entry can't become a session outside the 0...1439 clock.
+    func testMinutesFromHM() {
+        XCTAssertEqual(MawaqitService.minutesFromHM("13:30"), 13 * 60 + 30)
+        XCTAssertEqual(MawaqitService.minutesFromHM("00:00"), 0)
+        XCTAssertEqual(MawaqitService.minutesFromHM("23:59"), 23 * 60 + 59)
+        // Seconds are accepted and dropped — Mawaqit writes them sometimes.
+        XCTAssertEqual(MawaqitService.minutesFromHM("13:30:00"), 13 * 60 + 30)
+        XCTAssertNil(MawaqitService.minutesFromHM("24:00"))
+        XCTAssertNil(MawaqitService.minutesFromHM("13:60"))
+        XCTAssertNil(MawaqitService.minutesFromHM("1330"))
+        XCTAssertNil(MawaqitService.minutesFromHM(""))
+    }
 
     /// A session added in Settings is seeded at the quarter hour just after
     /// Dhuhr, so a mosque that starts Jumu'ah minutes past Dhuhr never gets a

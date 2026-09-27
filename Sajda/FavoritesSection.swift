@@ -170,7 +170,7 @@ struct FavoritesSection: View {
                     .truncationMode(.tail)
                 Spacer(minLength: 4)
                 Image(systemName: openSearch == .city ? "chevron.up" : vm.forwardChevron)
-                    .scaledFont(.caption, weight: .bold)
+                    .scaledFont(.caption, weight: .semibold)
                     .foregroundColor(.secondary)
                     .frame(width: 20)
             }
@@ -198,7 +198,7 @@ struct FavoritesSection: View {
                     .truncationMode(.tail)
                 Spacer(minLength: 4)
                 Image(systemName: openSearch == .mosque ? "chevron.up" : vm.forwardChevron)
-                    .scaledFont(.caption, weight: .bold)
+                    .scaledFont(.caption, weight: .semibold)
                     .foregroundColor(.secondary)
                     .frame(width: 20)
             }
@@ -215,9 +215,9 @@ struct FavoritesSection: View {
         let isActive = vm.isFavoriteActive(favorite)
         let isLoading = vm.favoriteMosqueLoadingSlug == favorite.slug && favorite.kind == .mosque
         // The row Button's label owns the padding + full-width content
-        // (including a reserved 20pt slot for the star), so the hit area is
+        // (including a reserved 20pt slot for the heart), so the hit area is
         // exactly the hover pill — no dead strips at the pill's edges and no
-        // dead column around the star. The star overlays that slot as its
+        // dead column around the heart. The heart overlays that slot as its
         // own button, at the same x it had as an HStack sibling.
         return Button(action: { Task { @MainActor in vm.activateFavorite(favorite) } }) {
             HStack(spacing: 6) {
@@ -240,8 +240,8 @@ struct FavoritesSection: View {
                 }
                 Spacer(minLength: 4)
                 // Trailing symbols in one zero-spacing group so the
-                // checkmark keeps the exact x it had next to the star; the
-                // star overlay sits on the second (reserved) 20pt slot.
+                // checkmark keeps the exact x it had next to the heart; the
+                // heart overlay sits on the second (reserved) 20pt slot.
                 HStack(spacing: 0) {
                     if isLoading {
                         ProgressView().controlSize(.mini)
@@ -257,9 +257,9 @@ struct FavoritesSection: View {
                         // same size) whether the row shows a checkmark or not.
                         Color.clear.frame(width: 20)
                     }
-                    // Reserved slot underneath the star overlay: preserves the
+                    // Reserved slot underneath the heart overlay: preserves the
                     // checkmark's x, and the button's hit area extends under the
-                    // bands of that column the star glyph doesn't cover.
+                    // bands of that column the heart glyph doesn't cover.
                     Color.clear.frame(width: 20)
                 }
             }
@@ -268,13 +268,13 @@ struct FavoritesSection: View {
         }
         .buttonStyle(.plain)
         .disabled(isLoading)
-        // Star removes from favorites; overlays the reserved trailing slot
-        // so it stays a separate action without leaving dead hit zones.
+        // Filled heart removes from favorites; overlays the reserved trailing
+        // slot so it stays a separate action without leaving dead hit zones.
         .overlay(alignment: .trailing) {
             Button(action: { vm.removeFavorite(id: favorite.id) }) {
-                Image(systemName: "star.fill")
+                Image(systemName: "heart.fill")
                     .scaledFont(.caption)
-                    .foregroundColor(vm.selectedHighlightColor)
+                    .foregroundColor(vm.favoriteColor)
                     .frame(width: 20, height: 14)
                     .contentShape(Rectangle())
             }

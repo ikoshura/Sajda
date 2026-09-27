@@ -9,6 +9,7 @@ struct MainView: View {
     @EnvironmentObject var navigationModel: NavigationModel
     @State private var isSettingsHovering = false
     @State private var isAboutHovering = false
+    @State private var isMosqueRefreshHovering = false
     @State private var isQuitHovering = false
     @State private var isLocationHovering = false
     /// Update availability, observed directly: the footer badge below reflects
@@ -25,6 +26,19 @@ struct MainView: View {
     /// red/green pair would not.
     private static let updateBadgeTint = Color(red: 0.98, green: 0.68, blue: 0.13)
 
+    /// Glyph box the footer's refresh button draws into, so swapping the arrow
+    /// for a spinner can't change the button's size and shift the icons beside
+    /// it. Sized off `.body`, matching the About and Settings glyphs it sits
+    /// between.
+    private static let footerIconWidth: CGFloat = 16
+    private static let footerIconHeight: CGFloat = 16
+
+    /// Gap between the location row and the prayer list in the "Below Divider"
+    /// position. Added to `PrayerListView`'s own 2pt top padding it matches the
+    /// 6pt the outer VStack leaves above the row, so the row is centred in the
+    /// space instead of clinging to the first prayer.
+    private static let locationRowGap: CGFloat = 4
+
     /// Version the footer badge advertises, or nil when no update is pending
     /// (badge hidden).
     private var updateBadgeVersion: String? {
@@ -36,24 +50,40 @@ struct MainView: View {
     /// accordion state lives on that page's @State — so it is born shut on
     /// every open and every return, with no reset logic anywhere. Outer 4pt
     /// + inner 8pt = 12pt, the same gutter PrayerListView's rows use.
-    @ViewBuilder
+    ///
+    /// No refresh button here: an overlaid control needs a `Color.clear`
+    /// spacer to reserve its slot, and that spacer is greedy — it stretches
+    /// the row to the leftover panel height. Re-fetching a stale mosque
+    /// timetable is done from the Refresh button in Settings > Calculation &
+    /// Location instead.
     private var locationFavoritesBlock: some View {
         Button(action: {
             navigationModel.showView(ContentView.id, animation: vm.forwardAnimation()) { FavoritesView() }
         }) {
             HStack(spacing: 4) {
                 Text(vm.panelLocationCaption)
+                    // `.callout` sits just under the "Sajda" title above, so the
+                    // location reads as a caption for the times below rather
+                    // than as another label competing with the title.
+                    .scaledFont(.callout, weight: .regular)
                     .lineLimit(1)
                     .truncationMode(.tail)
                 Spacer(minLength: 4)
                 Image(systemName: vm.forwardChevron)
-                    .scaledFont(.caption, weight: .bold)
+                    .scaledFont(.callout, weight: .semibold)
                     .foregroundColor(.secondary)
             }
-            .scaledFont(.caption).foregroundColor(Color("SecondaryTextColor"))
+            // The text carries its own size and weight above, so the row only
+            // sets the colour: a font modifier on the HStack would resolve the
+            // font itself and flatten the chevron's semibold back to regular.
+            // `.secondary` is the same grey the Settings tab labels
+            // ("Visual", "System", …) use. The text's regular weight is pinned
+            // so the location never picks up the bold the prayer rows carry;
+            // it still follows "Bold Text".
+            .foregroundColor(.secondary)
             .padding(.vertical, 5).padding(.horizontal, 8)
-            .liquidHover(isLocationHovering)
             .contentShape(Rectangle())
+            .liquidHover(isLocationHovering)
         }
         .buttonStyle(.plain)
         .padding(.horizontal, 4)
@@ -72,7 +102,13 @@ struct MainView: View {
                 // Left edge lines up with the location caption and prayer rows
                 // below (the panel's 12pt gutter); no arrow here — the main
                 // page has nothing to go back to.
-                Text("Sajda").scaledFont(.body, weight: .bold)
+                // `.semibold`, bukan `.bold`. "Sajda" adalah kata yang paling
+                // sering tampil di panel ini, dan bobot penuh terasa lebih
+                // kasar dari yang perlu untuk sebuah judul. Perhatikan juga
+                // bahwa mode aksesibilitas "Bold Text" menaikkan satu tingkat:
+                // di situ `.semibold` menjadi `.bold` — masih terbaca sebagai
+                // judul, sementara `.bold` akan menjadi `.heavy`.
+                Text("Sajda").scaledFont(.body, weight: .semibold)
                 Spacer()
                 if vm.isPrayerDataAvailable && vm.menuBarTextMode == .hidden {
                     Text(vm.headerCountdownText).scaledFont(.body).lineLimit(1).minimumScaleFactor(0.7).foregroundColor(vm.isPrayerImminent ? .red : Color("SecondaryTextColor")).transition(.opacity.animation(.easeInOut))
@@ -81,8 +117,12 @@ struct MainView: View {
                 // edge. It yields space first (low layout priority) so the
                 // optional countdown still fits in the compact layout.
                 Text(vm.hijriDateText)
-                    .scaledFont(.caption)
-                    .foregroundColor(Color("SecondaryTextColor"))
+                    // `.body` to match the "Sajda" title on the same row — the
+                    // two are now read as one header line rather than a title
+                    // with a small date tucked under it. `.secondary` matches
+                    // the location line below and the Settings tab labels.
+                    .scaledFont(.body)
+                    .foregroundColor(.secondary)
                     .lineLimit(1)
                     .minimumScaleFactor(0.6)
                     .layoutPriority(-1)
@@ -94,50 +134,88 @@ struct MainView: View {
             .padding(.horizontal, 12)
             .padding(.top, 1)
 
+            // Letak baris lokasi diatur lewat Settings > Prayer >
+            // "Location Row". `.top` dirender DI SINI — di atas
+            // garis pemisah, tepat di bawah judul. Dulu blok ini berada
+            // setelah `Rectangle`, sehingga `.top` menghasilkan tata letak yang
+            // sama persis dengan `.middle` (keduanya persis di bawah garis)
+            // dan pilihannya tidak terlihat berbeda sama sekali.
+            if vm.isPrayerDataAvailable && vm.locationRowPosition == .top {
+                locationFavoritesBlock
+            }
+
             Rectangle()
                 .fill(Color("DividerColor"))
                 .frame(height: 0.5)
                 .padding(.horizontal, 12)
 
             // Countdown card (when on) keeps the top slot under the divider.
-            // The location block is independent of it and always follows below
-            // (see below), so switching the card off removes only the card.
             let showCountdownCard = vm.isPrayerDataAvailable && vm.showCountdownHeader && vm.nextPrayerOccurrenceDate != nil
             if showCountdownCard {
                 NextPrayerCountdownHeader()
             }
 
             if vm.isPrayerDataAvailable {
-                // Mosque/location caption always sits directly above the prayer
-                // list, independent of the countdown card. It used to ride with
-                // the card and only render when `showCountdownCard` was true, so
-                // turning "Show Countdown Header" off took the location with it
-                // and left the panel with no indication of *which* location the
-                // times belong to. Above the list in both cases is also the
-                // position it was moved to on purpose: the line that says where
-                // these times are belongs before the times, not after them.
-                // The list's own 2pt top padding and the caption's 5pt vertical
-                // padding are both deliberate, but stacking them under the outer
-                // 6pt VStack spacing left 13pt between the caption and the first
-                // prayer — they read as two unrelated sections. A nested stack
-                // keeps the two blocks together while still separating them.
+                // Posisi `.middle`: baris lokasi tepat di atas daftar shalat.
+                // Dipakai stack bersarang (bukan sekadar `PrayerListView()`)
+                // karena kedua elemen ini harus tetap menempel — baris itu
+                // menjelaskan waktu-waktu di bawahnya.
                 //
-                // Spacing stays 0, as it was before this experiment. The gaps
-                // are not equal by construction — 5pt caption padding + 2pt
-                // list padding = 7pt below the row against 6pt of outer
-                // spacing + 3pt of row padding above — but any spacing added
-                // here applies to *both* gaps, so it cannot correct one without
-                // unbalancing the other. A separator under the row was tried
-                // for this and read as a rule splitting the panel rather than
-                // as balance, so it was dropped.
-                VStack(alignment: .leading, spacing: 0) {
-                    locationFavoritesBlock
+                // `locationRowGap` exist solely to balance this row. The gap
+                // above it is the outer VStack's 6pt spacing; below it, this
+                // stack's 4pt plus `PrayerListView`'s own 2pt top padding. 6
+                // and 4 + 2 is what makes the two sides match — previously
+                // they were 6 against 2, so the row looked glued to the first
+                // prayer. Don't try to fix this with a negative padding on the
+                // countdown card: its 12pt is *inside* the blue, so the space
+                // below it is only the 6pt spacing, and pulling 10pt back just
+                // overlapped the row with the card.
+                if vm.locationRowPosition == .middle {
+                    VStack(alignment: .leading, spacing: Self.locationRowGap) {
+                        locationFavoritesBlock
+                        PrayerListView()
+                    }
+                } else {
                     PrayerListView()
                 }
             } else {
                 Spacer()
                 PermissionRequestView()
                 Spacer()
+            }
+
+            // Posisi `.bottom`: baris lokasi menutup daftar shalat, jadi ia
+            // mendapat pemisah sendiri — tanpa itu baris ini menempel pada
+            // waktu shalat terakhir dan terbaca sebagai baris jadwal tambahan,
+            // bukan sebagai keterangan tempat. Pemisah dan baris digabung dalam
+            // satu stack agar keduanya tidak terpisah oleh jarak VStack luar.
+            // Baris footer di bawahnya tetap memakai pemisahnya sendiri, jadi
+            // di posisi ini memang ada dua garis: satu sebelum lokasi, satu
+            // sebelum footer.
+            if vm.isPrayerDataAvailable && vm.locationRowPosition == .bottom {
+                VStack(alignment: .leading, spacing: 0) {
+                    Rectangle()
+                        .fill(Color("DividerColor"))
+                        .frame(height: 0.5)
+                        .padding(.horizontal, 12)
+                        // Jarak di bawah garis dibuat lebih besar dari jarak di
+                        // atasnya (2pt vs 6pt). Baris lokasi punya 5pt padding
+                        // vertikal sendiri, sehingga sebelumnya jaraknya hanya 5pt
+                        // di bawah garis — teksnya nempel — sementara di sisi lain
+                        // ada 6pt spacing VStack luar + 2pt padding footer,
+                        // jadi jaraknya 13pt. Hasilnya satu sisi terlihat absen
+                        // dan sisi lain terlalu longgar.
+                        .padding(.top, 2)
+                        .padding(.bottom, 6)
+                    locationFavoritesBlock
+                        // Menarik kembali sebagian jarak di bawah baris. Padding
+                        // 5pt bawaannya ditumpuk dengan 6pt spacing VStack luar
+                        // dan 2pt padding footer, jadi tanpa ini baris ini
+                        // bergeser 13pt dari footer — hampir dua kali jarak di
+                        // atas garis pemisah. Padding negatif ini disengaja dan
+                        // hanya berlaku untuk posisi `.bottom`.
+                        .padding(.bottom, -5)
+                }
             }
 
             // One separator after the prayer times, then a single compact
@@ -185,21 +263,70 @@ struct MainView: View {
                         .accessibilityLabel(Text(String(format: NSLocalizedString("Update available: %@", comment: ""), version)))
                     }
 
+                    // Re-fetch the active mosque's timetable, sitting just
+                    // before About. Mawaqit edits a mosque's Jumu'ah and iqama
+                    // entries during the year, so a schedule picked up months
+                    // ago goes stale and this is the one-tap way to pull the
+                    // new one (which also brings the mosque's own iqama gaps).
+                    //
+                    // It lives in the footer rather than on the location row
+                    // on purpose: here it is just another sibling in this
+                    // HStack, so it needs no reserved slot and no overlay. The
+                    // location row's caption is the one thing that must stay
+                    // exactly one line tall, and an overlaid control there
+                    // stretched the whole row. Only shown in mosque mode,
+                    // where it has something to refresh.
+                    if vm.useMawaqitSchedule && vm.mawaqitMosque != nil {
+                        Button {
+                            Task { await vm.refreshActiveMosqueSchedule() }
+                        } label: {
+                            // A spinner in place of the glyph while the
+                            // download runs, so a tap with no visible response
+                            // (the times usually land identical) still reads
+                            // as "it worked". The padding sits in the label
+                            // and both branches are measured the same, so the
+                            // pill doesn't jump or resize mid-refresh.
+                            Group {
+                                if vm.isRefreshingMosqueSchedule {
+                                    ProgressView().controlSize(.small)
+                                } else {
+                                    Image(systemName: "arrow.clockwise")
+                                        .scaledFont(.body)
+                                }
+                            }
+                            .frame(width: Self.footerIconWidth, height: Self.footerIconHeight)
+                            .padding(.vertical, 5).padding(.horizontal, 8)
+                            // Padding, hit shape and pill all inside the label:
+                            // applied to the Button instead, the hover fill is
+                            // drawn past the label's frame but only the glyph
+                            // itself is hit-testable, so you have to click the
+                            // exact pixels of the icon.
+                            .contentShape(Rectangle())
+                            .liquidHover(isMosqueRefreshHovering)
+                        }
+                        .buttonStyle(.plain)
+                        .disabled(vm.isRefreshingMosqueSchedule)
+                        .onHover { hovering in isMosqueRefreshHovering = hovering }
+                        .focusable(false)
+                        .help(Text(NSLocalizedString("Refresh the mosque's schedule", comment: "")))
+                        .accessibilityLabel(Text(NSLocalizedString("Refresh the mosque's schedule", comment: "")))
+                    }
+
                     Button(action: {
                         navigationModel.showView(ContentView.id, animation: vm.forwardAnimation()) { AboutView() }
                     }) {
                         Image(systemName: "info.circle")
                             .scaledFont(.body)
                             .padding(.vertical, 5).padding(.horizontal, 8)
+                            .contentShape(Rectangle())
                             .liquidHover(isAboutHovering)
                     }
                     .buttonStyle(.plain)
                     .onHover { hovering in isAboutHovering = hovering }
-                    // --- PERBAIKAN DI SINI ---
+                    // --- PERBAIKAN DI SINI --
                     .focusable(false)
                     .help(Text(NSLocalizedString("About", comment: "")))
                     .accessibilityLabel(Text(NSLocalizedString("About", comment: "")))
-
                     Button(action: {
                         // Unlocked always enters on Display; locked keeps the
                         // last-used tab. The reset is non-animated so it can't
@@ -252,15 +379,13 @@ struct PrayerListView: View {
             }
             // Jumu'ah is not one of the five daily prayers — it replaces Dhuhr
             // only on a Friday, and a busy mosque can run up to three khutbah
-            // sessions. Listing it inline under Dhuhr made it read as a sixth
-            // daily prayer (and quietly implied Dhuhr still happens). It gets
-            // its own section after Isha instead, under a rule and a small
-            // heading, so the daily list stays exactly five names long and the
-            // Friday rows are unmistakably a separate thing. Shown on Fridays,
+            // sessions. It gets one discreet centred line under a rule after
+            // Isha, so the daily list stays exactly five names long and the
+            // Friday times are unmistakably a separate thing. Shown on Fridays,
             // or every day while "Always Show Jumu'ah" is on so travellers can
             // plan ahead.
             if !vm.jumuahSessionDates.isEmpty, vm.isFriday || vm.alwaysShowJumuah {
-                JumuahSessionsSection(timeColumnWidth: Self.timeColumnWidth(fontScale: fontScale))
+                JumuahFootnote()
             }
         }
         .padding(.top, 2)
@@ -278,13 +403,6 @@ struct PrayerListView: View {
     /// the outside grows past the panel instead of insetting, which is what
     /// made the highlight bleed edge to edge. Matches the countdown card.
     static let highlightInset: CGFloat = 5
-
-    /// Vertical breathing room around the rule that separates the daily
-    /// prayers from the Jumu'ah section. A hair more than the footer's own
-    /// 2pt, because here the rule is doing real work — it is what says "this
-    /// is a different kind of thing" — and a 2pt gap made it read as a stray
-    /// line rather than as the head of a section.
-    static let jumuahSectionRulePadding: CGFloat = 6
 
     /// Row content height, measured from the text the row actually draws. The
     /// mute toggle used to be a fixed 25pt box, which made every row 33pt tall
@@ -450,102 +568,62 @@ private struct PrayerRow: View {
     }
 }
 
-/// The Friday khutbah times, as a section of their own: a rule, a small
-/// Jumu'ah heading, then one row per session. Placed after Isha by
-/// `PrayerListView` rather than inline under Dhuhr — see the comment there for
-/// why. One row per session, each with its own clock and its own mute ring, so
-/// a three-khutbah mosque never collapses into one unreadable line.
-private struct JumuahSessionsSection: View {
+/// The Friday khutbah times, as one discreet centred footnote under the daily
+/// prayers. Placed after Isha by `PrayerListView` rather than inline under
+/// Dhuhr — see the comment there for why.
+///
+/// Deliberately *not* laid out like a prayer row (own name column, own clock
+/// column, own mute ring, heading of its own, rule above it). Jumu'ah is
+/// complementary detail, not a sixth daily prayer, and lining it up with the
+/// five made it read as one — while quietly implying Dhuhr still happens. One
+/// quiet centred line with the sessions side by side ("Jumu'ah 13:30 | 14:30")
+/// says "extra" at a glance, and a three-khutbah mosque still fits without
+/// growing the panel.
+private struct JumuahFootnote: View {
     @EnvironmentObject var vm: PrayerTimeViewModel
-    let timeColumnWidth: CGFloat
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Rectangle()
-                .fill(Color("DividerColor"))
-                .frame(height: 1)
-                .padding(.horizontal, PrayerListView.rowHorizontalInset)
-                .padding(.vertical, PrayerListView.jumuahSectionRulePadding)
-
-            // A small quiet heading rather than another full-size row: it labels
-            // the group without competing with the prayers for attention.
-            // Uppercased like the countdown card, and via `prayerDisplayName` so
-            // it follows the accessibility uppercase setting and the active
-            // language like every other prayer name.
+        // Centred, and with no shared columns, which is the whole point:
+        // nothing about this line lines up with the prayer rows above it.
+        // `prayerDisplayName` keeps the name in the active language like
+        // every other prayer name.
+        //
+        // The weight goes through `scaledFont` rather than `.fontWeight`:
+        // that modifier resolves the font itself and would overwrite a
+        // `.fontWeight` set inside. `.body` at regular weight — the same size the
+        // prayer rows and the location caption use, so the line is legible
+        // without reading as a sixth prayer row (no columns, no mute ring, no
+        // divider, centred), and `.secondary` (the system colour) rather than
+        // the panel's own secondary text colour, so it sits under the prayer
+        // rows instead of joining them. It still follows the panel's text-size
+        // preset and the accessibility "Bold Text" setting the way every other
+        // piece of panel text does.
+        HStack(spacing: 4) {
             Text(vm.prayerDisplayName("Jumu'ah"))
-                .scaledFont(.caption, weight: .semibold)
-                .foregroundColor(Color("SecondaryTextColor"))
-                .textCase(.uppercase)
-                .padding(.horizontal, PrayerListView.rowHorizontalInset)
-                .padding(.bottom, 2)
-
-            ForEach(Array(vm.jumuahSessionDates.enumerated()), id: \.offset) { index, date in
-                JumuahSessionRow(index: index,
-                                 date: date,
-                                 total: vm.jumuahSessionDates.count,
-                                 timeColumnWidth: timeColumnWidth)
-            }
+                .scaledFont(.body, weight: .regular)
+            Text(sessionTimes)
+                .scaledFont(.body, weight: .regular)
+                .monospacedDigit()
         }
+        .foregroundColor(.secondary)
+        .lineLimit(1)
+        // Long localisations and three sessions can still outgrow a narrow
+        // panel; shrink rather than truncate, so no time is ever lost.
+        .minimumScaleFactor(0.8)
+        .frame(maxWidth: .infinity)
+        .padding(.horizontal, PrayerListView.rowHorizontalInset)
+        .padding(.top, 6)
+    }
+
+    /// Every session's clock on one line, separated by a bar: "13:30 | 14:30".
+    /// `jumuahSessionDates` is already sorted, so no re-sorting is needed here.
+    private var sessionTimes: String {
+        vm.jumuahSessionDates
+            .map { vm.dateFormatter.string(from: $0) }
+            .joined(separator: " | ")
     }
 }
 
-/// One Jumu'ah session row: label | mute ring | time. Each session is its own
-/// row with its own toggle, so several gatherings never collapse into one
-/// unreadable line. A single session keeps the bare "Jumu'ah" label; two or
-/// more are numbered ("Jumu'ah 1", "Jumu'ah 2", …) so the ring a user taps is
-/// unambiguous.
-/// One Jumu'ah session row: label | mute ring | time. The section heading above
-/// already names Jumu'ah, so the row only says which session it is (see
-/// `jumuahSessionLabel`). A single session keeps the bare label; two or more are
-/// numbered ("Session 1", "Session 2", …) so the ring a user taps is
-/// unambiguous.
-private struct JumuahSessionRow: View {
-    @EnvironmentObject var vm: PrayerTimeViewModel
-    // Same text-led cell height as PrayerRow, so a Jumu'ah row lines up with the
-    // prayer rows around it instead of standing taller.
-    @Environment(\.panelFontScale) private var fontScale
-    let index: Int
-    let date: Date
-    let total: Int
-    let timeColumnWidth: CGFloat
-
-    var body: some View {
-        HStack(spacing: 6) {
-            Text(vm.jumuahSessionLabel(index, total: total))
-                // Wraps rather than truncating at large text sizes, same as the
-                // prayer names above.
-                .fixedSize(horizontal: false, vertical: true)
-                .multilineTextAlignment(.leading)
-                .padding(.leading, PrayerListView.rowHorizontalInset)
-            Spacer(minLength: 4)
-            // Same text-tall slot, on the same side, as the prayer rows.
-            muteCell
-            Text(vm.dateFormatter.string(from: date))
-                .scaledFont(.body)
-                .lineLimit(1)
-                .frame(width: timeColumnWidth, alignment: .trailing)
-                .padding(.trailing, PrayerListView.rowHorizontalInset)
-        }
-        .foregroundColor(.primary)
-        .fontWeight(vm.accessibilityBoldText ? .bold : .regular)
-        .padding(.vertical, 4)
-    }
-
-    private var muteCell: some View {
-        let key = vm.jumuahSessionSoundKey(index)
-        let muted = vm.isAdhanMuted(key)
-        return Button(action: { vm.setAdhanMuted(!muted, for: key) }) {
-            AdhanMuteIcon(muted: muted, activeColor: vm.selectedHighlightColor, size: 13)
-                .padding(6)
-                .frame(width: 25, height: PrayerListView.rowContentHeight(fontScale: fontScale), alignment: .center)
-                .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .focusable(false)
-        .help(muted ? "Unmute Adhan" : "Mute Adhan")
-        .accessibilityLabel(muted ? Text("Unmute Adhan") : Text("Mute Adhan"))
-    }
-}
 /// header. Shares the row highlight logic via `nextPrayerHighlight()` so the
 /// custom color/accent/imminent states always match the highlighted row, and
 /// shares the glass treatment via `useGlassPrayerHighlight`.
@@ -654,11 +732,11 @@ struct PermissionRequestView: View {
                     ProgressView().padding(.vertical, 4)
                     Text("Requesting Permission...").scaledFont(.caption).foregroundColor(.secondary)
                 } else if vm.authorizationStatus == .denied {
-                    Button("Open System Settings", action: vm.openLocationSettings).buttonStyle(.borderedProminent).controlSize(.regular)
+                    prominentButton("Open System Settings", action: vm.openLocationSettings)
                 } else if vm.authorizationStatus == .authorized {
-                    Button("Retry Location", action: vm.refetchAutomaticLocation).buttonStyle(.borderedProminent).controlSize(.regular)
+                    prominentButton("Retry Location", action: vm.refetchAutomaticLocation)
                 } else {
-                    Button("Allow Location Access", action: vm.requestLocationPermission).buttonStyle(.borderedProminent).controlSize(.regular)
+                    prominentButton("Allow Location Access", action: vm.requestLocationPermission)
                 }
                 Button(action: {
                     navigationModel.showView(ContentView.id, animation: vm.forwardAnimation()) { ManualLocationView(isModal: true) }
@@ -669,5 +747,21 @@ struct PermissionRequestView: View {
                 }.buttonStyle(.plain).onHover { hovering in isManualHovering = hovering }
             }.padding(.top, 4).padding(.horizontal).animation(.easeInOut, value: vm.isRequestingLocation)
         }.frame(maxWidth: .infinity)
+    }
+
+    /// The three actions above, drawn like the About page's Done button:
+    /// `.borderedProminent` + `.tint` (the selected highlight colour, not
+    /// the system accent) + `.clipShape(Capsule())`. Without the clip the
+    /// prominent style renders its squarer macOS bezel in this non-activating
+    /// menu-bar panel, and without the tint it ignored the user's colour
+    /// pick — both of which the About page has had right all along.
+    private func prominentButton(_ titleKey: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(NSLocalizedString(titleKey, comment: ""))
+        }
+        .buttonStyle(.borderedProminent)
+        .controlSize(.regular)
+        .clipShape(Capsule())
+        .tint(vm.selectedHighlightColor)
     }
 }

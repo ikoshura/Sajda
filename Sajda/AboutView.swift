@@ -40,7 +40,7 @@ struct AboutView: View {
             Button(action: handleBackButton) {
                 HStack {
                     Image(systemName: vm.backChevron).scaledFont(.body, weight: .semibold)
-                    Text("About Sajda Pro").scaledFont(.body, weight: .bold)
+                    Text("About Sajda Pro").scaledFont(.body, weight: .semibold)
                     Spacer()
                 }
                 .padding(.vertical, 5).padding(.horizontal, 8)
@@ -71,7 +71,7 @@ struct AboutView: View {
                                     .resizable().scaledToFit().frame(width: 64, height: 64)
                             }
                         VStack(spacing: 2) {
-                            Text("Sajda Pro").scaledFont(.title2, weight: .bold)
+                            Text("Sajda Pro").scaledFont(.title2, weight: .semibold)
                             Text(verbatim: appVersionText).scaledFont(.caption).foregroundColor(Color("SecondaryTextColor"))
                             Text("by Abrar Zha").scaledFont(.caption).foregroundColor(Color("SecondaryTextColor"))
                         }
@@ -228,7 +228,7 @@ struct AboutView: View {
                             .fontWeight(.semibold)
                         Spacer()
                         Image(systemName: vm.forwardChevron)
-                            .scaledFont(.caption, weight: .bold)
+                            .scaledFont(.caption, weight: .semibold)
                     }
                     .padding(.vertical, 5).padding(.horizontal, 8)
                 }
@@ -252,20 +252,14 @@ struct AboutView: View {
                     // Follows the selected highlight colour like the rest of
                     // the page — `.link` here would hard-code the system
                     // accent regardless of the pick.
-                    Button("Check for Updates") { updater.checkManually() }
-                        .buttonStyle(.plain)
-                        .foregroundColor(aboutAccentColor)
-                        .scaledFont(.caption)
+                    updateTextButton("Check for Updates")
                 }
             case .failed:
                 VStack(spacing: 4) {
                     Text("Couldn't check for updates.").scaledFont(.caption)
                         .foregroundColor(Color("SecondaryTextColor"))
                     // Same as above: plain + colour instead of `.link`.
-                    Button("Try Again") { updater.checkManually() }
-                        .buttonStyle(.plain)
-                        .foregroundColor(aboutAccentColor)
-                        .scaledFont(.caption)
+                    updateTextButton("Try Again")
                 }
             case .idle:
                 Button(action: { updater.checkManually() }) {
@@ -274,13 +268,39 @@ struct AboutView: View {
                         Text("Check for Updates").scaledFont(.subheadline)
                     }
                     .padding(.vertical, 5).padding(.horizontal, 8)
+                    // Padding, hover pill and hit shape all *inside* the label,
+                    // so the whole visible pill is the click target.
+                    .contentShape(Rectangle())
+                    .liquidHover(isUpdateHovering, cornerRadius: 6)
                 }
                 .buttonStyle(.plain)
                 .foregroundColor(aboutAccentColor)
-                .liquidHover(isUpdateHovering)
                 .onHover { hovering in isUpdateHovering = hovering }
             }
         }
         .padding(.horizontal, 12)
+    }
+
+    /// The small caption-sized "Check for Updates" / "Try Again" links.
+    ///
+    /// They used to be bare `Button(title).buttonStyle(.plain)`, where only
+    /// the glyph pixels themselves are hit-testable — you had to land exactly
+    /// on the text. Padding, hover pill and content shape now live in the
+    /// label, so the whole padded pill is clickable and the hover is visible
+    /// instead of floating invisibly around the text.
+    private func updateTextButton(_ titleKey: String) -> some View {
+        Button(action: { updater.checkManually() }) {
+            Text(NSLocalizedString(titleKey, comment: ""))
+                .scaledFont(.caption)
+                .padding(.vertical, 4).padding(.horizontal, 8)
+                .contentShape(Rectangle())
+                .liquidHover(isUpdateHovering, cornerRadius: 6)
+        }
+        .buttonStyle(.plain)
+        .foregroundColor(aboutAccentColor)
+        .onHover { hovering in isUpdateHovering = hovering }
+        // Same affordance as the idle pill, so the action is discoverable
+        // wherever the checker happens to be in its cycle.
+        .help(NSLocalizedString("Check for the latest version", comment: ""))
     }
 }

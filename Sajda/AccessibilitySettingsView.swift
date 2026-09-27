@@ -26,7 +26,7 @@ struct AccessibilitySettingsView: View {
                 }) {
                     HStack {
                         Image(systemName: vm.backChevron).scaledFont(.body, weight: .semibold)
-                        Text("Accessibility").scaledFont(.body, weight: .bold)
+                        Text("Accessibility").scaledFont(.body, weight: .semibold)
                         Spacer()
                     }
                     .padding(.vertical, 5).padding(.horizontal, 8)

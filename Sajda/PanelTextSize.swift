@@ -243,16 +243,36 @@ struct ScaledMenuPicker<Value: Hashable>: NSViewRepresentable {
         button.userInterfaceLayoutDirection = layoutDirection == .rightToLeft ? .rightToLeft : .leftToRight
         (button.cell as? NSPopUpButtonCell)?.lineBreakMode = .byTruncatingTail
 
-        button.removeAllItems()
-        for option in options {
-            let title = titleFor(option)
-            button.addItem(withTitle: title)
-            // Font pada item menu juga diskalakan agar daftar yang terbuka
-            // tetap terbaca pada preset besar.
-            button.lastItem?.attributedTitle = NSAttributedString(
-                string: title,
-                attributes: [.font: font]
-            )
+        // Item menu HANYA dibangun ulang kalau daftarnya benar-benar berubah.
+        // `configure` dipanggil dari `updateNSView` pada setiap render SwiftUI,
+        // dan `removeAllItems()` di tengah klik akan menutup menu yang sedang
+        // terbuka — pengguna harus klik berulang kali sampai kebetulan satu
+        // klik mendarat di antara dua render. Membandingkan judul yang sudah
+        // terpasang membuat build ulang menjadi no-op pada render biasa.
+        let titles = options.map(titleFor)
+        let needsRebuild = button.numberOfItems != titles.count
+            || zip(0..<button.numberOfItems, titles).contains { button.item(at: $0)?.title != $1 }
+        if needsRebuild {
+            button.removeAllItems()
+            for title in titles {
+                button.addItem(withTitle: title)
+                // Font pada item menu juga diskalakan agar daftar yang terbuka
+                // tetap terbaca pada preset besar.
+                button.lastItem?.attributedTitle = NSAttributedString(
+                    string: title,
+                    attributes: [.font: font]
+                )
+            }
+        } else {
+            // Font bisa berubah tanpa daftar berubah (mis. preset Text Size
+            // atau "Bold Text" diganti), jadi attribusi judul tetap ditulis ulang
+            // di jalur ini — aman karena tidak menyentuh struktur menu.
+            for (index, title) in titles.enumerated() {
+                button.item(at: index)?.attributedTitle = NSAttributedString(
+                    string: title,
+                    attributes: [.font: font]
+                )
+            }
         }
 
         if let index = options.firstIndex(of: selection), button.indexOfSelectedItem != index {

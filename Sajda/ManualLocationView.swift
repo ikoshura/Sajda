@@ -21,7 +21,7 @@ struct ManualLocationView: View {
             Button(action: handleBackButton) {
                 HStack {
                     Image(systemName: vm.backChevron).scaledFont(.body, weight: .semibold)
-                    Text(LocalizedStringKey("Set Location")).scaledFont(.body, weight: .bold)
+                    Text(LocalizedStringKey("Set Location")).scaledFont(.body, weight: .semibold)
                     Spacer()
                 }
                 .padding(.vertical, 5).padding(.horizontal, 8)
@@ -80,10 +80,10 @@ struct ManualLocationView: View {
 
 /// City search results shared by the Set Location page and the favorites
 /// page's inline city search: the row applies the place through `onSelect`
-/// while the star beside it only saves the favorite, so a place can be starred
-/// without switching to it. Row hover spans the full line (including under the
-/// star); the star sits on top with its own pill. While the star is hovered the
-/// row pill is suppressed, so only the star highlights.
+/// while the heart beside it only saves the favorite, so a place can be
+/// saved without switching to it. Row hover spans the full line (including
+/// under the heart); the heart sits on top with its own pill. While the heart
+/// is hovered the row pill is suppressed, so only the heart highlights.
 struct LocationSearchResultsList: View {
     @EnvironmentObject var vm: PrayerTimeViewModel
 
@@ -93,7 +93,7 @@ struct LocationSearchResultsList: View {
     let onSelect: (LocationSearchResult) -> Void
 
     @State private var hoveringResult: UUID?
-    @State private var hoveringStarID: UUID?
+    @State private var hoveringHeartID: UUID?
 
     var body: some View {
         VStack(spacing: 2) {
@@ -109,22 +109,23 @@ struct LocationSearchResultsList: View {
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(EdgeInsets(top: 6, leading: 8, bottom: 6, trailing: 8))
-                        .liquidHover(hoveringResult == result.id && hoveringStarID == nil)
+                        .liquidHover(hoveringResult == result.id && hoveringHeartID == nil)
                     }
                     .buttonStyle(.plain)
                     .onHover { isHovering in hoveringResult = isHovering ? result.id : nil }
-                    // Star toggles the favorite without applying: the place
+                    // Heart toggles the favorite without applying: the place
                     // stays saved for one-tap switching from the main screen.
+                    // Hollow when not saved, filled red once it is.
                     Button(action: { vm.toggleCityFavorite(result) }) {
-                        Image(systemName: vm.isCityFavorite(result) ? "star.fill" : "star")
-                            .foregroundColor(vm.isCityFavorite(result) ? vm.selectedHighlightColor : .secondary)
+                        Image(systemName: vm.isCityFavorite(result) ? "heart.fill" : "heart")
+                            .foregroundColor(vm.isCityFavorite(result) ? vm.favoriteColor : .secondary)
                             .padding(.vertical, 6).padding(.horizontal, 6)
                             .contentShape(Rectangle())
-                            .liquidHover(hoveringStarID == result.id)
+                            .liquidHover(hoveringHeartID == result.id)
                     }
                     .buttonStyle(.plain)
                     .focusable(false)
-                    .onHover { isHovering in hoveringStarID = isHovering ? result.id : nil }
+                    .onHover { isHovering in hoveringHeartID = isHovering ? result.id : nil }
                     .help(Text(NSLocalizedString(vm.isCityFavorite(result) ? "Remove from Favorites" : "Add to Favorites", comment: "")))
                 }
             }

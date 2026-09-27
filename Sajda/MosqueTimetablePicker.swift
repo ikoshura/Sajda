@@ -17,7 +17,7 @@ struct MosqueTimetablePicker: View {
     @State private var mosqueDownloadFailed = false
     @State private var mosqueSearchTask: Task<Void, Never>?
     @State private var hoveringResultSlug: String?
-    @State private var hoveringStarSlug: String?
+    @State private var hoveringHeartSlug: String?
 
     /// Debounced keyword search (350 ms) against Mawaqit's public endpoint.
     @MainActor
@@ -104,48 +104,75 @@ struct MosqueTimetablePicker: View {
                     .scaledFont(.caption2)
                     .foregroundColor(.red)
             }
-            ForEach(mosqueResults) { result in
-                // Same lock-style treatment as the city results: the download
-                // row's hover spans the full line (under the star); the star
-                // sits on top with its own pill. While the star is hovered
-                // the row pill is suppressed.
-                ZStack(alignment: .trailing) {
-                    Button { downloadMosque(result) } label: {
-                        HStack {
-                            Text(result.label)
-                                .lineLimit(1)
-                                .truncationMode(.tail)
-                            Spacer()
-                            Image(systemName: "arrow.down.circle")
-                                .foregroundColor(.secondary)
+            // The results live in their own capped ScrollView: without one the
+            // list grew the panel until the last hits fell off the bottom of
+            // the window and the long labels (Villeneuve-la-Garenne & co.)
+            // could never be read in full.
+            if !mosqueResults.isEmpty {
+                ScrollView {
+                    VStack(spacing: 0) {
+                        ForEach(mosqueResults) { result in
+                            mosqueResultRow(result)
                         }
-                        .padding(.vertical, 4).padding(.horizontal, 6)
-                        // Reserve room for the overlaid star so the label and
-                        // download arrow never slide underneath it.
-                        .padding(.trailing, 30)
-                        .contentShape(Rectangle())
-                        .liquidHover(hoveringResultSlug == result.slug && hoveringStarSlug == nil)
                     }
-                    .buttonStyle(.plain)
-                    .disabled(isDownloadingMosque)
-                    .onHover { isHovering in hoveringResultSlug = isHovering ? result.slug : nil }
-                    // Star toggles the favorite without downloading: starring
-                    // prefetches the calendar in the background so tapping it
-                    // (here or on the main screen) switches instantly.
-                    Button { vm.toggleMosqueFavorite(slug: result.slug, label: result.label) } label: {
-                        Image(systemName: vm.isMosqueFavorite(slug: result.slug) ? "star.fill" : "star")
-                            .foregroundColor(vm.isMosqueFavorite(slug: result.slug) ? vm.selectedHighlightColor : .secondary)
-                            .padding(.vertical, 4).padding(.horizontal, 6)
-                            .contentShape(Rectangle())
-                            .liquidHover(hoveringStarSlug == result.slug)
-                    }
-                    .buttonStyle(.plain)
-                    .focusable(false)
-                    .disabled(isDownloadingMosque)
-                    .onHover { isHovering in hoveringStarSlug = isHovering ? result.slug : nil }
-                    .help(Text(NSLocalizedString(vm.isMosqueFavorite(slug: result.slug) ? "Remove from Favorites" : "Add to Favorites", comment: "")))
                 }
+                // Tall enough for ~4 rows, short enough to stay a search
+                // dropdown rather than take over the page.
+                .frame(maxHeight: Self.resultsMaxHeight)
             }
+        }
+    }
+
+    /// Cap on the results dropdown's height, in points.
+    private static let resultsMaxHeight: CGFloat = 132
+
+    private func mosqueResultRow(_ result: MosqueSearchResult) -> some View {
+        // Same lock-style treatment as the city results: the download row's
+        // hover spans the full line (under the heart); the heart sits on top
+        // with its own pill. While the heart is hovered the row pill is
+        // suppressed, so only the heart highlights. No refresh button here
+        // either — see the location row for why an overlaid control needs a
+        // greedy `Color.clear` spacer to hold its slot.
+        ZStack(alignment: .trailing) {
+            Button { downloadMosque(result) } label: {
+                HStack(alignment: .firstTextBaseline, spacing: 6) {
+                    Text(result.label)
+                        // Two lines instead of one: a name plus its locality
+                        // regularly runs past the panel width, and truncating
+                        // mid-address ("Villeneuve-la-Gare…") makes two
+                        // similarly named mosques impossible to tell apart.
+                        .lineLimit(2)
+                        .multilineTextAlignment(.leading)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Spacer(minLength: 4)
+                    Image(systemName: "arrow.down.circle")
+                        .foregroundColor(.secondary)
+                }
+                .padding(.vertical, 4).padding(.horizontal, 6)
+                // Reserve room for the overlaid heart so the label and the
+                // download arrow never slide underneath it.
+                .padding(.trailing, 30)
+                .contentShape(Rectangle())
+                .liquidHover(hoveringResultSlug == result.slug && hoveringHeartSlug == nil)
+            }
+            .buttonStyle(.plain)
+            .disabled(isDownloadingMosque)
+            .onHover { isHovering in hoveringResultSlug = isHovering ? result.slug : nil }
+            // Heart toggles the favorite without downloading: favouriting
+            // prefetches the calendar in the background so tapping it (here
+            // or on the main screen) switches instantly.
+            Button { vm.toggleMosqueFavorite(slug: result.slug, label: result.label) } label: {
+                Image(systemName: vm.isMosqueFavorite(slug: result.slug) ? "heart.fill" : "heart")
+                    .foregroundColor(vm.isMosqueFavorite(slug: result.slug) ? vm.favoriteColor : .secondary)
+                    .padding(.vertical, 4).padding(.horizontal, 6)
+                    .contentShape(Rectangle())
+                    .liquidHover(hoveringHeartSlug == result.slug)
+            }
+            .buttonStyle(.plain)
+            .focusable(false)
+            .disabled(isDownloadingMosque)
+            .onHover { isHovering in hoveringHeartSlug = isHovering ? result.slug : nil }
+            .help(Text(NSLocalizedString(vm.isMosqueFavorite(slug: result.slug) ? "Remove from Favorites" : "Add to Favorites", comment: "")))
         }
     }
 }

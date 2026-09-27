@@ -1,8 +1,16 @@
 // MARK: - Favorite places (PrayerTimeViewModel extension)
 
 import CoreLocation
+import SwiftUI
 
 extension PrayerTimeViewModel {
+    /// Colour of a *filled* favorite marker. Fixed red on purpose: a heart is
+    /// the universal "saved" glyph, and tinting it with the user's highlight
+    /// colour (which can be any custom colour) made the filled state read as
+    /// "this row is selected" instead of "this is in your favorites". The
+    /// hollow state stays `.secondary` at each call site.
+    var favoriteColor: Color { .red }
+
     /// Adds `place`, dropping the oldest when already at `maxCount`.
     func addFavorite(_ place: FavoritePlace) {
         var current = favoritePlaces
@@ -172,8 +180,17 @@ extension PrayerTimeViewModel {
 
     /// Downloads a mosque calendar into the per-slug offline cache without
     /// activating it, so a starred mosque is ready when tapped.
+    ///
+    /// Existence alone isn't enough to skip: a cache written by an older build
+    /// has no Jumu'ah or iqama fields, and serving that to the user would show
+    /// a mosque with no Friday sessions even though the app has (or can get)
+    /// them. Such a copy is re-downloaded when there's a connection, and
+    /// `enriched(_:)` fills it in offline from the active file meanwhile.
     func ensureMosqueCached(slug: String) {
-        if MawaqitService.load(slug: slug) != nil { return }
+        if let cached = MawaqitService.load(slug: slug),
+           !(cached.jumuaSessions?.isEmpty ?? true), cached.iqamaCalendar != nil {
+            return
+        }
         Task {
             do {
                 let mosque = try await MawaqitService.fetchCalendar(slug: slug)

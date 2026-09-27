@@ -181,7 +181,7 @@ struct SettingsView: View {
                     }) {
                         HStack {
                             Image(systemName: vm.backChevron).scaledFont(.body, weight: .semibold)
-                            Text("Settings").scaledFont(.body, weight: .bold)
+                            Text("Settings").scaledFont(.body, weight: .semibold)
                             Spacer()
                         }
                         .padding(.vertical, 5).padding(.horizontal, 8)
@@ -269,7 +269,7 @@ struct SettingsView: View {
                         }
                         navigationModel.showView(Self.id, animation: vm.forwardAnimation()) { LocationAndCalcSettingsView() }
                     }) {
-                        HStack { Text("Calculation & Location").scaledFont(.subheadline); Spacer(); Image(systemName: vm.forwardChevron).scaledFont(.caption, weight: .bold).foregroundColor(.secondary) }
+                        HStack { Text("Calculation & Location").scaledFont(.subheadline); Spacer(); Image(systemName: vm.forwardChevron).scaledFont(.caption, weight: .semibold).foregroundColor(.secondary) }
                 .padding(.vertical, 5).padding(.horizontal, 8).liquidHover(isCalcHovering)
                 }.buttonStyle(.plain).padding(.horizontal, 5).onHover { hovering in isCalcHovering = hovering }
 
@@ -279,7 +279,7 @@ struct SettingsView: View {
                         }
                         navigationModel.showView(Self.id, animation: vm.forwardAnimation()) { SystemAndNotificationsSettingsView() }
                     }) {
-                        HStack { Text("Adhan Sound").scaledFont(.subheadline); Spacer(); Image(systemName: vm.forwardChevron).scaledFont(.caption, weight: .bold).foregroundColor(.secondary) }
+                        HStack { Text("Adhan Sound").scaledFont(.subheadline); Spacer(); Image(systemName: vm.forwardChevron).scaledFont(.caption, weight: .semibold).foregroundColor(.secondary) }
                 .padding(.vertical, 5).padding(.horizontal, 8).liquidHover(isAdhanHovering)
                 }.buttonStyle(.plain).padding(.horizontal, 5).onHover { hovering in isAdhanHovering = hovering }
 
@@ -289,7 +289,7 @@ struct SettingsView: View {
                         }
                         navigationModel.showView(Self.id, animation: vm.forwardAnimation()) { AccessibilitySettingsView() }
                     }) {
-                        HStack { Text("Accessibility").scaledFont(.subheadline); Spacer(); Image(systemName: vm.forwardChevron).scaledFont(.caption, weight: .bold).foregroundColor(.secondary) }
+                        HStack { Text("Accessibility").scaledFont(.subheadline); Spacer(); Image(systemName: vm.forwardChevron).scaledFont(.caption, weight: .semibold).foregroundColor(.secondary) }
                 .padding(.vertical, 5).padding(.horizontal, 8).liquidHover(isAccessibilityHovering)
                 }.buttonStyle(.plain).padding(.horizontal, 5).onHover { hovering in isAccessibilityHovering = hovering }
                 }
@@ -421,6 +421,18 @@ struct SettingsView: View {
     private var prayerTimesSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             StyledToggle(label: "Show Countdown Header", isOn: $vm.showCountdownHeader)
+            // Baris nama masjid/kota bisa ditaruh di tiga tempat; lihat
+            // `LocationRowPosition` dan blok render di `MainView`. Default `.top`
+            // supaya perilaku 4.4.3 tidak berubah bagi pengguna yang belum
+            // menyentuh setelan ini.
+            HStack {
+                Text("Location Row").scaledFont(.subheadline)
+                Spacer()
+                ScaledMenuPicker(selection: Binding(
+                    get: { vm.locationRowPosition },
+                    set: { vm.locationRowPosition = $0 }
+                ), options: LocationRowPosition.allCases) { NSLocalizedString($0.rawValue, comment: "") }
+            }
             StyledToggle(label: "Show Sunnah Prayers", isOn: $vm.showSunnahPrayers)
             // Travellers plan around Friday: with this on, the Jumu'ah row
             // under Dhuhr shows every day instead of Fridays only.
@@ -430,6 +442,9 @@ struct SettingsView: View {
             // A text input was considered; the ± steppers win — free-typing
             // needs its own validation/error surface, and time input inside
             // this non-activating panel has proven fiddly (see `SajdaSearchField`).
+            // Only used for calculated times: an active mosque timetable brings
+            // its own published sessions (see `effectiveJumuahSessions`) and
+            // these rows are ignored while it is on.
             VStack(alignment: .leading, spacing: 6) {
                 HStack {
                     Text("Jumu'ah Sessions").scaledFont(.subheadline)

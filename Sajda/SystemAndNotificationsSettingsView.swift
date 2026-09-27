@@ -34,7 +34,7 @@ struct SystemAndNotificationsSettingsView: View {
                 }) {
                     HStack {
                         Image(systemName: vm.backChevron).scaledFont(.body, weight: .semibold)
-                        Text("Adhan Sound").scaledFont(.body, weight: .bold)
+                        Text("Adhan Sound").scaledFont(.body, weight: .semibold)
                         Spacer()
                     }
                     .padding(.vertical, 5).padding(.horizontal, 8)

@@ -45,7 +45,7 @@ struct SettingsAccordion<Content: View>: View {
                         .foregroundColor(.secondary)
                     Spacer()
                     Image(systemName: isExpanded ? "chevron.up" : collapsedChevron)
-                        .scaledFont(.caption, weight: .bold)
+                        .scaledFont(.caption, weight: .semibold)
                         .foregroundColor(.secondary)
                 }
                 .padding(.vertical, 5)

@@ -102,6 +102,26 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
     @AppStorage("customHighlightColorHex") var customHighlightColorHex: String = ""
     /// Shows the big countdown header above the panel schedule.
     @AppStorage("showCountdownHeader") var showCountdownHeader: Bool = true
+    /// Letak baris lokasi di panel. Default `.top` — lokasi jadi bagian kepala
+    /// panel, terpisah dari daftar shalat, dan pemisah membagi kepala dari isi.
+    /// Nilai disimpan sebagai String (bukan enum) supaya nilai baru atau yang
+    /// rusak tidak membuat panel gagal total — nilai tak dikenal jatuh ke
+    /// `.top` lewat aksesor bertipe di bawah.
+    ///
+    /// `objectWillChange` diperlukan karena baris ini memengaruhi tata letak,
+    /// bukan hanya isi teks: tanpa itu, panel yang sedang terbuka tidak akan
+    /// menggambar ulang saat posisinya diganti.
+    @AppStorage("locationRowPosition") var locationRowPositionRaw: String = LocationRowPosition.top.rawValue {
+        didSet { objectWillChange.send() }
+    }
+
+    /// Bentuk bertipe dari `locationRowPositionRaw`, dengan nilai tak dikenal
+    /// dipetakan ke `.top` supaya perubahan ke depan tidak(ERROR) membebankan
+    /// pengguna yang nilainya sudah tersimpan.
+    var locationRowPosition: LocationRowPosition {
+        get { LocationRowPosition(rawValue: locationRowPositionRaw) ?? .top }
+        set { locationRowPositionRaw = newValue.rawValue }
+    }
     /// When on, the whole menu bar panel is tinted with the accent colour and
     /// the panel's colour scheme flips to keep everything balanced against it
     /// (`accentPanelColorScheme` / `accentPanelTint`).
@@ -450,6 +470,16 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
             locationStatusText = cache.name
             locationTimeZone = .current
             updateAndDisplayTimes()
+        } else if locMgr.authorizationStatus == .notDetermined {
+            // Picking "Use Automatic Location" *is* the ask for the location,
+            // so the system prompt has to come from this tap. Routing it
+            // through `handleAuthorizationStatus` instead only set the caption
+            // to "Location access needed" and left the actual prompt to a
+            // second tap on the permission page — the "I have to click it
+            // twice" behaviour. Startup still goes through
+            // `startLocationProcess` → `handleAuthorizationStatus`, so the
+            // app never prompts on its own.
+            requestLocationPermission()
         } else {
             handleAuthorizationStatus(status: locMgr.authorizationStatus)
         }
@@ -678,14 +708,57 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
         return cal.date(from: comps)
     }
 
-    /// Persists and activates a downloaded mosque schedule.
-    func activateMosqueSchedule(_ mosque: MawaqitMosque) {
+    /// Re-downloads the active mosque's calendar and re-applies it. Mawaqit
+    /// edits a mosque's Jumu'ah and iqama entries during the year, so a
+    /// schedule picked up months ago goes stale until it's re-fetched. A
+    /// failed refresh leaves the existing schedule untouched — the panel keeps
+    /// showing the times it already had rather than emptying out.
+    ///
+    /// Re-entrant calls are ignored, so a double click on the footer's refresh
+    /// doesn't fire two downloads.
+    ///
+    /// `@MainActor` is load-bearing, not decoration: the view model class
+    /// itself isn't main-actor isolated, so without it this function would
+    /// resume on a background executor after `await`ing the download and
+    /// publish `isRefreshingMosqueSchedule` (and the re-activated schedule)
+    /// off the main thread — which SwiftUI rejects outright. The class has
+    /// other async members with the same constraint; see
+    /// `handleAutomaticLocation` and `downloadMosque` in the picker.
+    @Published var isRefreshingMosqueSchedule: Bool = false
+    @MainActor
+    func refreshActiveMosqueSchedule() async {
+        guard let slug = mawaqitMosque?.slug, !isRefreshingMosqueSchedule else { return }
+        isRefreshingMosqueSchedule = true
+        defer { isRefreshingMosqueSchedule = false }
         do {
-            try MawaqitService.save(mosque)
+            let mosque = try await MawaqitService.fetchCalendar(slug: slug)
+            activateMosqueSchedule(mosque)
+            logger.info("Refreshed Mawaqit schedule for \(slug, privacy: .public).")
+        } catch {
+            logger.error("Mawaqit refresh failed: \(error.localizedDescription, privacy: .public)")
+        }
+    }
+
+    /// Persists and activates a downloaded mosque schedule.
+    ///
+    /// Writes *both* the active file and the per-favorite cache, and merges
+    /// first (see `MawaqitService.enriched`). Activating from a favorite used
+    /// to read a cache that could be years older than what the user had just
+    /// downloaded and then overwrite the newer active file with it, so the
+    /// Jumu'ah footer vanished on a mosque → city → mosque round trip and only
+    /// came back with a refresh. Keeping the two files in step is what makes
+    /// that round trip free and works offline.
+    func activateMosqueSchedule(_ mosque: MawaqitMosque) {
+        let enriched = MawaqitService.enriched(mosque)
+        do {
+            try MawaqitService.save(enriched)
+            // Same payload into the per-slug cache, so tapping this mosque in
+            // Favorites later hands back exactly what is on screen now.
+            try MawaqitService.saveToCache(enriched)
         } catch {
             logger.error("Failed to save Mawaqit schedule: \(error.localizedDescription, privacy: .public)")
         }
-        mawaqitMosque = mosque
+        mawaqitMosque = enriched
         useMawaqitSchedule = true   // didSet → updatePrayerTimes()
     }
 
@@ -760,18 +833,32 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
         objectWillChange.send()
     }
 
+    /// The iqama gap the panel actually shows for `prayer`: the mosque's own
+    /// published gap when a timetable is active, and the user's configured gap
+    /// otherwise.
+    ///
+    /// The mosque wins because its iqama *is* the answer in mosque mode —
+    /// estimating "+8" under a mosque that runs "+20" showed an iqama that
+    /// doesn't exist. The user's gap is untouched and returns the moment the
+    /// timetable is switched off, so the Time Correction rows keep meaning
+    /// what they say.
+    func effectiveIqamaDelay(for prayer: String) -> Int {
+        if useMawaqitSchedule, let mosque = mawaqitMosque {
+            let offsets = MawaqitService.iqamaOffsets(for: Date(), in: mosque.iqamaCalendar)
+            if let minutes = offsets[prayer] { return minutes }
+        }
+        return iqamaDelay(for: prayer)
+    }
+
     /// Iqama time for the next prayer — the one iqama source for every mode:
-    /// the adhan plus that prayer's gap (`iqamaDelay(for:)`, the per-prayer
-    /// estimate configured on the Time Correction page, falling back to the
-    /// default). Mosque timetables no longer feed their own iqama in, so the
-    /// same number applies on calculated times and on a timetable alike.
-    /// Sunnah prayers have no congregation, so they get none.
+    /// the adhan plus that prayer's gap (`effectiveIqamaDelay(for:)`). Sunnah
+    /// prayers have no congregation, so they get none.
     /// Note: even when the per-prayer adhan above is muted, its time still
     /// reads here — the mute silences audio, it never moves a clock.
     var nextPrayerIqamaDate: Date? {
         guard let occ = nextPrayerOccurrenceDate,
               Self.congregationalPrayers.contains(nextPrayerName) else { return nil }
-        return occ.addingTimeInterval(Double(iqamaDelay(for: nextPrayerName)) * 60)
+        return occ.addingTimeInterval(Double(effectiveIqamaDelay(for: nextPrayerName)) * 60)
     }
 
     /// Sanitised Jumu'ah sessions (each a valid 0...1439 clock time, sorted,
@@ -818,10 +905,28 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
         return calendar.component(.weekday, from: Date()) == 6
     }
 
+    /// The sessions the panel actually shows, in minutes past midnight.
+    /// A downloaded mosque timetable wins over the hand-entered list: Mawaqit
+    /// publishes every gathering the mosque runs (`jumua`, `jumua2`, `jumua3`),
+    /// so a two- or three-khutbah mosque like Aubervilliers shows both or all
+    /// three sessions instead of only the one a user bothered to type in. The
+    /// stored list stays the fallback — it is all there is for calculated
+    /// times, and it keeps showing if the mosque publishes none.
+    var effectiveJumuahSessions: [Int] {
+        if useMawaqitSchedule,
+           let mosque = mawaqitMosque,
+           let published = mosque.jumuaSessions?
+                .compactMap({ MawaqitService.minutesFromHM($0) }),
+           !published.isEmpty {
+            return Self.sanitiseJumuahSessions(published)
+        }
+        return jumuahSessions
+    }
+
     /// Today's Jumu'ah sessions as display-timezone Dates, sorted. Empty when
     /// none are configured — the panel row renders only off this.
     var jumuahSessionDates: [Date] {
-        let sessions = jumuahSessions
+        let sessions = effectiveJumuahSessions
         guard !sessions.isEmpty else { return [] }
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = displayTimeZone
@@ -834,20 +939,6 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
             return calendar.date(from: components)
         }
     }
-
-    /// Row label for a Jumu'ah session. The section heading above the rows
-    /// already says "Jumu'ah", so repeating it per row is noise — the rows only
-    /// need to say *which* session. One gathering needs no number; two or more
-    /// are numbered so each row's label maps to exactly one clock time and one
-    /// mute ring.
-    func jumuahSessionLabel(_ index: Int, total: Int) -> String {
-        let base = NSLocalizedString("Session", comment: "Label for one of the Friday Jumu'ah khutbah times")
-        return total > 1 ? "\(base) \(index + 1)" : base
-    }
-
-    /// Key under which a session's adhan sound config is stored, so muting one
-    /// session never touches another's (or Dhuhr's).
-    func jumuahSessionSoundKey(_ index: Int) -> String { "Jumu'ah Session \(index + 1)" }
 
     /// Seed for a newly added Jumu'ah session: today's Dhuhr on the panel's
     /// clock rounded up to the next quarter hour — Jumu'ah follows Dhuhr, so a
@@ -1748,7 +1839,16 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
     }
 
     func requestLocationPermission() {
-        if authorizationStatus == .notDetermined {
+        // Branch on the *live* status, not the cached `authorizationStatus`
+        // property. The panel can be showing a stale `.notDetermined` from
+        // before a location switch, and taking the `else` branch on that stale
+        // value only re-ran the status handler — which for `.notDetermined`
+        // does nothing but park the UI on "Location access needed" — so the
+        // tap silently did nothing and the user had to press the button a
+        // second time to actually get the system prompt.
+        let status = locMgr.authorizationStatus
+        authorizationStatus = status
+        if status == .notDetermined {
             isRequestingLocation = true
             locationStatusText = NSLocalizedString("Requesting Permission...", comment: "")
             logger.info("Requesting when-in-use location authorization and starting location updates to trigger the macOS prompt.")

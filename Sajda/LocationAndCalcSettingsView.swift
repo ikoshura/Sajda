@@ -23,7 +23,7 @@ struct LocationAndCalcSettingsView: View {
                 }) {
                     HStack {
                         Image(systemName: vm.backChevron).scaledFont(.body, weight: .semibold)
-                        Text("Calculation & Location").scaledFont(.body, weight: .bold)
+                        Text("Calculation & Location").scaledFont(.body, weight: .semibold)
                         Spacer()
                     }
                     .padding(.vertical, 5).padding(.horizontal, 8)

@@ -224,7 +224,7 @@ struct PrayerTimeCorrectionView: View {
             }) {
                 HStack {
                     Image(systemName: vm.backChevron).scaledFont(.body, weight: .semibold)
-                    Text("Time Correction").scaledFont(.body, weight: .bold)
+                    Text("Time Correction").scaledFont(.body, weight: .semibold)
                     Spacer()
                 }
                 .padding(.vertical, 5).padding(.horizontal, 8)

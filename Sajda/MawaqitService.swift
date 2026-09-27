@@ -14,11 +14,37 @@ struct MosqueSearchResult: Identifiable, Hashable {
 /// Only the adhan times are stored: the iqama is estimated from them per
 /// prayer (see `PrayerTimeViewModel.iqamaDelay(for:)`), so the mosque's own
 /// iqama calendar is deliberately not downloaded or kept.
+///
+/// `jumuaSessions` holds the Friday khutbah times as "HH:MM" in the order
+/// Mawaqit publishes them (`jumua`, `jumua2`, `jumua3`). It is optional so
+/// schedules cached by older builds — which never stored it — still decode.
+///
+/// `iqamaCalendar` mirrors `calendar`'s shape (12 months of day → five
+/// offsets) and holds the mosque's own iqama gaps as signed minute strings
+/// ("+10"). It is optional for the same backward-compatibility reason. When
+/// it is present the app follows the mosque's iqama instead of estimating
+/// one; see `iqamaOffsets(for:in:)`.
 struct MawaqitMosque: Codable {
     let slug: String
     let name: String
     let fetchedAt: Date
     let calendar: [[String: [String]]]
+    let jumuaSessions: [String]?
+    let iqamaCalendar: [[String: [String]]]?
+
+    init(slug: String,
+         name: String,
+         fetchedAt: Date,
+         calendar: [[String: [String]]],
+         jumuaSessions: [String]? = nil,
+         iqamaCalendar: [[String: [String]]]? = nil) {
+        self.slug = slug
+        self.name = name
+        self.fetchedAt = fetchedAt
+        self.calendar = calendar
+        self.jumuaSessions = jumuaSessions
+        self.iqamaCalendar = iqamaCalendar
+    }
 }
 
 /// Networking, parsing, and storage for the optional Mawaqit mosque timetable.
@@ -98,13 +124,52 @@ enum MawaqitService {
         let conf = try JSONDecoder().decode(ConfData.self, from: Data(raw.utf8))
         guard let calendar = conf.calendar, calendar.count == 12 else { throw FetchError.badData }
         let name = cleanMosqueName(conf.name ?? conf.label ?? extractTitle(from: html) ?? slug)
-        return MawaqitMosque(slug: slug, name: name, fetchedAt: Date(), calendar: calendar)
+        return MawaqitMosque(slug: slug, name: name, fetchedAt: Date(),
+                             calendar: calendar,
+                             jumuaSessions: Self.jumuaTimes([conf.jumua, conf.jumua2, conf.jumua3]),
+                             // Only kept when Mawaqit actually publishes 12
+                             // months of it, so a malformed or absent
+                             // calendar falls back to the estimated iqama
+                             // rather than to a half-parsed one.
+                             iqamaCalendar: conf.iqamaCalendar?.count == 12 ? conf.iqamaCalendar : nil)
     }
 
     private struct ConfData: Decodable {
         let name: String?
         let label: String?
         let calendar: [[String: [String]]]?
+        // A mosque can run up to three Friday gatherings and Mawaqit lists
+        // them in separate fields, not as a list. All three are read so a
+        // two- or three-khutbah mosque shows every session instead of only
+        // the first one.
+        let jumua: String?
+        let jumua2: String?
+        let jumua3: String?
+        // The mosque's own iqama gaps, same 12-month shape as `calendar`.
+        // Absent on mosques that don't publish one.
+        let iqamaCalendar: [[String: [String]]]?
+    }
+
+    /// Collects confData's `jumua`/`jumua2`/`jumua3` into one ordered, cleaned
+    /// list of "HH:MM" strings. Blank and unparsable entries drop out, so a
+    /// mosque that only publishes one gathering yields exactly one time, and
+    /// the panel can simply count what it is given. Takes the raw fields
+    /// rather than the `ConfData` itself so it stays unit testable without a
+    /// network round trip.
+    static func jumuaTimes(_ rawFields: [String?]) -> [String] {
+        rawFields
+            .compactMap { $0?.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+            .filter { minutesFromHM($0) != nil }
+    }
+
+    /// "HH:MM" → minutes past midnight, or nil when the string isn't a clock
+    /// time. Also accepts the seconds Mawaqit sometimes writes ("13:30:00").
+    static func minutesFromHM(_ value: String) -> Int? {
+        let parts = value.split(separator: ":")
+        guard parts.count >= 2, let hour = Int(parts[0]), let minute = Int(parts[1]),
+              (0...23).contains(hour), (0...59).contains(minute) else { return nil }
+        return hour * 60 + minute
     }
 
     /// Returns the JSON object of `var|let|const confData = {...}` using a
@@ -182,6 +247,47 @@ enum MawaqitService {
         return times
     }
 
+    // MARK: - Iqama offsets
+
+    /// The five congregational prayers in the order Mawaqit lists their iqama
+    /// offsets. Sunrise has no iqama, which is why the list is five long
+    /// against the six adhan times in `times(for:in:)`.
+    static let iqamaOrder = ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"]
+
+    /// The mosque's own iqama gaps for one day, keyed by prayer name, in
+    /// minutes after the adhan. Empty when the mosque publishes no iqama
+    /// calendar, the date isn't covered, or every entry is unparsable — the
+    /// caller then falls back to the user's own gap. Entries that don't parse
+    /// are dropped individually, so one bad value can't cost the other four.
+    static func iqamaOffsets(for date: Date, in calendar: [[String: [String]]]?) -> [String: Int] {
+        guard let calendar, calendar.count == 12 else { return [:] }
+        var cal = Calendar(identifier: .gregorian)
+        cal.timeZone = .current
+        let month = cal.component(.month, from: date) - 1
+        let day = cal.component(.day, from: date)
+        guard month >= 0, month < calendar.count,
+              let offsets = calendar[month]["\(day)"] else { return [:] }
+        var result: [String: Int] = [:]
+        for (index, prayer) in iqamaOrder.enumerated() where index < offsets.count {
+            if let minutes = minutesFromSignedOffset(offsets[index]) {
+                result[prayer] = minutes
+            }
+        }
+        return result
+    }
+
+    /// "+10" / "10" / "+0" → 10. Mawaqit writes the sign, but older entries
+    /// and hand-edited files sometimes omit it. Anything else — including a
+    /// negative offset, whose `-` fails the digit check — is unusable: an
+    /// iqama can never precede its adhan, so the caller falls back rather
+    /// than inventing one.
+    static func minutesFromSignedOffset(_ value: String) -> Int? {
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        let digits = trimmed.hasPrefix("+") ? String(trimmed.dropFirst()) : trimmed
+        guard !digits.isEmpty, digits.allSatisfy(\.isNumber), let minutes = Int(digits) else { return nil }
+        return minutes
+    }
+
     // MARK: - Storage
 
     private static var storeURL: URL {
@@ -213,6 +319,50 @@ enum MawaqitService {
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
         try encoder.encode(mosque).write(to: cacheURL(for: mosque.slug), options: .atomic)
+    }
+
+    /// Fills in Friday/iqama data a cached copy is missing, from any other copy
+    /// of the same mosque already on disk.
+    ///
+    /// The per-favorite cache (`mawaqit_mosque_<slug>.json`) and the active one
+    /// (`mawaqit_mosque.json`) are written by different code paths, so they can
+    /// drift: a favorite cached by an older build has no Jumu'ah or iqama
+    /// fields, and activating that copy used to drop the Friday sessions from
+    /// the panel *and* overwrite the newer active file with the poorer one —
+    /// which is why switching mosque → city → mosque made the Jumu'ah footer
+    /// disappear until a manual refresh. Whenever we are about to activate a
+    /// mosque, we merge in whatever a richer stored copy knows, so an offline
+    /// cache never costs the user data a network refresh would have brought.
+    /// Both stay optional: a copy with nothing to merge in is returned as-is.
+    static func enriched(_ mosque: MawaqitMosque) -> MawaqitMosque {
+        let needsJumua = (mosque.jumuaSessions?.isEmpty ?? true)
+        let needsIqama = mosque.iqamaCalendar == nil
+        guard needsJumua || needsIqama else { return mosque }
+
+        // The active file first: it is the copy the user just downloaded and
+        // is therefore the freshest thing we have.
+        let candidates = [load(), load(slug: mosque.slug)].compactMap { $0 }
+        guard let richer = candidates.first(where: {
+            $0.slug == mosque.slug && (!( $0.jumuaSessions?.isEmpty ?? true) || $0.iqamaCalendar != nil)
+        }) else { return mosque }
+        return merging(mosque, with: richer)
+    }
+
+    /// Fills `mosque`'s empty Jumu'ah/iqama fields from `other`, keeping
+    /// everything `mosque` already knows: its own name, fetch date and prayer
+    /// calendar always win, because they are the copy actually being shown.
+    /// Pure, so the merge is unit tested without touching the disk.
+    static func merging(_ mosque: MawaqitMosque, with other: MawaqitMosque) -> MawaqitMosque {
+        let jumua = (mosque.jumuaSessions?.isEmpty ?? true) ? other.jumuaSessions : mosque.jumuaSessions
+        let iqama = mosque.iqamaCalendar ?? other.iqamaCalendar
+        return MawaqitMosque(
+            slug: mosque.slug,
+            name: mosque.name,
+            fetchedAt: mosque.fetchedAt,
+            calendar: mosque.calendar,
+            jumuaSessions: (jumua?.isEmpty ?? true) ? nil : jumua,
+            iqamaCalendar: (iqama?.isEmpty ?? true) ? nil : iqama
+        )
     }
 
     static func load() -> MawaqitMosque? {
