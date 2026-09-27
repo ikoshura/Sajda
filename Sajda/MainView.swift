@@ -106,38 +106,23 @@ struct MainView: View {
             let showCountdownCard = vm.isPrayerDataAvailable && vm.showCountdownHeader && vm.nextPrayerOccurrenceDate != nil
             if showCountdownCard {
                 NextPrayerCountdownHeader()
+                // Mosque/location caption rides with the countdown card rather
+                // than trailing the schedule. It is the one line that says
+                // *where* these times are for — reading it after scrolling past
+                // every prayer time to the bottom made the panel's subject come
+                // last, and a wrong location is worth noticing immediately,
+                // not after the list.
             }
 
-            // Keep the prayer list snug under whatever sits above it — compact
-            // rhythm through PrayerListView's rows. With the card off there is a
-            // *row* above it rather than a card, so the two stack with no gap of
-            // their own: the list's 4 pt top inset is then the whole space
-            // between the location row and the first prayer row — a slight
-            // breath, rather than the extra 6 pt a stack gap on top of it made.
             if vm.isPrayerDataAvailable {
                 if showCountdownCard {
-                    PrayerListView()
-                } else {
-                    VStack(alignment: .leading, spacing: 0) {
-                        locationFavoritesBlock
-                        PrayerListView()
-                    }
+                    locationFavoritesBlock
                 }
+                PrayerListView()
             } else {
                 Spacer()
                 PermissionRequestView()
                 Spacer()
-            }
-
-            if vm.isPrayerDataAvailable && showCountdownCard {
-                // Separator between the prayer list and the location row
-                // (countdown-active layout only — otherwise the row heads the
-                // list, directly under the top divider).
-                Rectangle()
-                    .fill(Color("DividerColor"))
-                    .frame(height: 0.5)
-                    .padding(.horizontal, 12)
-                locationFavoritesBlock
             }
 
             // One separator after the prayer times, then a single compact
