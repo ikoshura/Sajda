@@ -5,30 +5,12 @@ import Adhan
 import NavigationStack
 
 struct MainView: View {
-    /// TEMPORARY (position check only): forces the footer update badge to show
-    /// without a real pending release. Set back to `false` to restore.
-    private static let forceUpdateBadge = true
-
     @EnvironmentObject var vm: PrayerTimeViewModel
     @EnvironmentObject var navigationModel: NavigationModel
     @State private var isSettingsHovering = false
     @State private var isAboutHovering = false
     @State private var isQuitHovering = false
     @State private var isLocationHovering = false
-    /// Update availability, observed directly: the footer badge below reflects
-    /// it live, and AboutView binds the same shared checker.
-    @ObservedObject private var updater = UpdateChecker.shared
-    @State private var isUpdateHovering = false
-
-    /// Version the footer badge advertises, or nil when no update is pending
-    /// (badge hidden). The `forceUpdateBadge` branch is temporary scaffolding
-    /// for checking the badge's position; with it off this is just the real
-    /// checker state.
-    private var updateBadgeVersion: String? {
-        if Self.forceUpdateBadge { return "9.9.9" }
-        if case .updateAvailable(let version, _) = updater.state { return version }
-        return nil
-    }
     /// Location row. A push to the Favorites page (same NavigationStack
     /// mechanism as Settings/About): tapping opens FavoritesView, and the
     /// accordion state lives on that page's @State — so it is born shut on
@@ -138,6 +120,13 @@ struct MainView: View {
                 locationFavoritesBlock
             }
 
+            // Update banner, last thing above the footer, behind its own
+            // separator. Previously it sat at the very top, where appearing
+            // pushed the countdown card and every prayer time down — the
+            // prayer times shifting under a version bump reads like the app
+            // re-measuring itself. Down here the schedule above never moves.
+            UpdateBannerRow()
+
             // One separator after the prayer times, then a single compact
             // line of SF Symbols: Quit on the leading edge, About and
             // Settings trailing. The text labels move to hover tooltips and
@@ -164,31 +153,6 @@ struct MainView: View {
                     .accessibilityLabel(Text(NSLocalizedString("Quit", comment: "")))
 
                     Spacer(minLength: 0)
-
-                    // Update badge, leading the trailing icon group so it sits
-                    // immediately beside About. Only rendered while a newer
-                    // release is known; tapping it opens the release page.
-                    if let version = updateBadgeVersion {
-                        Button(action: { updater.openReleasePage() }) {
-                            // Short text rather than a glyph: an icon this far
-                            // from the About/settings icons read as another
-                            // panel control, and the version is the part worth
-                            // showing. Fixed-size so the label can never squeeze
-                            // its neighbours as the number's length changes.
-                            Text(String(format: NSLocalizedString("New %@", comment: ""), version))
-                                .scaledFont(.caption, weight: .semibold)
-                                .foregroundColor(vm.selectedHighlightColor)
-                                .lineLimit(1)
-                                .fixedSize()
-                                .padding(.vertical, 5).padding(.horizontal, 8)
-                                .liquidHover(isUpdateHovering)
-                        }
-                        .buttonStyle(.plain)
-                        .onHover { hovering in isUpdateHovering = hovering }
-                        .focusable(false)
-                        .help(Text(String(format: NSLocalizedString("Update available: %@", comment: ""), version)))
-                        .accessibilityLabel(Text(String(format: NSLocalizedString("Update available: %@", comment: ""), version)))
-                    }
 
                     Button(action: {
                         navigationModel.showView(ContentView.id, animation: vm.forwardAnimation()) { AboutView() }
@@ -236,6 +200,70 @@ struct MainView: View {
         .padding(.bottom, 2)
         .frame(width: viewWidth)
 
+    }
+}
+
+/// Update banner for the main panel: visible only while a newer release is
+/// known and not dismissed. Tapping opens the release page; "Later" hides it
+/// for this launch (About still shows the update). Dismissable by design so
+/// the banner can live on Main without nagging.
+///
+/// Sits at the bottom of the panel behind its own separator, so the countdown
+/// card and the prayer times above it never shift when it appears.
+struct UpdateBannerRow: View {
+    /// TEMPORARY (position check only): shows the banner regardless of update
+    /// state, with a stub version. Set back to `false` to restore.
+    private static let forceShowBanner = true
+
+    @ObservedObject private var updater = UpdateChecker.shared
+    @EnvironmentObject var vm: PrayerTimeViewModel
+
+    var body: some View {
+        if let version = bannerVersion {
+            VStack(alignment: .leading, spacing: 0) {
+                // Its own separator, so the banner reads as a distinct footer
+                // block rather than trailing off the location row.
+                Rectangle()
+                    .fill(Color("DividerColor"))
+                    .frame(height: 0.5)
+                    .padding(.horizontal, 12)
+
+                HStack(spacing: 6) {
+                    Button(action: { updater.openReleasePage() }) {
+                        HStack(spacing: 6) {
+                            Image(systemName: "arrow.down.circle.fill")
+                            Text(String(format: NSLocalizedString("Update available: %@", comment: ""), version))
+                                .scaledFont(.caption, weight: .semibold)
+                                .lineLimit(1)
+                        }
+                        .padding(.vertical, 5).padding(.horizontal, 8)
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundColor(vm.selectedHighlightColor)
+                    Spacer(minLength: 0)
+                    Button(action: { updater.updateBannerDismissed = true }) {
+                        Text(NSLocalizedString("Later", comment: "")).scaledFont(.caption)
+                            .padding(.vertical, 5).padding(.horizontal, 6)
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundColor(Color("SecondaryTextColor"))
+                    .help(Text(NSLocalizedString("Dismiss for now", comment: "")))
+                }
+                // 5 pt matches the footer's own icon row above it, so the two
+                // rows' edges line up.
+                .padding(.horizontal, 5)
+                .padding(.vertical, 2)
+            }
+        }
+    }
+
+    /// Real pending version, or nil when nothing to announce. The forced branch
+    /// is temporary scaffolding; with it off this is just the checker state.
+    private var bannerVersion: String? {
+        if Self.forceShowBanner { return "9.9.9" }
+        guard case .updateAvailable(let version, _) = updater.state,
+              !updater.updateBannerDismissed else { return nil }
+        return version
     }
 }
 
