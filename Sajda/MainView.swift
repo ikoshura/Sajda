@@ -116,8 +116,17 @@ struct MainView: View {
                 // times belong to. Above the list in both cases is also the
                 // position it was moved to on purpose: the line that says where
                 // these times are belongs before the times, not after them.
-                locationFavoritesBlock
-                PrayerListView()
+                // The list's own 2pt top padding and the caption's 5pt vertical
+                // padding are both deliberate, but stacking them under the outer
+                // 6pt VStack spacing left 13pt between the caption and the first
+                // prayer — they read as two unrelated sections. A nested stack
+                // at 0 spacing drops it to the 7pt those two paddings already
+                // imply, so the caption still breathes but is clearly the
+                // heading *of* this list rather than a sibling block.
+                VStack(alignment: .leading, spacing: 0) {
+                    locationFavoritesBlock
+                    PrayerListView()
+                }
             } else {
                 Spacer()
                 PermissionRequestView()
