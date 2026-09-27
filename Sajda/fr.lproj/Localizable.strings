@@ -5,7 +5,7 @@
 "To provide accurate prayer times, Sajda Pro needs to know your location." = "Pour fournir des horaires de prière précis, Sajda Pro a besoin de connaître votre position."; "Location access is already enabled." = "L'accès à la localisation est déjà activé."; "Or, Set Location Manually" = "Ou définir la localisation manuellement"; "Please grant location access in System Settings." = "Veuillez autoriser l'accès à la localisation dans Réglages du Système."; "You are using a manual location: **%@**" = "Vous utilisez une position manuelle : **%@**"; "Switch to Automatic Location" = "Passer à la localisation automatique"; "Change Manual Location" = "Modifier la position manuelle"; "Show this window on launch" = "Afficher cette fenêtre au démarrage"; "Welcome to Sajda Pro" = "Bienvenue dans Sajda Pro";
 "To get started, please provide your location for accurate prayer times." = "Pour commencer, indiquez votre position afin d'obtenir des horaires de prière précis."; "Using manual location: **%@**" = "Position manuelle : **%@**"; "Location access is enabled." = "L'accès à la localisation est activé."; "Please grant access in System Settings." = "Veuillez autoriser l'accès dans Réglages du Système.";
 "About Sajda Pro" = "À propos de Sajda Pro"; "Version 3.3.1" = "Version 3.3.1"; "by Abrar Zha" = "par Abrar Zha"; "Show Welcome Guide on Launch" = "Afficher le guide de bienvenue au démarrage"; "Show Welcome Window" = "Afficher la fenêtre de bienvenue";
-"General" = "Général"; "Language" = "Langue"; "Display" = "Affichage"; "Menu Bar Style" = "Style de la barre des menus"; "Compact View" = "Vue compacte"; "24-Hour Time" = "Format 24 heures"; "Minimal Menu Bar" = "Barre des menus minimale"; "Accent Color" = "Couleur d'accent"; "Hijri Date" = "Date hégirienne"; "Accent Panel" = "Panneau d'accent"; "Red Alert" = "Alerte rouge"; "Red Alert Off" = "Désactivé"; "Red Alert 5 Minutes" = "5 minutes"; "Red Alert 10 Minutes" = "10 minutes"; "Red Alert 15 Minutes" = "15 minutes"; "Iqama Delay" = "Retard d'Iqama"; "Show Iqama Delay" = "Afficher le retard d'Iqama"; "Show Sunnah Prayers" = "Afficher les prières sunnah"; "Glass Highlight" = "Surlignage en verre"; "Show Seconds" = "Afficher les secondes"; "Show Countdown Header" = "Afficher l'en-tête du compte à rebours";
+"General" = "Général"; "Language" = "Langue"; "Display" = "Affichage"; "Menu Bar Style" = "Style de la barre des menus"; "Compact View" = "Vue compacte"; "24-Hour Time" = "Format 24 heures"; "Minimal Menu Bar" = "Barre des menus minimale"; "Accent Color" = "Couleur d'accent"; "Hijri Date" = "Date hégirienne"; "Accent Panel" = "Panneau d'accent"; "Dim Mute Button" = "Bouton d'adhan discret"; "Red Alert" = "Alerte rouge"; "Red Alert Off" = "Désactivé"; "Red Alert 5 Minutes" = "5 minutes"; "Red Alert 10 Minutes" = "10 minutes"; "Red Alert 15 Minutes" = "15 minutes"; "Iqama Delay" = "Retard d'Iqama"; "Show Iqama Delay" = "Afficher le retard d'Iqama"; "Show Sunnah Prayers" = "Afficher les prières sunnah"; "Glass Highlight" = "Surlignage en verre"; "Show Seconds" = "Afficher les secondes"; "Show Countdown Header" = "Afficher l'en-tête du compte à rebours";
 "Calculation" = "Calcul"; "Method" = "Méthode"; "Time Correction" = "Correction des horaires"; "Adjust" = "Ajuster"; "Hanafi Madhhab (for Asr)" = "Madhhab hanafite (pour Asr)"; "Location" = "Position"; "Manual:" = "Manuelle :"; "Automatic:" = "Automatique :"; "Use Automatic" = "Utiliser l'automatique";
 "Adjust prayer times to match your local mosque. Hover over the number to reset." = "Ajustez les horaires de prière pour correspondre à votre mosquée. Survolez le nombre pour le réinitialiser."; "Reset All to Default" = "Tout réinitialiser";
 "Set Location" = "Définir la position"; "Search for a city or paste coordinates..." = "Recherchez une ville ou collez des coordonnées..."; "Set Location Manually" = "Définir la position manuellement"; "Start typing a city or paste coordinates." = "Commencez à taper une ville ou collez des coordonnées."; "No results found." = "Aucun résultat trouvé.";
@@ -21,7 +21,7 @@
 "Refreshing location..." = "Actualisation de la position...";
 "Resolving city..." = "Détermination de la ville...";
 "Animation Style" = "Style d'animation";
-"None" = "Aucun";
+"None" = "Aucun"; "Right" = "Droite"; "Left" = "Gauche";
 "Fade" = "Fondu";
 "Slide" = "Glissement";
 
@@ -70,6 +70,7 @@
 "All Prayers" = "Toutes les prières";
 "Apply" = "Appliquer";
 "Stop Adhan" = "Arrêter l'adhan";
+"Quit Sajda" = "Quitter Sajda";
 
 /* High-Latitude Rule */
 "High-Latitude Rule" = "Règle des hautes latitudes";
@@ -129,8 +130,6 @@
 "mosque_times_in_use" = "Les horaires publiés par la mosquée sont utilisés.";
 "mosque_adhan_in_use" = "La mosquée publie ses propres horaires d'adhan.";
 "Per Prayer" = "Par prière";
-"mosque_iqama_in_use" = "La mosquée publie ses propres horaires d'Iqama.";
-"Custom Color" = "Couleur personnalisée";
 "color_blue" = "Bleu";
 "color_purple" = "Violet";
 "color_pink" = "Rose";
@@ -161,3 +160,5 @@
 Always Show Jumu'ah";
 "Later" = "Later";
 "Dismiss for now" = "Dismiss for now";
+"Top" = "En haut"; "Middle" = "Milieu"; "Bottom" = "En bas";
+"Icône de muet" = "Icône de muet"; "Halo" = "Halo"; "Bell" = "Cloche"; "Speaker" = "Haut-parleur"; "None" = "Aucun";

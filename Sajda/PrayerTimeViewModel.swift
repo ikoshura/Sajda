@@ -98,6 +98,70 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
     @AppStorage("useMinimalMenuBarText") var useMinimalMenuBarText: Bool = false { didSet { updateAndDisplayTimes() } }
     @AppStorage("showSunnahPrayers") var showSunnahPrayers: Bool = false { didSet { updatePrayerTimes() } }
     @AppStorage("useAccentColor") var useAccentColor: Bool = true
+    /// Draws the per-prayer mute ring in the system secondary colour even in
+    /// accent mode. Off by default, so accent mode looks as it always has; on,
+    /// the accent is spent on the next-prayer highlight alone and the five rings
+    /// stop competing with the time column for attention.
+    @AppStorage("dimMuteButton") var dimMuteButton: Bool = false
+    /// Ring + dot colour for the per-prayer mute icon on a *non*-highlighted
+    /// prayer row — the one place that decides it, so the panel and the Adhan
+    /// Sound page can't drift apart again.
+    ///
+    /// System secondary whenever the accent isn't in play (accent mode off, or
+    /// "Dim Mute Button" on). The highlighted row is excluded by its callers: it
+    /// sits on the highlight fill, where only the row's own text colour is
+    /// reliably readable.
+    var muteIconColor: Color {
+        (useAccentColor && !dimMuteButton) ? selectedHighlightColor : .secondary
+    }
+    /// Whether the mute ring gets the dimmed treatment (ring 0.55 / dot 0.85) at
+    /// all. Only when the ring is already the calm system secondary — accent
+    /// mode off, or "Dim Mute Button" on. In plain accent mode nothing is
+    /// dimmed: the ring keeps the accent at full strength, exactly as it always
+    /// has, because the accent is the user's own chosen colour and lightening
+    /// it to 55% would quietly change what they picked.
+    var isMuteIconDimmed: Bool {
+        !useAccentColor || dimMuteButton
+    }
+    /// Colour for the muted dot when it has to step down from `muteIconColor`:
+    /// the system secondary, in plain accent mode only.
+    ///
+    /// `muteIconColor` already returns `.secondary` in the other two modes, so
+    /// the dot is secondary there for free. Plain accent mode is the odd one
+    /// out — the ring is the user's accent at full strength, and a muted dot in
+    /// that same accent put the next-prayer highlight's colour on every muted
+    /// row, so muting four of five still read as "all highlighted". There the
+    /// dot drops to the calm secondary. `nil` elsewhere keeps the icon's
+    /// one-colour rule.
+    var mutedMuteDotColor: Color? {
+        (useAccentColor && !dimMuteButton) ? .secondary : nil
+    }
+    /// Which glyph the per-prayer mute button draws. Stored as a raw String (not
+    /// the enum) so a value from a newer build, or a hand-edited pref, falls
+    /// back to `.halo` instead of failing the row.
+    ///
+    /// Default `.halo` — what the panel has always shown, so existing installs
+    /// are unaffected.
+    @AppStorage("muteIconStyle") var muteIconStyleRaw: String = MuteIconStyle.halo.rawValue {
+        didSet { objectWillChange.send() }
+    }
+
+    /// Typed form of `muteIconStyleRaw`.
+    var muteIconStyle: MuteIconStyle {
+        get { MuteIconStyle(rawValue: muteIconStyleRaw) ?? .halo }
+        set { muteIconStyleRaw = newValue.rawValue }
+    }
+    /// Whether "Dim Mute Button" can do anything at all right now.
+    ///
+    /// Two ways it can't, one already covered by `muteIconColor` (accent mode
+    /// off makes the icon secondary regardless) and one new: `MuteIconStyle.none`
+    /// draws no icon, so there is no ring to dim. Both dim and disable the row
+    /// rather than hiding it, so the row order never shifts under the user, and
+    /// neither clears `dimMuteButton` — switching back to a visible style
+    /// restores whatever was chosen.
+    var canDimMuteButton: Bool {
+        useAccentColor && muteIconStyle != .none
+    }
     /// User-picked next-prayer highlight color ("#RRGGBB"); empty = accent default.
     @AppStorage("customHighlightColorHex") var customHighlightColorHex: String = ""
     /// Shows the big countdown header above the panel schedule.
@@ -773,23 +837,38 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
         }
     }
 
-    /// Default minutes after the adhan for prayers the user hasn't given
-    /// their own gap (default 8). It has no UI of its own any more — the
-    /// mosque picker's "Iqama Delay" stepper is gone, so the per-prayer rows
-    /// on the Time Correction page are the only way to configure the iqama,
-    /// and they all read/write through `iqamaDelay(for:)`. The key is kept so
-    /// previously chosen defaults still carry over.
-    /// Republishes because a change must redraw the rows immediately.
-    @AppStorage("iqamaDelayMinutes") var iqamaDelayMinutes: Int = 8 { didSet { objectWillChange.send() } }
+    /// Where the panel prints the iqama gap relative to each prayer time, or
+    /// that it doesn't.
+    ///
+    /// Empty by default — the *position* default is derived from the active
+    /// timing source rather than baked in here (see `defaultIqamaDelayPosition`),
+    /// because a gap is only meaningful in one of the two modes: a mosque
+    /// timetable publishes the real iqama, while calculated times carry only a
+    /// user-entered estimate. Storing nothing is what lets that choice follow
+    /// the mode instead of being frozen at first launch.
+    ///
+    /// Republishes because the rows are already laid out — a change here is a
+    /// redraw, not new data.
+    @AppStorage("iqamaDelayPosition") var iqamaDelayPositionRaw: String = "" {
+        didSet { objectWillChange.send() }
+    }
 
-    /// Whether the panel prints the iqama gap beside each prayer time
-    /// (`Dhuhr 13:53 +8`). On by default: it is the one line that tells you
-    /// when to head to the mosque, and it used to be printed with no way to
-    /// turn it off. `displayedIqamaDelay(for:)` decides *which* number (or
-    /// that there is none); this only decides whether any is drawn.
-    /// Republishes for the same reason the delay itself does: the rows are
-    /// already laid out, so this is a redraw, not a data change.
-    @AppStorage("showIqamaDelay") var showIqamaDelay: Bool = true { didSet { objectWillChange.send() } }
+    /// Typed form of `iqamaDelayPositionRaw`.
+    var iqamaDelayPosition: IqamaDelayPosition {
+        get { IqamaDelayPosition(rawValue: iqamaDelayPositionRaw) ?? defaultIqamaDelayPosition }
+        set { iqamaDelayPositionRaw = newValue.rawValue }
+    }
+
+    /// The position used while nothing has been chosen: shown on the right, but
+    /// only under a mosque timetable.
+    ///
+    /// Under calculated times there is no iqama to show at all (see
+    /// `displayedIqamaDelay(for:)`), so the position is moot and the panel draws
+    /// nothing whatever this says. Right is the mosque default because a
+    /// published gap reads best as one clock: "13:53 +8".
+    var defaultIqamaDelayPosition: IqamaDelayPosition {
+        .trailing
+    }
 
     /// Jumu'ah session times as minutes past midnight in the shown timezone,
     /// kept as a free list in Settings so mosques with several Friday
@@ -801,99 +880,57 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
     /// generous while keeping the panel row a single clean line.
     static let maxJumuahSessions = 5
 
-    /// Per-prayer gaps the user set on the Time Correction page, stored as JSON
-    /// like `prayerSoundConfigsJSON`. Prayers absent from the map keep following
-    /// `iqamaDelayMinutes`, which is therefore just the untouched baseline — the
-    /// rows are the only place the iqama gets configured.
-    @AppStorage("iqamaDelayOverrides") var iqamaDelayOverridesJSON: String = "{}" { didSet { objectWillChange.send() } }
-
-    var iqamaDelayOverrides: [String: Int] {
-        get {
-            guard let data = iqamaDelayOverridesJSON.data(using: .utf8),
-                  let dict = try? JSONDecoder().decode([String: Int].self, from: data)
-            else { return [:] }
-            return dict
-        }
-        set {
-            guard let data = try? JSONEncoder().encode(newValue) else { return }
-            iqamaDelayOverridesJSON = String(data: data, encoding: .utf8) ?? "{}"
-        }
-    }
-
-    /// Effective gap for a prayer: its own override when set, otherwise the
-    /// default.
-    func iqamaDelay(for prayer: String) -> Int {
-        iqamaDelayOverrides[prayer] ?? iqamaDelayMinutes
-    }
-
-    /// Stores a prayer's gap. A value equal to the default drops the
-    /// override instead of pinning it, so that prayer keeps tracking later
-    /// changes to `iqamaDelayMinutes`.
-    func setIqamaDelay(_ minutes: Int, for prayer: String) {
-        var overrides = iqamaDelayOverrides
-        if minutes == iqamaDelayMinutes {
-            overrides.removeValue(forKey: prayer)
-        } else {
-            overrides[prayer] = minutes
-        }
-        iqamaDelayOverrides = overrides
-        // Republish on the spot so the row previews and the countdown header
-        // redraw without waiting for the next unrelated view-model change.
-        objectWillChange.send()
-    }
-
-    /// The gap the panel prints beside a prayer time — "+8" — or nothing when
-    /// the delay shouldn't be shown. One source of truth for the rule that
-    /// decides both:
+    /// The gap the panel prints beside a prayer time — "+8" — or nothing.
     ///
-    /// - Sunnah prayers (Tahajud, Dhuha) have no congregation, so no iqama and
-    ///   no gap is ever printed for them.
-    /// - With a mosque timetable active the mosque's *published* gap wins: its
-    ///   iqama is the real answer, and "+8" under a mosque that runs "+20" was
-    ///   a number that doesn't exist. A mosque that publishes no gap for that
-    ///   prayer falls back to the user's own, which is what `effectiveIqamaDelay`
-    ///   already does.
-    /// - Otherwise the user's configured gap is shown, whether the location came
-    ///   from Automatic or Manual — neither mode changes the iqama, only where
-    ///   the coordinates came from.
+    /// Only ever a number the mosque itself publishes. With calculated times
+    /// (automatic or manual location) there is no iqama to know: the app can
+    /// compute an adhan, but *when the imam stands up* is not derivable from
+    /// coordinates, and printing an invented one on every row is worse than
+    /// printing nothing — a worshipper who trusts "+8" and arrives eight minutes
+    /// late has been actively misled. So this returns `nil` unless a mosque
+    /// timetable is active.
     ///
-    /// `nil` when the delay is off in Settings, or when the gap is zero (a
-    /// mosque that opens straight after the adhan has no delay to report, and
-    /// "+0" is noise). Returned as `Int?` rather than a formatted string so the
-    /// row draws the number in its own font and the accessibility label can
-    /// reuse it.
+    /// Sunnah prayers (Tahajud, Dhuha) have no congregation, so no iqama and no
+    /// gap for them even in mosque mode. A zero gap is also `nil` — a mosque that
+    /// opens straight after the adhan has no delay to report, and "+0" is noise.
+    ///
+    /// Returned as `Int?` rather than a formatted string so the row draws the
+    /// number in its own font and the accessibility label can reuse it.
     func displayedIqamaDelay(for prayer: String) -> Int? {
-        guard showIqamaDelay, Self.congregationalPrayers.contains(prayer) else { return nil }
-        let minutes = effectiveIqamaDelay(for: prayer)
+        guard isMosqueTimetableActive,
+              iqamaDelayPosition != .none,
+              Self.congregationalPrayers.contains(prayer),
+              let minutes = publishedIqamaDelay(for: prayer)
+        else { return nil }
         return minutes > 0 ? minutes : nil
     }
 
-    /// The iqama gap the panel actually shows for `prayer`: the mosque's own
-    /// published gap when a timetable is active, and the user's configured gap
-    /// otherwise.
+    /// The gap the mosque itself publishes for `prayer`, or `nil` when there is
+    /// no mosque timetable or it publishes no gap for that prayer.
     ///
-    /// The mosque wins because its iqama *is* the answer in mosque mode —
-    /// estimating "+8" under a mosque that runs "+20" showed an iqama that
-    /// doesn't exist. The user's gap is untouched and returns the moment the
-    /// timetable is switched off, so the Time Correction rows keep meaning
-    /// what they say.
-    func effectiveIqamaDelay(for prayer: String) -> Int {
-        if useMawaqitSchedule, let mosque = mawaqitMosque {
-            let offsets = MawaqitService.iqamaOffsets(for: Date(), in: mosque.iqamaCalendar)
-            if let minutes = offsets[prayer] { return minutes }
-        }
-        return iqamaDelay(for: prayer)
+    /// The only iqama source left in the app, deliberately. The per-prayer gap the
+    /// user typed under Time Correction went away with its tab, because it could
+    /// only ever be a guess — and a guess sitting next to a real clock reads as
+    /// a fact.
+    func publishedIqamaDelay(for prayer: String) -> Int? {
+        guard isMosqueTimetableActive, let mosque = mawaqitMosque else { return nil }
+        return MawaqitService.iqamaOffsets(for: Date(), in: mosque.iqamaCalendar)[prayer]
     }
 
-    /// Iqama time for the next prayer — the one iqama source for every mode:
-    /// the adhan plus that prayer's gap (`effectiveIqamaDelay(for:)`). Sunnah
-    /// prayers have no congregation, so they get none.
-    /// Note: even when the per-prayer adhan above is muted, its time still
-    /// reads here — the mute silences audio, it never moves a clock.
+    /// Iqama time for the next prayer, read from the mosque's published gap.
+    /// `nil` under calculated times, since there is no iqama to know (see
+    /// `displayedIqamaDelay(for:)`), and `nil` for Sunnah prayers, which have no
+    /// congregation.
+    ///
+    /// Note: even when the per-prayer adhan above is muted, its time still reads
+    /// here — the mute silences audio, it never moves a clock.
     var nextPrayerIqamaDate: Date? {
-        guard let occ = nextPrayerOccurrenceDate,
-              Self.congregationalPrayers.contains(nextPrayerName) else { return nil }
-        return occ.addingTimeInterval(Double(effectiveIqamaDelay(for: nextPrayerName)) * 60)
+        guard isMosqueTimetableActive,
+              let occ = nextPrayerOccurrenceDate,
+              Self.congregationalPrayers.contains(nextPrayerName),
+              let minutes = publishedIqamaDelay(for: nextPrayerName)
+        else { return nil }
+        return occ.addingTimeInterval(Double(minutes) * 60)
     }
 
     /// Sanitised Jumu'ah sessions (each a valid 0...1439 clock time, sorted,

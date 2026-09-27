@@ -26,6 +26,13 @@ struct SajdaMenuBarApp: App {
                 .environmentObject(appDelegate.vm)
                 .environmentObject(appDelegate.languageManager)
                 .environmentObject(appDelegate.navigationModel)
+                // `SajdaControlCenterMenu` reads `appDelegate` for the
+                // status item's pending-page request (and for Stop Adhan). It
+                // was never injected: the only previous reader sat inside a
+                // closure that only evaluated while an adhan was playing, so
+                // the missing environment object went unnoticed until a read
+                // happened on every panel open.
+                .environmentObject(appDelegate)
                 .onReceive(NotificationCenter.default.publisher(for: .popoverDidClose)) { _ in
                     if appDelegate.navigationModel.hasAlternativeViewShowing {
                         appDelegate.navigationModel.hideView(ContentView.id, animation: nil)
@@ -39,7 +46,19 @@ struct SajdaMenuBarApp: App {
                 .environmentObject(appDelegate.vm)
                 .environmentObject(appDelegate.languageManager)
         }
-        .menuBarExtraAccess(isPresented: $isMenuPresented)
+        .menuBarExtraAccess(isPresented: $isMenuPresented) { statusItem in
+            // `MenuBarExtraAccess` hands over the real `NSStatusItem` once it
+            // exists, which is the only way to get a right-click menu on a
+            // SwiftUI `MenuBarExtra`. The monitor lives in the context-menu
+            // object so re-introspection (scene rebuilds) cannot stack
+            // handlers — see `StatusItemContextMenu.install(on:)`.
+            let menu = appDelegate.statusItemContextMenu ?? {
+                let created = StatusItemContextMenu()
+                appDelegate.statusItemContextMenu = created
+                return created
+            }()
+            menu.install(on: statusItem)
+        }
         .menuBarExtraStyle(.window)
     }
 }

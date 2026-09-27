@@ -437,9 +437,11 @@ struct PrayerListView: View {
     /// Fixed width for the iqama gap column ("+8") that sits between the mute
     /// toggle and the time, drawn only when `displayedIqamaDelay(for:)` returns
     /// a number. Measured from the widest string the gap can be — "+88" — in the
-    /// scaled caption font, and reserved on *every* row whether or not this
-    /// prayer shows a gap, so the times don't shift as the highlight moves or
-    /// when one prayer's gap differs from another's.
+    /// scaled caption font, and reserved on *every* row while a mosque timetable
+    /// is active, whether or not this prayer shows a gap, so the times don't
+    /// shift as the highlight moves or when one prayer's gap differs from
+    /// another's. Under calculated times no row shows a gap at all, so nothing
+    /// reserves it (see `hasIqamaColumn`).
     static func iqamaColumnWidth(fontScale: CGFloat) -> CGFloat {
         // Same font the row draws the gap in: `scaledFont(.caption)` resolves to
         // the caption style's preferred font at the panel scale (see
@@ -506,20 +508,26 @@ private struct PrayerRow: View {
                 }
                 Spacer(minLength: 4)
                 toggleCell(isNextPrayer: isNextPrayer, textColor: textColor)
-                // Between the mute toggle and the time, not after it: this is
-                // the column layout the panel has always used, and keeping the
-                // time hard against the trailing gutter is what lets it keep
-                // its fixed right-aligned column. Putting "+8" last pushed the
-                // time in from the edge and left the number floating on its
-                // own at the far right.
-                iqamaCell(isNextPrayer: isNextPrayer, textColor: textColor)
+                // The gap goes on whichever side the user picked (Settings >
+                // Prayer Times > Iqama Delay). Left puts it between the toggle and
+                // the time, so the time stays flush against the edge; right puts
+                // it after the time, reading as one time qualified ("13:53 +8").
+                // The trailing inset is its own trailing element rather than
+                // padding on the last view, so it lands in the same place either
+                // way and the row keeps a single right margin.
+                if vm.iqamaDelayPosition == .leading {
+                    iqamaCell(isNextPrayer: isNextPrayer, textColor: textColor)
+                }
                 Text(vm.dateFormatter.string(from: displayTime)).scaledFont(.body, weight: isNextPrayer ? .bold : nil)
                     // Right-anchored, one shared width: every time's leading
                     // edge starts at the same x. The width is measured in the
                     // scaled bold body font, so the time never wraps.
                     .lineLimit(1)
                     .frame(width: timeColumnWidth, alignment: .trailing)
-                    .padding(.trailing, PrayerListView.rowHorizontalInset)
+                if vm.iqamaDelayPosition == .trailing {
+                    iqamaCell(isNextPrayer: isNextPrayer, textColor: textColor)
+                }
+                Spacer().frame(width: PrayerListView.rowHorizontalInset)
             }
             // The row is full-width (it holds a Spacer), so its own padding
             // would push the row *outward* past the panel edges rather than
@@ -553,27 +561,49 @@ private struct PrayerRow: View {
     /// The iqama gap ("+8") in the slot between the mute toggle and the time.
     /// Renders nothing — and reserves no width — when there is no gap to show,
     /// so the times keep their old positions for Sunnah prayers and for any row
-    /// the mosque publishes no gap for. The *width* is reserved even when the
-    /// gap is hidden but the setting is on, because otherwise the times would
-    /// jump sideways between prayers that do and don't have one.
+    /// the mosque publishes no gap for.
+    ///
+    /// The *width* is reserved for those, so the time column doesn't shift
+    /// sideways between a prayer that has a gap and one that doesn't. But only
+    /// while a mosque timetable is active — that reservation is there to keep a
+    /// visible column stable, and under calculated times the column is empty on
+    /// every row, so reserving it just parks the times a column too far from the
+    /// right edge. The `hasIqamaColumn` gate is what keeps a "Right" setting
+    /// left over from mosque mode from leaving a gap where nothing goes.
     @ViewBuilder
     private func iqamaCell(isNextPrayer: Bool, textColor: Color) -> some View {
         if let minutes = vm.displayedIqamaDelay(for: prayerName) {
             Text(String(format: "+%d", minutes))
                 .scaledFont(.caption)
-                // Dimmer than the time, like the "Around" caption: it is a
-                // qualifier on the time, not another time. On the highlighted
-                // row it takes the row's own colour so it stays readable on
-                // both light and dark highlights.
-                .foregroundColor(isNextPrayer ? textColor.opacity(0.8) : Color("SecondaryTextColor"))
+                // `.secondary`, the system colour, like the mute ring beside it
+                // — the gap is a qualifier on the time, not a value of its own,
+                // so it should recede the same way the ring does. On the
+                // highlighted row it takes the row's own colour instead, since
+                // `.secondary` on a light highlight fill is unreadable.
+                .foregroundColor(isNextPrayer ? textColor.opacity(0.8) : .secondary)
                 .monospacedDigit()
                 .lineLimit(1)
                 .frame(width: PrayerListView.iqamaColumnWidth(fontScale: fontScale), alignment: .trailing)
                 .help(String(format: NSLocalizedString("iqama_delay_minutes", comment: ""), minutes))
-        } else if vm.showIqamaDelay {
+        } else if hasIqamaColumn {
             Color.clear.frame(width: PrayerListView.iqamaColumnWidth(fontScale: fontScale), height: 1)
         }
     }
+
+    /// Whether the rows reserve a slot for an iqama gap. Needs both halves of
+    /// the same rule `displayedIqamaDelay(for:)` applies — a live gap somewhere
+    /// to show, and the position not turned off — but checked across all rows
+    /// rather than one, so the column exists from the first gap onward instead
+    /// of shifting the times in as they load.
+    private var hasIqamaColumn: Bool {
+        vm.isMosqueTimetableActive && vm.iqamaDelayPosition != .none
+    }
+
+    /// The highlighted row is the one place the dimmed treatment never applies:
+    /// it sits on the highlight fill, where a lightened ring would disappear.
+    /// Plain accent mode also keeps the ring at full strength — that colour is
+    /// the user's own pick, and dimming it would quietly change what they chose.
+    private func isMuteIconDimmed(isNextPrayer: Bool) -> Bool { !isNextPrayer && vm.isMuteIconDimmed }
 
     @ViewBuilder
     private func toggleCell(isNextPrayer: Bool, textColor: Color) -> some View {
@@ -592,16 +622,52 @@ private struct PrayerRow: View {
             }
             .buttonStyle(.plain)
             .help("Stop Adhan")
+        } else if vm.muteIconStyle == .none {
+            // "None" means no control, not an invisible one. The cell is still
+            // reserved so the time column doesn't shift when the user switches
+            // styles, but nothing is clickable, focusable, hoverable or
+            // announced — an invisible button that still flips a setting is
+            // worse than no button: it looks like a bug, and hovering it would
+            // show a tooltip pointing at nothing.
+            //
+            // Muting stays reachable: the Adhan Sound page has the same
+            // per-prayer toggle, always drawn as a speaker. This option is for
+            // someone who wants the panel to be clocks only, not for someone
+            // who wants to stop being able to mute from it.
+            Color.clear
+                .frame(width: 25, height: contentHeight)
         } else {
             // Per-prayer adhan on/off, right on the panel: muting flips
             // `PrayerSoundConfig.muted` (never the sound picked in Settings).
             let muted = vm.isAdhanMuted(prayerName)
             Button(action: { vm.setAdhanMuted(!muted, for: prayerName) }) {
-                // Highlighted row: white ring + white dot for contrast (white
-                // even with accent mode off, where the row text itself is
-                // `.primary`). Other rows: the selected highlight colour
-                // (custom pick, or the system accent).
-                AdhanMuteIcon(muted: muted, activeColor: isNextPrayer ? (vm.useAccentColor ? textColor : .white) : vm.selectedHighlightColor, size: 13)
+                // One icon, four possible glyphs, one colour — see
+                // `AdhanMuteButtonIcon`. The highlighted row is the exception on
+                // opacity: it sits on the highlight fill, where a dimmed ring
+                // would disappear, so it passes 1.0. Every other row has plain
+                // panel behind it and takes the dimming, which applies to the
+                // calm secondary ring only (accent off, or "Dim Mute Button" on)
+                // and never to the user's own accent at full strength.
+                //
+                // "Dim Mute Button" extends the calm secondary to accent mode:
+                // with it on, the icon is secondary off the highlight, so the
+                // accent is spent on the highlight alone.
+                AdhanMuteButtonIcon(
+                    style: vm.muteIconStyle,
+                    muted: muted,
+                    color: isNextPrayer ? (vm.useAccentColor ? textColor : .white) : vm.muteIconColor,
+                    size: 13,
+                    ringOpacity: isMuteIconDimmed(isNextPrayer: isNextPrayer) ? 0.55 : 1,
+                    dotOpacity: isMuteIconDimmed(isNextPrayer: isNextPrayer) ? 0.85 : 1,
+                    // Plain accent mode is the one case where the muted dot
+                    // leaves the ring's colour: the accent is also the
+                    // next-prayer highlight, so a muted row drawn in the accent
+                    // read as highlighted too. Off the highlight the dot drops
+                    // to the system secondary; on the highlight the row's own
+                    // text colour already contrasts against the fill.
+                    mutedDotColor: isNextPrayer ? nil : vm.mutedMuteDotColor,
+                    isOnHighlight: isNextPrayer
+                )
                     // The 6pt padding is the invisible slack around the 13pt
                     // ring; the frame then pins the cell to the row's text-led
                     // height, so the hit target and the capsule shrink together
@@ -697,9 +763,11 @@ struct NextPrayerCountdownHeader: View {
                 .minimumScaleFactor(0.6)
             // Adhan and iqama share one line, separated by the panel's middle dot
             // ("Adhan at 06:10 • Iqama at 06:30"). Sunnah prayers have no adhan,
-            // so theirs reads "Around 05:10". The iqama is always that prayer's
-            // estimate after the adhan — one source for auto/manual location
-            // and mosque timetables alike (see `nextPrayerIqamaDate`).
+            // so theirs reads "Around 05:10". The iqama is the mosque's own
+            // published gap after the adhan, and appears only under a mosque
+            // timetable — under calculated times there is no iqama to know, so
+            // the iqama half of the line is simply absent (see
+            // `nextPrayerIqamaDate`).
             if !timesLine.isEmpty {
                 Text(timesLine)
                     .scaledFont(.caption)

@@ -20,9 +20,9 @@ struct MosqueSearchResult: Identifiable, Hashable {
 /// One downloaded mosque schedule — everything the app needs while offline.
 /// `calendar` mirrors Mawaqit's confData: 12 month dictionaries of
 /// day-of-month → `[fajr, sunrise, dhuhr, asr, maghrib, isha]` as "HH:MM".
-/// Only the adhan times are stored: the iqama is estimated from them per
-/// prayer (see `PrayerTimeViewModel.iqamaDelay(for:)`), so the mosque's own
-/// iqama calendar is deliberately not downloaded or kept.
+/// Only the adhan times are stored: the iqama is read from Mawaqit's own
+/// published iqama calendar (`iqamaCalendar`), never estimated, because an
+/// estimated iqama is not a real one.
 ///
 /// `jumuaSessions` holds the Friday khutbah times as "HH:MM" in the order
 /// Mawaqit publishes them (`jumua`, `jumua2`, `jumua3`). It is optional so

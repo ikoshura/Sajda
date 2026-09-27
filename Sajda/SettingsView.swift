@@ -337,6 +337,49 @@ struct SettingsView: View {
                 Spacer()
                 ScaledMenuPicker(selection: $vm.animationType, options: AnimationType.allCases) { NSLocalizedString($0.rawValue, comment: "") }
             }
+
+            // Two panel-layout rows that used to sit on the Prayer tab, moved
+            // here so that tab holds only what changes *which prayers* are
+            // shown. These two change where a row sits or what a row reads, not
+            // which prayers exist, and grouping them with the other pure
+            // presentation settings keeps the Prayer tab about content.
+            //
+            // The location row can sit in three places; see `LocationRowPosition`
+            // and the render block in `MainView`. Default `.top` so 4.4.3
+            // behaviour is unchanged for anyone who never touched it.
+            HStack {
+                Text("Location Row").scaledFont(.subheadline)
+                Spacer()
+                ScaledMenuPicker(selection: Binding(
+                    get: { vm.locationRowPosition },
+                    set: { vm.locationRowPosition = $0 }
+                ), options: LocationRowPosition.allCases) { NSLocalizedString($0.labelKey, comment: "") }
+            }
+            // "Dhuhr 13:53 +8": where the mosque's published iqama gap sits
+            // relative to the time. A picker rather than a toggle because the
+            // side is a real preference — left keeps the time flush against
+            // the panel edge, right reads as one time qualified — and there was
+            // no way to express that with on/off.
+            //
+            // The gap itself is never configured here: it comes from the
+            // mosque's published timetable, which is the only source of a real
+            // iqama (see `displayedIqamaDelay(for:)`). Inert without a mosque,
+            // matching how the Jumu'ah rows and the adhan offsets dim under
+            // calculated times.
+            HStack {
+                Text("Iqama Delay").scaledFont(.subheadline)
+                Spacer()
+                ScaledMenuPicker(
+                    selection: Binding(
+                        get: { vm.iqamaDelayPosition },
+                        set: { vm.iqamaDelayPosition = $0 }
+                    ),
+                    options: IqamaDelayPosition.allCases,
+                    maxWidth: 150
+                ) { NSLocalizedString($0.rawValue, comment: "") }
+            }
+            .disabled(!vm.isMosqueTimetableActive)
+            .opacity(vm.isMosqueTimetableActive ? 1 : 0.5)
         }
     }
 
@@ -370,9 +413,38 @@ struct SettingsView: View {
             // Tints the whole panel; the panel's colour scheme flips
             // to balance text and controls against the tint.
             StyledToggle(label: "Accent Panel", isOn: $vm.accentPanelTheme)
+            // Mute ring follows `vm.muteIconColor`, which is `.secondary`
+            // whenever accent mode is off — so without this toggle there'd be
+            // nothing to turn back on for an accent-mode user. With accent mode
+            // off this row does nothing, so it dims rather than disappearing:
+            // one fixed row order beats a layout that shifts under the user.
+            //
+            // The same goes for "None", one step further: with no icon drawn
+            // there is no ring to dim at all, so the row dims *and* disables
+            // there. Its stored value is left alone, so switching back to Halo
+            // restores whatever the user had chosen rather than a reset.
+            StyledToggle(label: "Dim Mute Button", isOn: $vm.dimMuteButton)
+                .disabled(!vm.canDimMuteButton)
+                .opacity(vm.canDimMuteButton ? 1 : 0.5)
             // Above Custom Color so the two appearance toggles sit together
             // and the colour rows read as one block underneath them.
             StyledToggle(label: "Glass Highlight", isOn: $vm.useGlassPrayerHighlight)
+            // Which glyph the per-prayer mute button draws. A picker rather than
+            // more toggles because the four styles disagree on purpose — the
+            // halo is the neutral default, a bell or a speaker is the explicit
+            // "this row is about sound" reading, and None removes the control
+            // outright for a panel that is only clocks.
+            //
+            // Below "Glass Highlight" so the three mute-icon controls stay
+            // together: what it looks like, how loud, and which glyph.
+            HStack {
+                Text("Mute Icon").scaledFont(.subheadline)
+                Spacer()
+                ScaledMenuPicker(selection: Binding(
+                    get: { vm.muteIconStyle },
+                    set: { vm.muteIconStyle = $0 }
+                ), options: MuteIconStyle.allCases) { NSLocalizedString($0.labelKey, comment: "") }
+            }
             VStack(alignment: .leading, spacing: 6) {
                 HStack {
                     Text("Custom Color").scaledFont(.subheadline)
@@ -421,24 +493,7 @@ struct SettingsView: View {
     private var prayerTimesSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             StyledToggle(label: "Show Countdown Header", isOn: $vm.showCountdownHeader)
-            // Baris nama masjid/kota bisa ditaruh di tiga tempat; lihat
-            // `LocationRowPosition` dan blok render di `MainView`. Default `.top`
-            // supaya perilaku 4.4.3 tidak berubah bagi pengguna yang belum
-            // menyentuh setelan ini.
-            HStack {
-                Text("Location Row").scaledFont(.subheadline)
-                Spacer()
-                ScaledMenuPicker(selection: Binding(
-                    get: { vm.locationRowPosition },
-                    set: { vm.locationRowPosition = $0 }
-                ), options: LocationRowPosition.allCases) { NSLocalizedString($0.rawValue, comment: "") }
-            }
             StyledToggle(label: "Show Sunnah Prayers", isOn: $vm.showSunnahPrayers)
-            // "Dhuhr 13:53 +8": how long after the adhan the iqama is. With a
-            // mosque timetable on, the number shown is the mosque's own
-            // published gap (see `displayedIqamaDelay(for:)`); the gap itself is
-            // set per prayer under Calculation & Location > Time Correction.
-            StyledToggle(label: "Show Iqama Delay", isOn: $vm.showIqamaDelay)
             // Travellers plan around Friday: with this on, the Jumu'ah row
             // under Dhuhr shows every day instead of Fridays only.
             StyledToggle(label: "Always Show Jumu'ah", isOn: $vm.alwaysShowJumuah)

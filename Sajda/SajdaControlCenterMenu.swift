@@ -95,7 +95,12 @@ struct SajdaControlCenterMenu: View {
             "\(vm.isPrayerDataAvailable)",
             "\(vm.showCountdownHeader)",
             "\(vm.showSunnahPrayers)",
-            "\(vm.showIqamaDelay)",
+            "\(vm.iqamaDelayPosition)",
+            // The gap column only exists under a mosque timetable, so the mode
+            // is what adds or removes that width — switching sources with the
+            // position left on "Right" moves the time column, and the panel
+            // has to be allowed to ease to the new size.
+            "\(vm.isMosqueTimetableActive)",
             "\(vm.useCompactLayout)",
             "\(vm.menuBarTextMode)",
             "\(vm.isAdhanPlaying)",

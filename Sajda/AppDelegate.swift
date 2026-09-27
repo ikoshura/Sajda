@@ -23,6 +23,13 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
     /// Mirrors `AdhanAudioPlayer` state so the menu can enable/disable
     /// "Stop Adhan" without an NSMenuItem.
     @Published var canStopAdhan = false
+
+    /// The status item's right-click menu, installed on the real `NSStatusItem`
+    /// that `MenuBarExtraAccess` hands over. Held here (rather than created
+    /// locally in the scene closure) so a scene rebuild re-installs onto the
+    /// same object instead of leaking a monitor per rebuild.
+    @MainActor var statusItemContextMenu: StatusItemContextMenu?
+
     private var cancellables = Set<AnyCancellable>()
     @AppStorage("showOnboardingAtLaunch") private var showOnboardingAtLaunch = true
 
@@ -95,12 +102,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
     }
 
 
-    /// In-menu action (replaces the old NSStatusItem context menu item).
+    // --- In-menu action (replaces the old NSStatusItem context menu item).
     func stopAdhanFromMenu() {
         AdhanAudioPlayer.shared.stop()
     }
 
-    @objc func showOnboardingWindow() {
+    @MainActor @objc func showOnboardingWindow() {
         if let existingWindow = onboardingWindow {
             existingWindow.makeKeyAndOrderFront(nil)
             NSApp.activate(ignoringOtherApps: true)

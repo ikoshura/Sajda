@@ -207,7 +207,28 @@ struct PrayerSoundRow: View {
                     newConfig.muted.toggle()
                     onUpdateConfig(newConfig)
                 }) {
-                    AdhanMuteIcon(muted: config.muted, activeColor: vm.selectedHighlightColor, size: 12)
+                    // Speaker glyphs here, and always a speaker: this page is
+                    // about picking and previewing sounds, so the speaker *is*
+                    // the vocabulary, and the glyph needs to say "preview" while
+                    // it sits beside "mute". The panel rows are free to be a
+                    // bell or a halo instead (see `MuteIconStyle`) because
+                    // there the icon is the whole control.
+                    //
+                    // Slashed when muted, waved when not — the shape carries
+                    // the state, the colour only carries the styling. The wave
+                    // on the unmuted glyph is the point: a bare filled speaker
+                    // next to a slashed one differs by the slash alone, which
+                    // left the active state looking like a hole where the
+                    // sound should be.
+                    //
+                    // Muted drops to the system secondary in every mode. The
+                    // shape already says "muted", and in plain accent mode the
+                    // accent is also the next-prayer highlight, so a full-
+                    // strength accent slash put the highlight's colour on rows
+                    // the user had deliberately opted out of.
+                    Image(systemName: config.muted ? "speaker.slash.fill" : "speaker.wave.2.fill")
+                        .font(.system(size: 12))
+                        .foregroundColor(config.muted ? .secondary : vm.muteIconColor)
                         .padding(6)
                         .contentShape(Rectangle())
                 }
