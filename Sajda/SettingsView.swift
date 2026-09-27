@@ -349,7 +349,13 @@ struct SettingsView: View {
             // This row is disabled by the picker above it, so it belongs here
             // rather than in System — the control it depends on is on this page.
             StyledToggle(label: "Show Seconds", isOn: $vm.menuBarShowSeconds).disabled(!vm.menuBarTextMode.isCountdown)
-            StyledToggle(label: "Compact View", isOn: $vm.useCompactLayout)
+            // Same `setCompactLayout` call as the Display page: whichever page
+            // the user flips it from, it counts as their choice and the text
+            // size stops managing it.
+            StyledToggle(label: "Compact View", isOn: Binding(
+                get: { vm.useCompactLayout },
+                set: { vm.setCompactLayout($0) }
+            ))
             StyledToggle(label: "24-Hour Time", isOn: $vm.use24HourFormat)
             StyledToggle(label: "Minimal Menu Bar", isOn: $vm.useMinimalMenuBarText).disabled(vm.menuBarTextMode == .hidden)
         }

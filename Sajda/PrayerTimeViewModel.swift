@@ -138,7 +138,37 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
     @AppStorage("useGlassPrayerHighlight") var useGlassPrayerHighlight: Bool = true
     @AppStorage("isNotificationsEnabled") var isNotificationsEnabled: Bool = true { didSet { updateNotifications() } }
     @AppStorage("useCompactLayout") var useCompactLayout: Bool = false
-    @AppStorage("panelTextSize") var panelTextSize: PanelTextSize = .default
+    /// True once the user has set Compact View by hand — from *any* page that
+    /// exposes the toggle, or the "Turn On" button on the accessibility page.
+    /// Compact view is also flipped automatically for the big text presets, and
+    /// this flag is what tells the two apart. The rule is deliberately blunt:
+    /// once the user has touched it, the text size never changes it again; until
+    /// then, the big presets own it. One rule, no special cases — the earlier
+    /// version tried to be clever about "on vs off" and behaved unpredictably.
+    @AppStorage("compactLayoutChosenByUser") var compactLayoutChosenByUser: Bool = false
+    @AppStorage("panelTextSize") var panelTextSize: PanelTextSize = .default {
+        didSet {
+            guard !compactLayoutChosenByUser else { return }
+            useCompactLayout = panelTextSize.fontScale >= PanelTextSize.large.fontScale
+        }
+    }
+
+    /// The single way views should flip Compact View: sets the value *and*
+    /// records that the user asked for it, so the text size stops managing it.
+    /// Use this instead of assigning `useCompactLayout` directly from any
+    /// control the user can actually press.
+    func setCompactLayout(_ enabled: Bool) {
+        useCompactLayout = enabled
+        compactLayoutChosenByUser = true
+    }
+
+    /// True when the text is big enough that compact view is worth suggesting —
+    /// i.e. one of the big presets is on and compact view is not already on.
+    /// Drives the "we recommend this" note on the accessibility page.
+    var recommendsCompactLayout: Bool {
+        panelTextSize.fontScale >= PanelTextSize.large.fontScale && !useCompactLayout
+    }
+
     // Aksesibilitas (Settings > Accessibility): teks yang lebih mudah dibaca
     // untuk pengguna low-vision. Ketiganya menyegarkan judul menu bar karena
     // bobot/uppercase/ukuran memengaruhi teks di sana juga.
@@ -805,11 +835,13 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
         }
     }
 
-    /// Row label for a Jumu'ah session. One gathering needs no number; two or
-    /// more are numbered so each row's label maps to exactly one clock time and
-    /// one mute ring.
+    /// Row label for a Jumu'ah session. The section heading above the rows
+    /// already says "Jumu'ah", so repeating it per row is noise — the rows only
+    /// need to say *which* session. One gathering needs no number; two or more
+    /// are numbered so each row's label maps to exactly one clock time and one
+    /// mute ring.
     func jumuahSessionLabel(_ index: Int, total: Int) -> String {
-        let base = prayerDisplayName("Jumu'ah")
+        let base = NSLocalizedString("Session", comment: "Label for one of the Friday Jumu'ah khutbah times")
         return total > 1 ? "\(base) \(index + 1)" : base
     }
 

@@ -120,9 +120,16 @@ struct MainView: View {
                 // padding are both deliberate, but stacking them under the outer
                 // 6pt VStack spacing left 13pt between the caption and the first
                 // prayer — they read as two unrelated sections. A nested stack
-                // at 0 spacing drops it to the 7pt those two paddings already
-                // imply, so the caption still breathes but is clearly the
-                // heading *of* this list rather than a sibling block.
+                // keeps the two blocks together while still separating them.
+                //
+                // Spacing stays 0, as it was before this experiment. The gaps
+                // are not equal by construction — 5pt caption padding + 2pt
+                // list padding = 7pt below the row against 6pt of outer
+                // spacing + 3pt of row padding above — but any spacing added
+                // here applies to *both* gaps, so it cannot correct one without
+                // unbalancing the other. A separator under the row was tried
+                // for this and read as a rule splitting the panel rather than
+                // as balance, so it was dropped.
                 VStack(alignment: .leading, spacing: 0) {
                     locationFavoritesBlock
                     PrayerListView()
@@ -229,6 +236,9 @@ struct MainView: View {
 struct PrayerListView: View {
     @EnvironmentObject var vm: PrayerTimeViewModel
     @Environment(\.colorScheme) private var colorScheme
+    // Drives both the row height and the time-column width, so the time always
+    // fits on one line and the rows always grow with the text.
+    @Environment(\.panelFontScale) private var fontScale
     private var prayerOrder: [String] {
         let defaultOrder = ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"]
         let sunnahOrder = ["Tahajud", "Fajr", "Dhuha", "Dhuhr", "Asr", "Maghrib", "Isha"]
@@ -238,29 +248,22 @@ struct PrayerListView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             ForEach(prayerOrder, id: \.self) { prayerName in
-                PrayerRow(prayerName: prayerName, timeColumnWidth: Self.timeColumnWidth)
-                // Friday sessions get their own rows right under Dhuhr (Dhuhr
-                // itself stays put): one row per gathering, each with its own
-                // clock and its own mute ring. Shown on Fridays, or every day
-                // while "Always Show Jumu'ah" is on so travellers can plan ahead.
-                if prayerName == "Dhuhr", (vm.isFriday || vm.alwaysShowJumuah) {
-                    ForEach(Array(vm.jumuahSessionDates.enumerated()), id: \.offset) { index, date in
-                        JumuahSessionRow(index: index,
-                                         date: date,
-                                         total: displayedJumuahSessionCount,
-                                         timeColumnWidth: Self.timeColumnWidth)
-                    }
-                }
+                PrayerRow(prayerName: prayerName, timeColumnWidth: Self.timeColumnWidth(fontScale: fontScale))
+            }
+            // Jumu'ah is not one of the five daily prayers — it replaces Dhuhr
+            // only on a Friday, and a busy mosque can run up to three khutbah
+            // sessions. Listing it inline under Dhuhr made it read as a sixth
+            // daily prayer (and quietly implied Dhuhr still happens). It gets
+            // its own section after Isha instead, under a rule and a small
+            // heading, so the daily list stays exactly five names long and the
+            // Friday rows are unmistakably a separate thing. Shown on Fridays,
+            // or every day while "Always Show Jumu'ah" is on so travellers can
+            // plan ahead.
+            if !vm.jumuahSessionDates.isEmpty, vm.isFriday || vm.alwaysShowJumuah {
+                JumuahSessionsSection(timeColumnWidth: Self.timeColumnWidth(fontScale: fontScale))
             }
         }
         .padding(.top, 2)
-    }
-
-    /// How many Jumu'ah rows the list is about to draw — 0 when the row stays
-    /// hidden. Only drives the numbering ("Jumu'ah" vs "Jumu'ah 1").
-    private var displayedJumuahSessionCount: Int {
-        guard vm.isFriday || vm.alwaysShowJumuah else { return 0 }
-        return vm.jumuahSessionDates.count
     }
 
     /// Horizontal inset for every schedule row (prayers and Jumu'ah alike).
@@ -276,13 +279,48 @@ struct PrayerListView: View {
     /// made the highlight bleed edge to edge. Matches the countdown card.
     static let highlightInset: CGFloat = 5
 
+    /// Vertical breathing room around the rule that separates the daily
+    /// prayers from the Jumu'ah section. A hair more than the footer's own
+    /// 2pt, because here the rule is doing real work — it is what says "this
+    /// is a different kind of thing" — and a 2pt gap made it read as a stray
+    /// line rather than as the head of a section.
+    static let jumuahSectionRulePadding: CGFloat = 6
+
+    /// Row content height, measured from the text the row actually draws. The
+    /// mute toggle used to be a fixed 25pt box, which made every row 33pt tall
+    /// once the 4pt row padding was added — 2.5× a 13pt caption — so the
+    /// highlight capsule, which fills the row, came out a thick slab and the
+    /// rows read as too far apart. The toggle is now this tall instead: the
+    /// body line height at the panel's current text scale, plus a little
+    /// breathing room. Because the capsule still fills the row with no height
+    /// of its own, it now follows the text down, and it keeps following it when
+    /// the text is enlarged in Settings > Text Size.
+    static func rowContentHeight(fontScale: CGFloat) -> CGFloat {
+        let line = PanelTextSize.baseBodyPointSize * fontScale
+        return max(16, (line * 1.5).rounded())
+    }
+
     /// Fixed width for the time column: the widest string the panel's date
     /// formatter can emit ("88:88"), measured in the row font — so every
     /// row's time starts at the same x no matter its value, weight, or the
     /// prayer name's length.
-    static var timeColumnWidth: CGFloat {
-        ("88:88" as NSString).size(
-            withAttributes: [.font: NSFont.systemFont(ofSize: NSFont.systemFontSize)]).width + 4
+    ///
+    /// Measured with the *scaled* body font (and with the bold weight, the
+    /// widest case, since the next-prayer row draws its time bold). Measuring
+    /// with the unscaled system font is what let the time wrap onto two lines
+    /// ("12:1 / 7") at Extra Large and XXL, which then blew the row height out
+    /// and pushed the time into the panel edge.
+    static func timeColumnWidth(fontScale: CGFloat, bold: Bool) -> CGFloat {
+        let size = PanelTextSize.baseBodyPointSize * fontScale
+        let font = NSFont.systemFont(ofSize: size, weight: bold ? .bold : .regular)
+        return ("88:88" as NSString).size(withAttributes: [.font: font]).width + 4
+    }
+
+    /// Convenience for the common case: measure with the bold weight so every
+    /// row reserves the same, widest slot and the column can never jitter as
+    /// the highlight moves between prayers.
+    static func timeColumnWidth(fontScale: CGFloat) -> CGFloat {
+        timeColumnWidth(fontScale: fontScale, bold: true)
     }
 }
 
@@ -294,8 +332,16 @@ struct PrayerListView: View {
 private struct PrayerRow: View {
     @EnvironmentObject var vm: PrayerTimeViewModel
     @Environment(\.colorScheme) private var colorScheme
+    // The toggle is sized from this, so the capsule follows the text when the
+    // panel text size is changed in Settings.
+    @Environment(\.panelFontScale) private var fontScale
     let prayerName: String
     let timeColumnWidth: CGFloat
+
+    /// Row content height: the body line at the current text scale. The toggle
+    /// is the tallest element by design, so this is what sets the highlight
+    /// capsule's height too.
+    private var contentHeight: CGFloat { PrayerListView.rowContentHeight(fontScale: fontScale) }
 
     var body: some View {
         if let prayerTime = vm.todayTimes[prayerName] {
@@ -310,15 +356,25 @@ private struct PrayerRow: View {
             }()
             HStack(spacing: 6) {
                 Text(vm.prayerDisplayName(prayerName))
+                    // At large text sizes a long prayer name (or the
+                    // localised "Around" that follows it) can out-run the space
+                    // the fixed time column leaves. Let it wrap onto a second
+                    // line — the row is already text-led, so the highlight
+                    // capsule grows with it — instead of truncating.
+                    .fixedSize(horizontal: false, vertical: true)
+                    .multilineTextAlignment(.leading)
                     .padding(.leading, PrayerListView.rowHorizontalInset)
                 if prayerName == "Tahajud" || prayerName == "Dhuha" {
                     Text("Around").scaledFont(.caption).foregroundColor(isNextPrayer ? textColor.opacity(0.8) : Color("SecondaryTextColor"))
+                        .fixedSize(horizontal: false, vertical: true)
                 }
                 Spacer(minLength: 4)
                 toggleCell(isNextPrayer: isNextPrayer, textColor: textColor)
                 Text(vm.dateFormatter.string(from: displayTime)).scaledFont(.body, weight: isNextPrayer ? .bold : nil)
                     // Right-anchored, one shared width: every time's leading
-                    // edge starts at the same x.
+                    // edge starts at the same x. The width is measured in the
+                    // scaled bold body font, so the time never wraps.
+                    .lineLimit(1)
                     .frame(width: timeColumnWidth, alignment: .trailing)
                     .padding(.trailing, PrayerListView.rowHorizontalInset)
             }
@@ -340,6 +396,10 @@ private struct PrayerRow: View {
                             .environment(\.colorScheme, (vm.useAccentColor || vm.customHighlightColor != nil) ? .dark : colorScheme)
                     }
                 }
+                // No height of its own: the capsule fills the row, so it is
+                // exactly as tall as the tallest thing in it. That is the point
+                // — the toggle is sized off the text (see `rowContentHeight`),
+                // so the fill tracks the caption instead of a fixed box.
                 // Gives the capsule a real gap on both sides, matching the
                 // countdown card's own 5 pt inset.
                 .padding(.horizontal, PrayerListView.highlightInset)
@@ -354,11 +414,12 @@ private struct PrayerRow: View {
                 Image(systemName: "speaker.slash.fill")
                     .scaledFont(.caption)
                     .foregroundColor(textColor)
-                    // Same 25pt hit box as the toggle below: the slot is
-                    // always reserved, so the time column can't shift when
-                    // adhan starts playing.
+                    // Same 25pt-wide, text-tall cell as the toggle below: the slot
+                    // is always reserved at the same size, so the time column
+                    // can't shift when adhan starts playing.
                     .frame(width: 13, height: 13)
                     .padding(6)
+                    .frame(width: 25, height: contentHeight)
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
@@ -373,11 +434,12 @@ private struct PrayerRow: View {
                 // `.primary`). Other rows: the selected highlight colour
                 // (custom pick, or the system accent).
                 AdhanMuteIcon(muted: muted, activeColor: isNextPrayer ? (vm.useAccentColor ? textColor : .white) : vm.selectedHighlightColor, size: 13)
-                    // The whole 25pt box is the hit target: generous invisible
-                    // padding + rectangular content shape so there is no
-                    // exact-pixel hunting.
+                    // The 6pt padding is the invisible slack around the 13pt
+                    // ring; the frame then pins the cell to the row's text-led
+                    // height, so the hit target and the capsule shrink together
+                    // instead of the ring floating in a 25pt box.
                     .padding(6)
-                    .frame(width: 25, height: 25, alignment: .center)
+                    .frame(width: 25, height: contentHeight, alignment: .center)
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
@@ -388,13 +450,60 @@ private struct PrayerRow: View {
     }
 }
 
+/// The Friday khutbah times, as a section of their own: a rule, a small
+/// Jumu'ah heading, then one row per session. Placed after Isha by
+/// `PrayerListView` rather than inline under Dhuhr — see the comment there for
+/// why. One row per session, each with its own clock and its own mute ring, so
+/// a three-khutbah mosque never collapses into one unreadable line.
+private struct JumuahSessionsSection: View {
+    @EnvironmentObject var vm: PrayerTimeViewModel
+    let timeColumnWidth: CGFloat
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Rectangle()
+                .fill(Color("DividerColor"))
+                .frame(height: 1)
+                .padding(.horizontal, PrayerListView.rowHorizontalInset)
+                .padding(.vertical, PrayerListView.jumuahSectionRulePadding)
+
+            // A small quiet heading rather than another full-size row: it labels
+            // the group without competing with the prayers for attention.
+            // Uppercased like the countdown card, and via `prayerDisplayName` so
+            // it follows the accessibility uppercase setting and the active
+            // language like every other prayer name.
+            Text(vm.prayerDisplayName("Jumu'ah"))
+                .scaledFont(.caption, weight: .semibold)
+                .foregroundColor(Color("SecondaryTextColor"))
+                .textCase(.uppercase)
+                .padding(.horizontal, PrayerListView.rowHorizontalInset)
+                .padding(.bottom, 2)
+
+            ForEach(Array(vm.jumuahSessionDates.enumerated()), id: \.offset) { index, date in
+                JumuahSessionRow(index: index,
+                                 date: date,
+                                 total: vm.jumuahSessionDates.count,
+                                 timeColumnWidth: timeColumnWidth)
+            }
+        }
+    }
+}
+
 /// One Jumu'ah session row: label | mute ring | time. Each session is its own
 /// row with its own toggle, so several gatherings never collapse into one
 /// unreadable line. A single session keeps the bare "Jumu'ah" label; two or
 /// more are numbered ("Jumu'ah 1", "Jumu'ah 2", …) so the ring a user taps is
 /// unambiguous.
+/// One Jumu'ah session row: label | mute ring | time. The section heading above
+/// already names Jumu'ah, so the row only says which session it is (see
+/// `jumuahSessionLabel`). A single session keeps the bare label; two or more are
+/// numbered ("Session 1", "Session 2", …) so the ring a user taps is
+/// unambiguous.
 private struct JumuahSessionRow: View {
     @EnvironmentObject var vm: PrayerTimeViewModel
+    // Same text-led cell height as PrayerRow, so a Jumu'ah row lines up with the
+    // prayer rows around it instead of standing taller.
+    @Environment(\.panelFontScale) private var fontScale
     let index: Int
     let date: Date
     let total: Int
@@ -403,12 +512,17 @@ private struct JumuahSessionRow: View {
     var body: some View {
         HStack(spacing: 6) {
             Text(vm.jumuahSessionLabel(index, total: total))
+                // Wraps rather than truncating at large text sizes, same as the
+                // prayer names above.
+                .fixedSize(horizontal: false, vertical: true)
+                .multilineTextAlignment(.leading)
                 .padding(.leading, PrayerListView.rowHorizontalInset)
             Spacer(minLength: 4)
-            // Same 25pt slot, on the same side, as the prayer rows.
+            // Same text-tall slot, on the same side, as the prayer rows.
             muteCell
             Text(vm.dateFormatter.string(from: date))
                 .scaledFont(.body)
+                .lineLimit(1)
                 .frame(width: timeColumnWidth, alignment: .trailing)
                 .padding(.trailing, PrayerListView.rowHorizontalInset)
         }
@@ -423,7 +537,7 @@ private struct JumuahSessionRow: View {
         return Button(action: { vm.setAdhanMuted(!muted, for: key) }) {
             AdhanMuteIcon(muted: muted, activeColor: vm.selectedHighlightColor, size: 13)
                 .padding(6)
-                .frame(width: 25, height: 25, alignment: .center)
+                .frame(width: 25, height: PrayerListView.rowContentHeight(fontScale: fontScale), alignment: .center)
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)

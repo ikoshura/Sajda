@@ -45,6 +45,33 @@ struct AccessibilitySettingsView: View {
                             HStack { Text("Text Size").scaledFont(.subheadline); Spacer(); ScaledMenuPicker(selection: $vm.panelTextSize, options: PanelTextSize.allCases) { NSLocalizedString($0.rawValue, comment: "") } }
                             StyledToggle(label: "Bold Text", isOn: $vm.accessibilityBoldText)
                             StyledToggle(label: "Uppercase Text", isOn: $vm.accessibilityUppercaseText)
+                            // Same `setCompactLayout` call as the Display page:
+                            // whichever page the user flips it from, it counts
+                            // as their choice and the text size stops managing it.
+                            StyledToggle(label: "Compact View", isOn: Binding(
+                                get: { vm.useCompactLayout },
+                                set: { vm.setCompactLayout($0) }
+                            ))
+                            // Shown only when it would actually help: a big
+                            // preset is on and compact view is off. The big
+                            // presets turn it on by themselves, so in practice
+                            // this shows when the user has overridden that and
+                            // turned it back off — the one case where the
+                            // suggestion is still worth making.
+                            if vm.recommendsCompactLayout {
+                                HStack(alignment: .firstTextBaseline, spacing: 6) {
+                                    Text("Recommended: turn on Compact View to fit this text size.")
+                                        .scaledFont(.caption2)
+                                        .foregroundColor(Color("SecondaryTextColor"))
+                                        .fixedSize(horizontal: false, vertical: true)
+                                    Spacer(minLength: 0)
+                                    Button(NSLocalizedString("Turn On", comment: "")) {
+                                        vm.setCompactLayout(true)
+                                    }
+                                    .buttonStyle(.link)
+                                    .scaledFont(.caption)
+                                }
+                            }
                         }
 
                         Rectangle().fill(Color("DividerColor")).frame(height: 0.5)

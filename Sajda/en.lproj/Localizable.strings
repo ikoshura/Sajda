@@ -154,3 +154,8 @@
 Always Show Jumu'ah";
 "Later" = "Later";
 "Dismiss for now" = "Dismiss for now";
+
+/* Jumu'ah session section heading and per-row labels */
+"Session" = "Session";
+"Recommended: turn on Compact View to fit this text size." = "Recommended: turn on Compact View to fit this text size.";
+"Turn On" = "Turn On";
