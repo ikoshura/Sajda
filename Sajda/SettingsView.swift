@@ -332,9 +332,6 @@ struct SettingsView: View {
             // The "check now" side effect fires from this one live copy of the
             // row — see `.onChange(of: autoCheckForUpdates)` on the content.
             StyledToggle(label: "Check for Updates Automatically", isOn: $autoCheckForUpdates)
-            // Seconds only exist in the countdown modes: the exact-time modes
-            // print a fixed clock time, and Icon Only prints no text at all.
-            StyledToggle(label: "Show Seconds", isOn: $vm.menuBarShowSeconds).disabled(!vm.menuBarTextMode.isCountdown)
             HStack {
                 Text("Animation Style").scaledFont(.subheadline)
                 Spacer()
@@ -347,6 +344,11 @@ struct SettingsView: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack { Text("Language").scaledFont(.subheadline); Spacer(); ScaledMenuPicker(selection: $languageManager.language, options: ["en", "ar", "id", "es", "fr", "de", "ja", "日本語", "zh-Hans", "ko"]) { code in ["en": "English", "ar": "العربية", "id": "Indonesia", "es": "Español", "fr": "Français", "de": "Deutsch", "ja": "日本語", "zh-Hans": "简体中文", "ko": "한국어"][code] ?? code } }
             HStack { Text("Menu Bar Style").scaledFont(.subheadline); Spacer(); ScaledMenuPicker(selection: $vm.menuBarTextMode, options: MenuBarTextMode.allCases) { NSLocalizedString($0.rawValue, comment: "") } }
+            // Seconds only exist in the countdown modes: the exact-time modes
+            // print a fixed clock time, and Icon Only prints no text at all.
+            // This row is disabled by the picker above it, so it belongs here
+            // rather than in System — the control it depends on is on this page.
+            StyledToggle(label: "Show Seconds", isOn: $vm.menuBarShowSeconds).disabled(!vm.menuBarTextMode.isCountdown)
             StyledToggle(label: "Compact View", isOn: $vm.useCompactLayout)
             StyledToggle(label: "24-Hour Time", isOn: $vm.use24HourFormat)
             StyledToggle(label: "Minimal Menu Bar", isOn: $vm.useMinimalMenuBarText).disabled(vm.menuBarTextMode == .hidden)
