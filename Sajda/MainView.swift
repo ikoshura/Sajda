@@ -120,15 +120,8 @@ struct MainView: View {
                 locationFavoritesBlock
             }
 
-            // Update banner, last thing above the footer, behind its own
-            // separator. Previously it sat at the very top, where appearing
-            // pushed the countdown card and every prayer time down — the
-            // prayer times shifting under a version bump reads like the app
-            // re-measuring itself. Down here the schedule above never moves.
-            UpdateBannerRow()
-
             // One separator after the prayer times, then a single compact
-            // line of SF Symbols: Quit on the leading edge, About and
+            // line: Quit and the update notice on the leading edge, About and
             // Settings trailing. The text labels move to hover tooltips and
             // VoiceOver since the icons stand alone.
             VStack(alignment: .leading, spacing: 0) {
@@ -151,6 +144,13 @@ struct MainView: View {
                     .focusable(false)
                     .help(Text(NSLocalizedString("Quit", comment: "")))
                     .accessibilityLabel(Text(NSLocalizedString("Quit", comment: "")))
+
+                    // Update notice, inline beside Quit on the leading edge.
+                    // Lives in the footer so the countdown card and the prayer
+                    // times above never shift when it appears — at the top it
+                    // pushed the whole schedule down, which read like the app
+                    // re-measuring itself after a version bump.
+                    UpdateBannerRow()
 
                     Spacer(minLength: 0)
 
@@ -203,15 +203,16 @@ struct MainView: View {
     }
 }
 
-/// Update banner for the main panel: visible only while a newer release is
+/// Update notice for the panel footer: visible only while a newer release is
 /// known and not dismissed. Tapping opens the release page; "Later" hides it
 /// for this launch (About still shows the update). Dismissable by design so
-/// the banner can live on Main without nagging.
+/// the notice can live in Main without nagging.
 ///
-/// Sits at the bottom of the panel behind its own separator, so the countdown
-/// card and the prayer times above it never shift when it appears.
+/// An inline item in the footer's leading group rather than a full-width row,
+/// so the countdown card and the prayer times above it never shift when it
+/// appears.
 struct UpdateBannerRow: View {
-    /// TEMPORARY (position check only): shows the banner regardless of update
+    /// TEMPORARY (position check only): shows the notice regardless of update
     /// state, with a stub version. Set back to `false` to restore.
     private static let forceShowBanner = true
 
@@ -220,39 +221,35 @@ struct UpdateBannerRow: View {
 
     var body: some View {
         if let version = bannerVersion {
-            VStack(alignment: .leading, spacing: 0) {
-                // Its own separator, so the banner reads as a distinct footer
-                // block rather than trailing off the location row.
-                Rectangle()
-                    .fill(Color("DividerColor"))
-                    .frame(height: 0.5)
-                    .padding(.horizontal, 12)
-
-                HStack(spacing: 6) {
-                    Button(action: { updater.openReleasePage() }) {
-                        HStack(spacing: 6) {
-                            Image(systemName: "arrow.down.circle.fill")
-                            Text(String(format: NSLocalizedString("Update available: %@", comment: ""), version))
-                                .scaledFont(.caption, weight: .semibold)
-                                .lineLimit(1)
-                        }
-                        .padding(.vertical, 5).padding(.horizontal, 8)
+            HStack(spacing: 4) {
+                Button(action: { updater.openReleasePage() }) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "arrow.down.circle.fill")
+                            .scaledFont(.caption)
+                        Text(String(format: NSLocalizedString("Update available: %@", comment: ""), version))
+                            .scaledFont(.caption, weight: .semibold)
+                            .lineLimit(1)
+                            // Claim the full width rather than letting the
+                            // footer compress it — a truncated "Update availa…"
+                            // is worse than a slightly wider leading group.
+                            .fixedSize()
                     }
-                    .buttonStyle(.plain)
                     .foregroundColor(vm.selectedHighlightColor)
-                    Spacer(minLength: 0)
-                    Button(action: { updater.updateBannerDismissed = true }) {
-                        Text(NSLocalizedString("Later", comment: "")).scaledFont(.caption)
-                            .padding(.vertical, 5).padding(.horizontal, 6)
-                    }
-                    .buttonStyle(.plain)
-                    .foregroundColor(Color("SecondaryTextColor"))
-                    .help(Text(NSLocalizedString("Dismiss for now", comment: "")))
+                    .padding(.vertical, 5).padding(.horizontal, 8)
                 }
-                // 5 pt matches the footer's own icon row above it, so the two
-                // rows' edges line up.
-                .padding(.horizontal, 5)
-                .padding(.vertical, 2)
+                .buttonStyle(.plain)
+                .focusable(false)
+                .help(Text(String(format: NSLocalizedString("Update available: %@", comment: ""), version)))
+                .accessibilityLabel(Text(String(format: NSLocalizedString("Update available: %@", comment: ""), version)))
+
+                Button(action: { updater.updateBannerDismissed = true }) {
+                    Text(NSLocalizedString("Later", comment: "")).scaledFont(.caption)
+                        .padding(.vertical, 5).padding(.horizontal, 6)
+                }
+                .buttonStyle(.plain)
+                .foregroundColor(Color("SecondaryTextColor"))
+                .focusable(false)
+                .help(Text(NSLocalizedString("Dismiss for now", comment: "")))
             }
         }
     }
