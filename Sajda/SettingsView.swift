@@ -223,6 +223,7 @@ struct SettingsView: View {
                             isSelected: expandedSection == section,
                             isHovering: hoveringTab == section,
                             accent: vm.selectedHighlightColor,
+                            highlightHex: vm.customHighlightColorHex,
                             onTap: {
                                 selectTab(section)
                             },
@@ -605,15 +606,25 @@ private struct JumuahSessionTimeField: View {
     }
 }
 
-/// Top icon tab in the Settings tab bar: icon above a tiny grey label,
-/// with a liquid-hover pill and a highlight-colour underline when selected.
+/// Top icon tab in the Settings tab bar: icon above a tiny grey label.
+///
+/// The selected tab is a solid pill in the user's highlight colour rather than
+/// a tinted hover pill plus an accent underline. Two reasons: the underline had
+/// to be the only selection cue, so it read as a hairline change next to the
+/// icon's own weight shift; and the accent was doing double duty — colouring
+/// the underline *and* the icon — so the label stayed grey and the tab read as
+/// two signals rather than one. Now the fill is the whole signal and the icon
+/// and label sit on it in a single legible tone.
 private struct SettingsTabButton: View {
     let section: SettingsView.SettingsSection
     let isSelected: Bool
     let isHovering: Bool
-    /// Selected-tab tint: the user's highlight colour, or the system accent
-    /// when none is picked (`vm.selectedHighlightColor`).
+    /// Selected-tab fill: the user's highlight colour, or the system accent when
+    /// none is picked (`vm.selectedHighlightColor`).
     let accent: Color
+    /// Raw picked colour, so the icon/label tone can be chosen against the fill
+    /// rather than guessed. Empty when the system accent is in use.
+    let highlightHex: String
     let onTap: () -> Void
     let onHover: (Bool) -> Void
 
@@ -622,31 +633,38 @@ private struct SettingsTabButton: View {
             VStack(spacing: 2) {
                 Image(systemName: section.icon)
                     .scaledFont(.body, weight: isSelected ? .semibold : .regular)
-                    .foregroundColor(isSelected ? accent : .secondary)
+                    .foregroundColor(isSelected ? onFillColor : .secondary)
                     .frame(height: 20)
                 Text(LocalizedStringKey(section.titleKey))
                     .scaledFont(.caption2)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(isSelected ? onFillColor : .secondary)
                     .lineLimit(1)
                     .minimumScaleFactor(0.8)
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 6)
-            .liquidHover(isHovering || isSelected)
-            .overlay(alignment: .bottom) {
-                if isSelected {
-                    RoundedRectangle(cornerRadius: 1)
-                        .fill(accent)
-                        .frame(height: 2)
-                        .padding(.horizontal, 10)
-                }
+            .background {
+                RoundedRectangle(cornerRadius: 5)
+                    .fill(isSelected ? accent : .clear)
             }
+            // Hover only while unselected: the selected tab already carries a
+            // fill, and a second hover tint on top of it muddied the colour.
+            .liquidHover(isHovering && !isSelected)
         }
         .buttonStyle(.plain)
         .onHover(perform: onHover)
         .help(Text(LocalizedStringKey(section.titleKey)))
         .accessibilityLabel(Text(LocalizedStringKey(section.titleKey)))
         .accessibilityAddTraits(isSelected ? [.isSelected] : [])
+    }
+
+    /// Icon/label tone on the accent fill. The pick is a saturated block, so
+    /// white reads on it far more often than not — but a pale yellow or pastel
+    /// pick would swallow white text, so the same WCAG luminance test the
+    /// Accent Panel uses picks the tone instead of hardcoding one.
+    private var onFillColor: Color {
+        guard !highlightHex.isEmpty else { return .white }
+        return PrayerTimeViewModel.accentPanelPrefersLightText(fromHighlightHex: highlightHex) ? .white : .black
     }
 }
 /// The colour surface behind ColorSelector's popover, hosted inline as a
