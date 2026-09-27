@@ -188,6 +188,8 @@ struct PrayerSoundRow: View {
                     onUpdateConfig(newConfig)
                 }) {
                     AdhanMuteIcon(muted: config.muted, size: 12)
+                        .padding(6)
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
                 .help(config.muted ? "Unmute Adhan" : "Mute Adhan")

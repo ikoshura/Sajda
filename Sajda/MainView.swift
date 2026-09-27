@@ -275,8 +275,14 @@ struct PrayerListView: View {
                                 // shift when adhan starts playing.
                                 let muted = vm.isAdhanMuted(prayerName)
                                 Button(action: { vm.setAdhanMuted(!muted, for: prayerName) }) {
-                                    AdhanMuteIcon(muted: muted, activeColor: textColor)
-                                        .scaledFont(.caption)
+                                    AdhanMuteIcon(muted: muted, activeColor: textColor, size: 13)
+                                        // The whole padded circle is the hit target:
+                                        // generous invisible padding + rectangular
+                                        // content shape so there is no exact-pixel
+                                        // hunting. The time column is safe — the
+                                        // HStack spacing absorbs the padding.
+                                        .padding(6)
+                                        .contentShape(Rectangle())
                                 }
                                 .buttonStyle(.plain)
                                 .focusable(false)
