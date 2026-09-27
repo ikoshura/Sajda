@@ -414,24 +414,6 @@ struct SettingsView: View {
 
     private var prayerTimesSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            // Umm al-Qura Hijri header (matches the system Calendar)
-            // with a ±2 day correction where the local announcement
-            // differs.
-            HStack {
-                Text("Hijri Date").scaledFont(.subheadline)
-                Spacer()
-                SajdaStepper(value: Binding(get: { Double(vm.hijriDateAdjustment) }, set: { vm.hijriDateAdjustment = Int($0) }), range: -2...2)
-            }
-            // How long before prayer the red imminent alert starts;
-            // 0 disables it (shown as "Off"). Default is 10 minutes.
-            HStack {
-                Text("Red Alert").scaledFont(.subheadline)
-                Spacer()
-                if vm.redAlertMinutes == 0 {
-                    Text("Red Alert Off").scaledFont(.caption).foregroundColor(Color("SecondaryTextColor"))
-                }
-                SajdaStepper(value: Binding(get: { Double(vm.redAlertMinutes) }, set: { vm.redAlertMinutes = Int($0) }), range: 0...60, showsSign: false)
-            }
             StyledToggle(label: "Show Countdown Header", isOn: $vm.showCountdownHeader)
             StyledToggle(label: "Show Sunnah Prayers", isOn: $vm.showSunnahPrayers)
             // Travellers plan around Friday: with this on, the Jumu'ah row
@@ -471,6 +453,28 @@ struct SettingsView: View {
                         }
                     }
                 }
+            }
+            // The two stepper rows sit at the bottom, below the Jumu'ah block:
+            // both are corrective overrides for a value the panel already
+            // computes, so they read as fine-tuning after the main toggles
+            // rather than as leading settings.
+            //
+            // Umm al-Qura Hijri header (matches the system Calendar) with a
+            // ±2 day correction where the local announcement differs.
+            HStack {
+                Text("Hijri Date").scaledFont(.subheadline)
+                Spacer()
+                SajdaStepper(value: Binding(get: { Double(vm.hijriDateAdjustment) }, set: { vm.hijriDateAdjustment = Int($0) }), range: -2...2)
+            }
+            // How long before prayer the red imminent alert starts;
+            // 0 disables it (shown as "Off"). Default is 10 minutes.
+            HStack {
+                Text("Red Alert").scaledFont(.subheadline)
+                Spacer()
+                if vm.redAlertMinutes == 0 {
+                    Text("Red Alert Off").scaledFont(.caption).foregroundColor(Color("SecondaryTextColor"))
+                }
+                SajdaStepper(value: Binding(get: { Double(vm.redAlertMinutes) }, set: { vm.redAlertMinutes = Int($0) }), range: 0...60, showsSign: false)
             }
         }
     }
