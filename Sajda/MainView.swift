@@ -275,10 +275,12 @@ struct PrayerListView: View {
                                 // shift when adhan starts playing.
                                 let muted = vm.isAdhanMuted(prayerName)
                                 Button(action: { vm.setAdhanMuted(!muted, for: prayerName) }) {
-                                    // Green ring+dot per the modern reference;
-                                    // white only on the highlighted (blue) row
-                                    // for contrast.
-                                    AdhanMuteIcon(muted: muted, activeColor: isNextPrayer ? textColor : .green, size: 13)
+                                    // Highlighted row: white ring + white dot for
+                                    // contrast (white even with accent mode off,
+                                    // where the row text itself is `.primary`).
+                                    // Other rows: the selected highlight colour
+                                    // (custom pick, or the system accent).
+                                    AdhanMuteIcon(muted: muted, activeColor: isNextPrayer ? (vm.useAccentColor ? textColor : .white) : vm.selectedHighlightColor, size: 13)
                                         // The whole padded circle is the hit target:
                                         // generous invisible padding + rectangular
                                         // content shape so there is no exact-pixel

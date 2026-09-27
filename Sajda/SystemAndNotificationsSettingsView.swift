@@ -165,6 +165,7 @@ struct PrayerSoundRow: View {
     let onUpdateConfig: (PrayerSoundConfig) -> Void
     let onPreview: () -> Void
     let onBrowse: () -> Void
+    @EnvironmentObject var vm: PrayerTimeViewModel
 
     private var options: [AdhanType] {
         AdhanType.availableOptions(for: prayerName)
@@ -187,7 +188,7 @@ struct PrayerSoundRow: View {
                     newConfig.muted.toggle()
                     onUpdateConfig(newConfig)
                 }) {
-                    AdhanMuteIcon(muted: config.muted, activeColor: .green, size: 12)
+                    AdhanMuteIcon(muted: config.muted, activeColor: vm.selectedHighlightColor, size: 12)
                         .padding(6)
                         .contentShape(Rectangle())
                 }

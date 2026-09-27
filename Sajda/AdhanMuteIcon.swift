@@ -1,9 +1,15 @@
 // MARK: - AdhanMuteIcon: modern per-prayer adhan toggle
 //
 // Ring-and-dot in the modern reference:
-// - adhan ON (active): white ring + centred white dot (the row's highlight
-//   text colour, which is white on the highlighted row).
+// - adhan ON (active): ring + centred dot in one colour — white on the
+//   highlighted row (for contrast against the fill), the selected highlight
+//   colour (custom pick, or the system accent) everywhere else.
 // - adhan OFF (muted): grey dot only, no ring.
+//
+// Both shapes always share the same colour: the dot is never a different
+// shade from its ring. The icon takes a single `activeColor` — callers pass
+// white on the highlighted row, `selectedHighlightColor` elsewhere — so the
+// two can never drift apart again.
 //
 // One glyph, no speaker waves, no slash — the slash variant read as
 // "broken audio" at 11pt rather than "muted by choice".
@@ -17,10 +23,10 @@ import SwiftUI
 
 struct AdhanMuteIcon: View {
     var muted: Bool
-    /// Ring + dot colour when on. Callers pass white on the highlighted
-    /// (blue) row for contrast, green everywhere else to match the modern
-    /// reference.
-    var activeColor: Color = .green
+    /// Ring + dot colour when on. Callers pass white on the highlighted row
+    /// for contrast, the selected highlight colour (custom pick, or the
+    /// system accent) everywhere else.
+    var activeColor: Color = .accentColor
     var size: CGFloat = 13
 
     var body: some View {
@@ -31,7 +37,7 @@ struct AdhanMuteIcon: View {
                     .fill(Color.secondary.opacity(0.55))
                     .frame(width: size * 0.46, height: size * 0.46)
             } else {
-                // White ring + centred white dot.
+                // Ring + centred dot, same colour — never two shades.
                 Circle()
                     .stroke(activeColor, lineWidth: 1.8)
                     .frame(width: size, height: size)
