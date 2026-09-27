@@ -270,6 +270,13 @@ struct PrayerListView: View {
         return vm.jumuahSessionDates.count
     }
 
+    /// Horizontal inset for every schedule row (prayers and Jumu'ah alike).
+    /// The panel's standard text gutter: the title, the dividers and the
+    /// location row all sit at 12 pt, so the prayer names have to match it or
+    /// they read as indented. Not the countdown card's 5 pt — the card is a
+    /// self-contained block, the rows are panel content.
+    static let rowHorizontalInset: CGFloat = 12
+
     /// Fixed width for the time column: the widest string the panel's date
     /// formatter can emit ("88:88"), measured in the row font — so every
     /// row's time starts at the same x no matter its value, weight, or the
@@ -314,10 +321,9 @@ private struct PrayerRow: View {
                     // edge starts at the same x.
                     .frame(width: timeColumnWidth, alignment: .trailing)
             }
-            // Horizontal inset matches the countdown card's outer 5 pt (see
-            // `NextPrayerCountdownHeader`), so the highlighted row's left and
-            // right edges line up with the card's instead of sitting inside it.
-            .foregroundColor(textColor).fontWeight((isNextPrayer || vm.accessibilityBoldText) ? .bold : .regular).padding(.horizontal, 5).padding(.vertical, 4).background {
+            // Inset matches the panel's text gutter (title / dividers / location
+            // row), so the names line up with them rather than looking indented.
+            .foregroundColor(textColor).fontWeight((isNextPrayer || vm.accessibilityBoldText) ? .bold : .regular).padding(.horizontal, PrayerListView.rowHorizontalInset).padding(.vertical, 4).background {
                 ZStack {
                     RoundedRectangle(cornerRadius: 6).fill(highlightColor)
                     if isNextPrayer, vm.useGlassPrayerHighlight {
@@ -399,7 +405,7 @@ private struct JumuahSessionRow: View {
         }
         .foregroundColor(.primary)
         .fontWeight(vm.accessibilityBoldText ? .bold : .regular)
-        .padding(.horizontal, 5).padding(.vertical, 4)
+        .padding(.horizontal, PrayerListView.rowHorizontalInset).padding(.vertical, 4)
     }
 
     private var muteCell: some View {
@@ -469,8 +475,9 @@ struct NextPrayerCountdownHeader: View {
                 }
             }
         }
-        // The same 5 pt inset the schedule rows use, so the card's left and right
-        // edges line up exactly with the highlighted prayer row beneath it.
+        // The card keeps its own 5 pt inset: it is a self-contained block, not
+        // panel text, so it deliberately does not share the schedule rows' 12 pt
+        // gutter. The rows line up with the title and the location row instead.
         .padding(.horizontal, 5)
         .padding(.top, 2)
         .accessibilityLabel(Text(accessibilityText))
