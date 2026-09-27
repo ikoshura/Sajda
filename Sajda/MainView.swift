@@ -263,7 +263,13 @@ struct PrayerListView: View {
                                     Image(systemName: "speaker.slash.fill")
                                         .scaledFont(.caption)
                                         .foregroundColor(textColor)
-                                        .frame(width: 16)
+                                        // Same 25pt hit box as the toggle below:
+                                        // the slot is always reserved, so the time
+                                        // column can't shift when adhan starts
+                                        // playing.
+                                        .frame(width: 13, height: 13)
+                                        .padding(6)
+                                        .contentShape(Rectangle())
                                 }
                                 .buttonStyle(.plain)
                                 .help("Stop Adhan")
@@ -281,12 +287,17 @@ struct PrayerListView: View {
                                     // Other rows: the selected highlight colour
                                     // (custom pick, or the system accent).
                                     AdhanMuteIcon(muted: muted, activeColor: isNextPrayer ? (vm.useAccentColor ? textColor : .white) : vm.selectedHighlightColor, size: 13)
-                                        // The whole padded circle is the hit target:
+                                        // The whole 25pt box is the hit target:
                                         // generous invisible padding + rectangular
                                         // content shape so there is no exact-pixel
                                         // hunting. The time column is safe — the
                                         // HStack spacing absorbs the padding.
+                                        // Centered so the glyph's centre sits on
+                                        // the same axis in every row (the drift in
+                                        // the screenshot was the Button's label
+                                        // hugging the leading edge of its frame).
                                         .padding(6)
+                                        .frame(width: 25, height: 25, alignment: .center)
                                         .contentShape(Rectangle())
                                 }
                                 .buttonStyle(.plain)
