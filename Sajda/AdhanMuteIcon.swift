@@ -17,8 +17,10 @@ import SwiftUI
 
 struct AdhanMuteIcon: View {
     var muted: Bool
-    /// Ring + dot colour when on (the row's highlight/text colour).
-    var activeColor: Color = .primary
+    /// Ring + dot colour when on. Callers pass white on the highlighted
+    /// (blue) row for contrast, green everywhere else to match the modern
+    /// reference.
+    var activeColor: Color = .green
     var size: CGFloat = 13
 
     var body: some View {

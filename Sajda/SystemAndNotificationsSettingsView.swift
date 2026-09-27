@@ -187,7 +187,7 @@ struct PrayerSoundRow: View {
                     newConfig.muted.toggle()
                     onUpdateConfig(newConfig)
                 }) {
-                    AdhanMuteIcon(muted: config.muted, size: 12)
+                    AdhanMuteIcon(muted: config.muted, activeColor: .green, size: 12)
                         .padding(6)
                         .contentShape(Rectangle())
                 }

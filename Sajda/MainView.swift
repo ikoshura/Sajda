@@ -275,7 +275,10 @@ struct PrayerListView: View {
                                 // shift when adhan starts playing.
                                 let muted = vm.isAdhanMuted(prayerName)
                                 Button(action: { vm.setAdhanMuted(!muted, for: prayerName) }) {
-                                    AdhanMuteIcon(muted: muted, activeColor: textColor, size: 13)
+                                    // Green ring+dot per the modern reference;
+                                    // white only on the highlighted (blue) row
+                                    // for contrast.
+                                    AdhanMuteIcon(muted: muted, activeColor: isNextPrayer ? textColor : .green, size: 13)
                                         // The whole padded circle is the hit target:
                                         // generous invisible padding + rectangular
                                         // content shape so there is no exact-pixel
