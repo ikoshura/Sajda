@@ -100,24 +100,23 @@ struct MainView: View {
                 .padding(.horizontal, 12)
 
             // Countdown card (when on) keeps the top slot under the divider.
-            // Location block moves around it: it heads the prayer list when the
-            // card is off, and sits under the list (behind its own separator)
-            // when the card is on.
+            // The location block is independent of it and always follows below
+            // (see below), so switching the card off removes only the card.
             let showCountdownCard = vm.isPrayerDataAvailable && vm.showCountdownHeader && vm.nextPrayerOccurrenceDate != nil
             if showCountdownCard {
                 NextPrayerCountdownHeader()
-                // Mosque/location caption rides with the countdown card rather
-                // than trailing the schedule. It is the one line that says
-                // *where* these times are for — reading it after scrolling past
-                // every prayer time to the bottom made the panel's subject come
-                // last, and a wrong location is worth noticing immediately,
-                // not after the list.
             }
 
             if vm.isPrayerDataAvailable {
-                if showCountdownCard {
-                    locationFavoritesBlock
-                }
+                // Mosque/location caption always sits directly above the prayer
+                // list, independent of the countdown card. It used to ride with
+                // the card and only render when `showCountdownCard` was true, so
+                // turning "Show Countdown Header" off took the location with it
+                // and left the panel with no indication of *which* location the
+                // times belong to. Above the list in both cases is also the
+                // position it was moved to on purpose: the line that says where
+                // these times are belongs before the times, not after them.
+                locationFavoritesBlock
                 PrayerListView()
             } else {
                 Spacer()
