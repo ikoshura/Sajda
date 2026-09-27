@@ -242,36 +242,10 @@ struct PrayerListView: View {
         let baseOrder = vm.showSunnahPrayers ? sunnahOrder : defaultOrder
         return baseOrder.filter { vm.todayTimes.keys.contains($0) }
     }
-    /// Names for every cell in column one — prayers plus the Jumu'ah session
-    /// labels, so the column is measured from the widest thing that can ever
-    /// land in it.
-    private var leadingNames: [String] {
-        var names = prayerOrder.map { vm.prayerDisplayName($0) }
-        let sessions = displayedJumuahSessionCount
-        if sessions > 0 {
-            names.append(vm.jumuahSessionLabel(0, total: sessions))
-            if sessions > 1 { names.append(vm.jumuahSessionLabel(sessions - 1, total: sessions)) }
-        }
-        return names
-    }
-
-    /// Fixed width for the name column: the widest label, measured in the row
-    /// font. The toggle slot then starts at the same x in every row, so the
-    /// mute rings form one clean column again (with a plain HStack row, the
-    /// gap is absorbed between the columns instead of splitting the highlight).
-    private var leadingColumnWidth: CGFloat {
-        let widest = leadingNames.map { name in
-            (name as NSString).size(withAttributes: [.font: NSFont.systemFont(ofSize: NSFont.systemFontSize)]).width
-        }.max() ?? 0
-        return widest + 2
-    }
-
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             ForEach(prayerOrder, id: \.self) { prayerName in
-                PrayerRow(prayerName: prayerName,
-                           leadingColumnWidth: leadingColumnWidth,
-                           timeColumnWidth: Self.timeColumnWidth)
+                PrayerRow(prayerName: prayerName, timeColumnWidth: Self.timeColumnWidth)
                 // Friday sessions get their own rows right under Dhuhr (Dhuhr
                 // itself stays put): one row per gathering, each with its own
                 // clock and its own mute ring. Shown on Fridays, or every day
@@ -281,7 +255,6 @@ struct PrayerListView: View {
                         JumuahSessionRow(index: index,
                                          date: date,
                                          total: displayedJumuahSessionCount,
-                                         leadingColumnWidth: leadingColumnWidth,
                                          timeColumnWidth: Self.timeColumnWidth)
                     }
                 }
@@ -291,7 +264,7 @@ struct PrayerListView: View {
     }
 
     /// How many Jumu'ah rows the list is about to draw — 0 when the row stays
-    /// hidden, so the name column is never measured wider than it needs.
+    /// hidden. Only drives the numbering ("Jumu'ah" vs "Jumu'ah 1").
     private var displayedJumuahSessionCount: Int {
         guard vm.isFriday || vm.alwaysShowJumuah else { return 0 }
         return vm.jumuahSessionDates.count
@@ -307,14 +280,15 @@ struct PrayerListView: View {
     }
 }
 
-/// One prayer row: name | toggle | "Around" | time, sized from the two shared
-/// column widths so nothing drifts. The highlight is applied to the whole row
-/// rather than to individual cells, so it stays one continuous capsule.
+/// One prayer row: name … mute ring | time. The ring sits immediately left of
+/// the time so both trailing elements are right-anchored and the name keeps the
+/// leading edge — the name needs no fixed width, the `Spacer` takes the slack.
+/// The highlight is applied to the whole row rather than to individual cells,
+/// so it stays one continuous capsule.
 private struct PrayerRow: View {
     @EnvironmentObject var vm: PrayerTimeViewModel
     @Environment(\.colorScheme) private var colorScheme
     let prayerName: String
-    let leadingColumnWidth: CGFloat
     let timeColumnWidth: CGFloat
 
     var body: some View {
@@ -330,18 +304,20 @@ private struct PrayerRow: View {
             }()
             HStack(spacing: 6) {
                 Text(vm.prayerDisplayName(prayerName))
-                    .frame(width: leadingColumnWidth, alignment: .leading)
-                toggleCell(isNextPrayer: isNextPrayer, textColor: textColor)
                 if prayerName == "Tahajud" || prayerName == "Dhuha" {
                     Text("Around").scaledFont(.caption).foregroundColor(isNextPrayer ? textColor.opacity(0.8) : Color("SecondaryTextColor"))
                 }
                 Spacer(minLength: 4)
+                toggleCell(isNextPrayer: isNextPrayer, textColor: textColor)
                 Text(vm.dateFormatter.string(from: displayTime)).scaledFont(.body, weight: isNextPrayer ? .bold : nil)
                     // Right-anchored, one shared width: every time's leading
                     // edge starts at the same x.
                     .frame(width: timeColumnWidth, alignment: .trailing)
             }
-            .foregroundColor(textColor).fontWeight((isNextPrayer || vm.accessibilityBoldText) ? .bold : .regular).padding(.horizontal, 12).padding(.vertical, 4).background {
+            // Horizontal inset matches the countdown card's outer 5 pt (see
+            // `NextPrayerCountdownHeader`), so the highlighted row's left and
+            // right edges line up with the card's instead of sitting inside it.
+            .foregroundColor(textColor).fontWeight((isNextPrayer || vm.accessibilityBoldText) ? .bold : .regular).padding(.horizontal, 5).padding(.vertical, 4).background {
                 ZStack {
                     RoundedRectangle(cornerRadius: 6).fill(highlightColor)
                     if isNextPrayer, vm.useGlassPrayerHighlight {
@@ -409,23 +385,21 @@ private struct JumuahSessionRow: View {
     let index: Int
     let date: Date
     let total: Int
-    let leadingColumnWidth: CGFloat
     let timeColumnWidth: CGFloat
 
     var body: some View {
         HStack(spacing: 6) {
             Text(vm.jumuahSessionLabel(index, total: total))
-                .frame(width: leadingColumnWidth, alignment: .leading)
-            // Same 25pt slot as the prayer rows, so the rings line up.
-            muteCell
             Spacer(minLength: 4)
+            // Same 25pt slot, on the same side, as the prayer rows.
+            muteCell
             Text(vm.dateFormatter.string(from: date))
                 .scaledFont(.body)
                 .frame(width: timeColumnWidth, alignment: .trailing)
         }
         .foregroundColor(.primary)
         .fontWeight(vm.accessibilityBoldText ? .bold : .regular)
-        .padding(.horizontal, 12).padding(.vertical, 4)
+        .padding(.horizontal, 5).padding(.vertical, 4)
     }
 
     private var muteCell: some View {
