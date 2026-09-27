@@ -138,6 +138,55 @@ extension View {
     }
 }
 
+/// Background for a selected pill that sits inside the already-glass panel:
+/// the accent fill, with the Liquid Glass highlight layered over it when
+/// `useGlass` is on.
+///
+/// Shared by the Settings and Time Correction tab bars so the two can't drift
+/// apart. The accent is always dark glass: light glass over a saturated accent
+/// fill whitens it out, which is the same reasoning the next-prayer row and the
+/// countdown card use for the same overlay.
+struct AccentPillBackground: ViewModifier {
+    let isSelected: Bool
+    let fill: Color
+    let cornerRadius: CGFloat
+    /// Mirrors `vm.useGlassPrayerHighlight`, which is the existing "Glass
+    /// Highlight" switch in the Visual section.
+    let useGlass: Bool
+
+    func body(content: Content) -> some View {
+        content
+            .background {
+                ZStack {
+                    RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                        .fill(isSelected ? fill : .clear)
+                    if isSelected, useGlass {
+                        RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                            .fill(Color.clear)
+                            .glassCard(cornerRadius: cornerRadius, interactive: true)
+                            .environment(\.colorScheme, .dark)
+                    }
+                }
+            }
+    }
+}
+
+extension View {
+    /// Selected-pill background: accent fill, plus the Liquid Glass highlight
+    /// when `useGlass` is on. Off macOS 26+ the fill alone remains, which is
+    /// why the caller keeps it as a real fill rather than relying on the glass.
+    func accentPillBackground(
+        isSelected: Bool,
+        fill: Color,
+        cornerRadius: CGFloat = 5,
+        useGlass: Bool
+    ) -> some View {
+        modifier(AccentPillBackground(
+            isSelected: isSelected, fill: fill, cornerRadius: cornerRadius, useGlass: useGlass
+        ))
+    }
+}
+
 // MARK: - GlassCard
 
 /// Turns any view into a Liquid Glass surface on macOS 26+ (identity on older

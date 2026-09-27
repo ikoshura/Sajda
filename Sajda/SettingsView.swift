@@ -224,6 +224,7 @@ struct SettingsView: View {
                             isHovering: hoveringTab == section,
                             accent: vm.selectedHighlightColor,
                             highlightHex: vm.customHighlightColorHex,
+                            useGlass: vm.useGlassPrayerHighlight,
                             onTap: {
                                 selectTab(section)
                             },
@@ -625,6 +626,8 @@ private struct SettingsTabButton: View {
     /// Raw picked colour, so the icon/label tone can be chosen against the fill
     /// rather than guessed. Empty when the system accent is in use.
     let highlightHex: String
+    /// Mirrors the "Glass Highlight" switch; layered over the accent fill when on.
+    let useGlass: Bool
     let onTap: () -> Void
     let onHover: (Bool) -> Void
 
@@ -643,10 +646,11 @@ private struct SettingsTabButton: View {
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 6)
-            .background {
-                RoundedRectangle(cornerRadius: 5)
-                    .fill(isSelected ? accent : .clear)
-            }
+            .accentPillBackground(
+                isSelected: isSelected,
+                fill: accent,
+                useGlass: useGlass
+            )
             // Hover only while unselected: the selected tab already carries a
             // fill, and a second hover tint on top of it muddied the colour.
             .liquidHover(isHovering && !isSelected)

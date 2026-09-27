@@ -250,6 +250,7 @@ struct PrayerTimeCorrectionView: View {
                         isHovering: hoveringTab == tab,
                         accent: vm.selectedHighlightColor,
                         highlightHex: vm.customHighlightColorHex,
+                        useGlass: vm.useGlassPrayerHighlight,
                         onTap: { selectedTabRaw = tab.rawValue },
                         onHover: { hovering in hoveringTab = hovering ? tab : nil }
                     )
@@ -441,6 +442,8 @@ private struct CorrectionTabButton: View {
     let accent: Color
     /// Raw picked colour, so the label tone can be chosen against the fill.
     let highlightHex: String
+    /// Mirrors the "Glass Highlight" switch; layered over the accent fill when on.
+    let useGlass: Bool
     let onTap: () -> Void
     let onHover: (Bool) -> Void
 
@@ -453,10 +456,11 @@ private struct CorrectionTabButton: View {
                 .minimumScaleFactor(0.8)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 6)
-                .background {
-                    RoundedRectangle(cornerRadius: 5)
-                        .fill(isSelected ? accent : .clear)
-                }
+                .accentPillBackground(
+                    isSelected: isSelected,
+                    fill: accent,
+                    useGlass: useGlass
+                )
                 // Hover only while unselected: a hover tint under the selected
                 // tab's fill would muddy the picked colour.
                 .liquidHover(isHovering && !isSelected)
