@@ -179,6 +179,21 @@ struct PrayerSoundRow: View {
 
                 Spacer()
 
+                // Same per-prayer mute the home panel rows flip: muting keeps
+                // the sound picked in the menu below, so turning it back on
+                // never loses the chosen adhan.
+                Button(action: {
+                    var newConfig = config
+                    newConfig.muted.toggle()
+                    onUpdateConfig(newConfig)
+                }) {
+                    Image(systemName: config.muted ? "speaker.slash.fill" : "speaker.wave.2.fill")
+                        .font(.system(size: 12))
+                        .foregroundColor(config.muted ? .secondary.opacity(0.5) : .secondary)
+                }
+                .buttonStyle(.plain)
+                .help(config.muted ? "Unmute Adhan" : "Mute Adhan")
+
                 if config.adhanType.isAzan || config.adhanType == .custom {
                     Button(action: onPreview) {
                         Image(systemName: isPreviewing ? "speaker.wave.3.fill" : "speaker.fill")

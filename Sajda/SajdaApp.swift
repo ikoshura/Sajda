@@ -46,24 +46,26 @@ struct SajdaMenuBarApp: App {
 
 /// Menu bar label (status item button content) driven by the prayer view model.
 ///
-/// `menuTitle` is an `NSAttributedString` (red while prayer is imminent, with
-/// optional larger/bold accessibility styling). The icon mirrors the previous
-/// AppKit behavior: a template mosque glyph normally, a red-tinted copy while
-/// imminent, hidden in text-only modes, mirrored trailing in RTL (Arabic).
+/// `menuTitle` is an `NSAttributedString` (red while prayer is imminent,
+/// yellow-orange while the iqama window runs, with optional larger/bold
+/// accessibility styling). The icon mirrors the previous AppKit behavior: a
+/// template mosque glyph normally, a tinted copy while tinted, hidden in
+/// text-only modes, mirrored trailing in RTL (Arabic).
 struct SajdaMenuBarLabel: View {
     @EnvironmentObject var vm: PrayerTimeViewModel
     @EnvironmentObject var languageManager: LanguageManager
 
     var body: some View {
         HStack(spacing: 4) {
-            // While the red alert is on, icon + text are drawn into a single
-            // non-template image. `MenuBarExtra` renders the label text in the
-            // status bar's own colour (ignoring both the AppKit
-            // `.foregroundColor` attribute and SwiftUI `.foregroundColor`), and
-            // a second `Image` in the label does not even get measured — so the
-            // red has to be baked into one image that also carries the width.
-            if let alert = imminentLabelImage {
-                Image(nsImage: alert)
+            // While a tint is on — the red alert, or the yellow-orange iqama
+            // window — icon + text are drawn into a single non-template image.
+            // `MenuBarExtra` renders the label text in the status bar's own
+            // colour (ignoring both the AppKit `.foregroundColor` attribute and
+            // SwiftUI `.foregroundColor`), and a second `Image` in the label
+            // does not even get measured — so the tint has to be baked into one
+            // image that also carries the width.
+            if let tinted = tintedLabelImage {
+                Image(nsImage: tinted)
             } else if vm.menuBarLargerText || vm.accessibilityBoldText {
                 // Accessibility path: bake into image(s) because the status
                 // bar ignores `.font` on `Text`. Icon + text must be ONE
@@ -118,11 +120,26 @@ struct SajdaMenuBarLabel: View {
     /// the red alert) actually need it.
     private var useImageLabel: Bool { false }
 
-    private var imminentLabelImage: NSImage? {
-        guard vm.isPrayerImminent, showsText, !vm.menuTitle.string.isEmpty else { return nil }
-        return SajdaMenuBarLabel.imminentLabelImage(
+    /// Colour the label and icon bake in right now: red while the prayer is
+    /// imminent, yellow-orange while the iqama window runs, nil otherwise.
+    private var menuBarTint: NSColor? {
+        if vm.isPrayerImminent { return .systemRed }
+        if vm.isIqamaWaiting { return PrayerTimeViewModel.iqamaWaitingColor }
+        return nil
+    }
+
+    /// Tinted icon + title as a single image (see
+    /// `tintedLabelImage(title:iconSize:color:)`), or `nil` when no tint is
+    /// active and the normal icon/text pair should be used instead. Image
+    /// labels render slightly smaller than the system status-bar font, so the
+    /// image path is only used when a tint (or the accessibility options)
+    /// actually needs it.
+    private var tintedLabelImage: NSImage? {
+        guard let tint = menuBarTint, showsText, !vm.menuTitle.string.isEmpty else { return nil }
+        return SajdaMenuBarLabel.tintedLabelImage(
             title: vm.menuTitle,
-            iconSize: showsIcon ? iconPointSize : 0
+            iconSize: showsIcon ? iconPointSize : 0,
+            color: tint
         )
     }
 
@@ -224,8 +241,8 @@ struct SajdaMenuBarLabel: View {
 
     private var menuBarIcon: NSImage {
         let size = iconPointSize
-        if vm.isPrayerImminent, let red = SajdaMenuBarLabel.tintedIcon(size: size) {
-            return red
+        if let tint = menuBarTint, let tinted = SajdaMenuBarLabel.tintedIcon(size: size, color: tint) {
+            return tinted
         }
         if let image = NSImage(named: "MenuBarMosque") {
             image.size = NSSize(width: size, height: size)
@@ -239,24 +256,28 @@ struct SajdaMenuBarLabel: View {
         return fallback
     }
 
-    /// Renders the imminent (red alert) label into a **single** non-template
-    /// image: red-tinted mosque glyph plus the red title text.
+    /// Renders a tinted label (red alert, or the yellow-orange iqama window)
+    /// into a **single** non-template image: tinted mosque glyph plus the
+    /// tinted title text.
     ///
     /// Two things force this shape:
     /// - `MenuBarExtra` draws label text in the status bar's own colour, so
     ///   neither the AppKit `.foregroundColor` attribute on `menuTitle` nor a
     ///   SwiftUI `.foregroundColor` modifier survives.
-    /// - A second `Image` inside the label (icon + red text as separate views)
-    ///   is not measured, so the item collapses to the icon alone. Baking both
-    ///   into one image gives the status item a width to lay out.
+    /// - A second `Image` inside the label (icon + tinted text as separate
+    ///   views) is not measured, so the item collapses to the icon alone.
+    ///   Baking both into one image gives the status item a width to lay out.
     ///
     /// - Parameter iconSize: glyph size in points, or `0` for text-only modes.
-    private static func imminentLabelImage(title: NSAttributedString, iconSize: CGFloat) -> NSImage? {
+    /// - Parameter color: the tint to bake in — `systemRed` while the prayer
+    ///   is imminent, `PrayerTimeViewModel.iqamaWaitingColor` during the
+    ///   iqama window.
+    private static func tintedLabelImage(title: NSAttributedString, iconSize: CGFloat, color: NSColor) -> NSImage? {
         let attributed = NSMutableAttributedString(attributedString: title)
         let range = NSRange(location: 0, length: attributed.length)
         guard range.length > 0 else { return nil }
 
-        attributed.addAttribute(.foregroundColor, value: NSColor.systemRed, range: range)
+        attributed.addAttribute(.foregroundColor, value: color, range: range)
         // `updateMenuTitle()` only sets a font when the accessibility text
         // size/weight options are on; supply the status bar's default so the
         // rendered glyphs match the system-drawn (non-red) case.
@@ -274,7 +295,7 @@ struct SajdaMenuBarLabel: View {
             width: ceil(iconSize + spacing + textSize.width) + 1,
             height: max(ceil(textSize.height), iconSize)
         )
-        let icon = iconSize > 0 ? tintedIcon(size: iconSize) : nil
+        let icon = iconSize > 0 ? tintedIcon(size: iconSize, color: color) : nil
 
         let image = NSImage(size: size)
         image.lockFocus()
@@ -292,7 +313,7 @@ struct SajdaMenuBarLabel: View {
         return image
     }
 
-    private static func tintedIcon(size: CGFloat) -> NSImage? {
+    private static func tintedIcon(size: CGFloat, color: NSColor) -> NSImage? {
         let base: NSImage?
         if let mosque = NSImage(named: "MenuBarMosque") {
             base = mosque
@@ -303,7 +324,7 @@ struct SajdaMenuBarLabel: View {
         let size = NSSize(width: size, height: size)
         let tinted = NSImage(size: size)
         tinted.lockFocus()
-        NSColor.systemRed.set()
+        color.set()
         NSRect(origin: .zero, size: size).fill()
         base.draw(in: NSRect(origin: .zero, size: size), from: NSRect(origin: .zero, size: base.size), operation: .destinationIn, fraction: 1.0)
         tinted.unlockFocus()

@@ -178,7 +178,7 @@ struct OnboardingView: View {
                     }
                     .buttonStyle(.plain)
                     if showingMosqueTimetable {
-                        MosqueTimetablePicker(showIqamaDelay: false).environmentObject(vm)
+                        MosqueTimetablePicker().environmentObject(vm)
                     }
                 }
                 .padding(.horizontal, 40)

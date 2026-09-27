@@ -2,9 +2,10 @@
 //
 // Favorites as its own NavigationStack page (same mechanism as
 // Settings/About): the location row on MainView pushes here, and the
-// expanded rows live on this page's @State — so every open starts shut
-// with no reset logic anywhere. Panel close tears the page down;
-// returning from a pushed sub-search pops back with fresh state too.
+// accordion state lives on this page's @State — so every open starts shut
+// with no reset logic anywhere. Panel close tears the page down. The two
+// searches expand inline (see `FavoritesSection`) instead of pushing pages,
+// which is what used to flicker.
 
 import SwiftUI
 import NavigationStack

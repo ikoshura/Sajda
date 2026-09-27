@@ -9,6 +9,11 @@ struct SajdaStepper: View {
     /// When false the field shows the bare number (e.g. "10") instead of the
     /// signed form ("+10") used for correction-style values.
     var showsSign: Bool = true
+    /// Width of the numeric field between the ± buttons. Rows that hold two
+    /// steppers side by side (the Jumu'ah session clocks) pass a narrower field
+    /// so the pair, their row number and the delete button still fit the
+    /// compact 220 pt panel; those callers scale it with the text preset.
+    var fieldWidth: CGFloat = 35
 
     @State private var textValue: String = ""
     @FocusState private var isFocused: Bool
@@ -38,7 +43,7 @@ struct SajdaStepper: View {
             .scaledFont(.callout)
             .textFieldStyle(.plain)
             .multilineTextAlignment(.center)
-            .frame(width: 35)
+            .frame(width: fieldWidth)
             .focused($isFocused)
             
             // Tombol Plus

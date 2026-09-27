@@ -6,6 +6,8 @@
 //
 
 import XCTest
+import Combine
+import SwiftUI
 @testable import Sajda
 
 final class SajdaTests: XCTestCase {
@@ -31,6 +33,74 @@ final class SajdaTests: XCTestCase {
         self.measure {
             // Put the code you want to measure the time of here.
         }
+    }
+
+    // MARK: - Jumu'ah sessions
+
+    /// A session added in Settings is seeded at the quarter hour just after
+    /// Dhuhr, so a mosque that starts Jumu'ah minutes past Dhuhr never gets a
+    /// row at an arbitrary morning time (the old seed followed the wall clock).
+    func testJumuahSessionSeedRoundsDhuhrUpToTheNextQuarterHour() {
+        XCTAssertEqual(PrayerTimeViewModel.jumuahSessionSeed(hour: 12, minute: 17), 12 * 60 + 30)
+        // Dhuhr sitting exactly on a quarter still moves forward: the seed is
+        // the *next* quarter hour, never the one it is already on.
+        XCTAssertEqual(PrayerTimeViewModel.jumuahSessionSeed(hour: 12, minute: 15), 12 * 60 + 30)
+        XCTAssertEqual(PrayerTimeViewModel.jumuahSessionSeed(hour: 12, minute: 30), 12 * 60 + 45)
+        XCTAssertEqual(PrayerTimeViewModel.jumuahSessionSeed(hour: 13, minute: 5), 13 * 60 + 15)
+        // Late Dhuhr wraps to the start of the next day instead of overflowing
+        // the 0...1439 clock the session list is stored in.
+        XCTAssertEqual(PrayerTimeViewModel.jumuahSessionSeed(hour: 23, minute: 50), 0)
+    }
+
+    // MARK: - Settings tab (the dropdown)
+
+    /// The tab bar only ever builds the picked tab's rows and the panel resizes
+    /// to them, so the tab write has to repaint the page and re-key the menu's
+    /// resize animation. `settingsSelectedTab` is @AppStorage on the view model,
+    /// which does not publish on its own — this is the test that keeps its
+    /// `didSet` republish in place.
+    func testSettingsSelectedTabPublishesEveryWrite() {
+        let vm = PrayerTimeViewModel()
+        var changes = 0
+        let cancellable = vm.objectWillChange.sink { _ in changes += 1 }
+
+        vm.settingsSelectedTab = "prayerTimes"
+        XCTAssertEqual(vm.settingsSelectedTab, "prayerTimes")
+        XCTAssertGreaterThan(changes, 0)
+
+        let afterFirstWrite = changes
+        vm.settingsSelectedTab = "display"
+        XCTAssertEqual(vm.settingsSelectedTab, "display")
+        XCTAssertGreaterThan(changes, afterFirstWrite)
+
+        cancellable.cancel()
+    }
+
+    // MARK: - Colour dropdown
+
+    /// The inline colour surface seeds its HSB state from the picked colour when
+    /// it drops down (its own `Color.hue/…` helpers are internal to the package,
+    /// so the conversion runs through `PrayerTimeViewModel.hsbaComponents`).
+    func testColorPickerSeedsHSBAComponentsFromThePickedColour() {
+        let red = PrayerTimeViewModel.hsbaComponents(from: Color(red: 1, green: 0, blue: 0))
+        XCTAssertEqual(red.saturation, 1, accuracy: 0.001)
+        XCTAssertEqual(red.brightness, 1, accuracy: 0.001)
+        XCTAssertEqual(red.alpha, 1, accuracy: 0.001)
+        // Pure red sits at either end of the wheel depending on how the colour
+        // space rounds it — both read as 0° to the surface.
+        XCTAssertTrue(red.hue < 0.001 || red.hue > 0.999, "red hue was \(red.hue)")
+
+        // r 0, g ½, b 1 → 210° on the colour wheel, still fully saturated.
+        let cyanish = PrayerTimeViewModel.hsbaComponents(from: Color(red: 0, green: 0.5, blue: 1))
+        XCTAssertEqual(cyanish.hue, 210.0 / 360.0, accuracy: 0.02, "cyanish hue was \(cyanish.hue)")
+        XCTAssertEqual(cyanish.brightness, 1, accuracy: 0.001)
+
+        // Nothing picked yet: the surface opens bright and unsaturated rather
+        // than collapsed into a corner.
+        let none = PrayerTimeViewModel.hsbaComponents(from: nil)
+        XCTAssertEqual(none.saturation, 1)
+        XCTAssertEqual(none.brightness, 1)
+        XCTAssertEqual(none.alpha, 1)
     }
 
 }

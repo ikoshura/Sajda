@@ -80,21 +80,29 @@ struct MainView: View {
                 .padding(.horizontal, 12)
 
             // Countdown card (when on) keeps the top slot under the divider.
-            // Location block moves around it: above the prayer list when the
-            // card is off, below the list when the card is on.
+            // Location block moves around it: it heads the prayer list when the
+            // card is off, and sits under the list (behind its own separator)
+            // when the card is on.
             let showCountdownCard = vm.isPrayerDataAvailable && vm.showCountdownHeader && vm.nextPrayerOccurrenceDate != nil
             if showCountdownCard {
                 NextPrayerCountdownHeader()
             }
 
-            if vm.isPrayerDataAvailable && !showCountdownCard {
-                locationFavoritesBlock
-            }
-
-            // Keep the prayer list snug under whatever sits above it —
-            // compact 4pt rhythm through PrayerListView's rows.
+            // Keep the prayer list snug under whatever sits above it — compact
+            // rhythm through PrayerListView's rows. With the card off there is a
+            // *row* above it rather than a card, so the two stack with no gap of
+            // their own: the list's 4 pt top inset is then the whole space
+            // between the location row and the first prayer row — a slight
+            // breath, rather than the extra 6 pt a stack gap on top of it made.
             if vm.isPrayerDataAvailable {
-                PrayerListView()
+                if showCountdownCard {
+                    PrayerListView()
+                } else {
+                    VStack(alignment: .leading, spacing: 0) {
+                        locationFavoritesBlock
+                        PrayerListView()
+                    }
+                }
             } else {
                 Spacer()
                 PermissionRequestView()
@@ -103,8 +111,8 @@ struct MainView: View {
 
             if vm.isPrayerDataAvailable && showCountdownCard {
                 // Separator between the prayer list and the location row
-                // (countdown-active layout only — otherwise the row sits
-                // directly under the top divider).
+                // (countdown-active layout only — otherwise the row heads the
+                // list, directly under the top divider).
                 Rectangle()
                     .fill(Color("DividerColor"))
                     .frame(height: 0.5)
@@ -211,16 +219,34 @@ struct PrayerListView: View {
                             guard isNextPrayer else { return (.clear, .primary) }
                             return vm.nextPrayerHighlight()
                         }()
-                        HStack {
+                        HStack(spacing: 6) {
                             Text(vm.prayerDisplayName(prayerName)); Spacer()
                             if vm.isAdhanPlaying && prayerName == vm.activeAdhanPrayerName {
                                 Button(action: { vm.stopAdhan() }) {
                                     Image(systemName: "speaker.slash.fill")
                                         .scaledFont(.caption)
                                         .foregroundColor(textColor)
+                                        .frame(width: 16)
                                 }
                                 .buttonStyle(.plain)
                                 .help("Stop Adhan")
+                            } else {
+                                // Per-prayer adhan on/off, right on the panel:
+                                // muting flips `PrayerSoundConfig.muted` (never
+                                // the sound picked in Settings). The slot is
+                                // always reserved, so the time column can't
+                                // shift when adhan starts playing.
+                                let muted = vm.isAdhanMuted(prayerName)
+                                Button(action: { vm.setAdhanMuted(!muted, for: prayerName) }) {
+                                    Image(systemName: muted ? "speaker.slash.fill" : "speaker.wave.2.fill")
+                                        .scaledFont(.caption)
+                                        .foregroundColor(muted ? Color.secondary.opacity(0.5) : Color.secondary)
+                                        .frame(width: 16)
+                                }
+                                .buttonStyle(.plain)
+                                .focusable(false)
+                                .help(muted ? "Unmute Adhan" : "Mute Adhan")
+                                .accessibilityLabel(muted ? Text("Unmute Adhan") : Text("Mute Adhan"))
                             }
                             if prayerName == "Tahajud" || prayerName == "Dhuha" { Text("Around").scaledFont(.caption).foregroundColor(isNextPrayer ? textColor.opacity(0.8) : Color("SecondaryTextColor")) }
                             Text(vm.dateFormatter.string(from: displayTime)).scaledFont(.body, weight: isNextPrayer ? .bold : nil)
@@ -239,6 +265,23 @@ struct PrayerListView: View {
                                 }
                             }
                         }
+                    }
+                    // Friday sessions live on their own row right under Dhuhr
+                    // (Dhuhr itself stays put): shown only on Fridays while
+                    // any session is configured, times joined with the panel's
+                    // middle dot.
+                    if prayerName == "Dhuhr", vm.isFriday, !vm.jumuahSessionDates.isEmpty {
+                        HStack(spacing: 6) {
+                            Text(vm.prayerDisplayName("Jumu'ah"))
+                            Spacer()
+                            Text(vm.jumuahSessionDates.map { vm.dateFormatter.string(from: $0) }.joined(separator: " • "))
+                                .scaledFont(.body)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.6)
+                                .truncationMode(.tail)
+                        }
+                        .foregroundColor(.primary)
+                        .padding(.horizontal, 12).padding(.vertical, 5)
                     }
                 }
             }.padding(.horizontal, 5).padding(.top, 4)
@@ -270,9 +313,9 @@ struct NextPrayerCountdownHeader: View {
                 .minimumScaleFactor(0.6)
             // Adhan and iqama share one line, separated by the panel's middle dot
             // ("Adhan at 06:10 • Iqama at 06:30"). Sunnah prayers have no adhan,
-            // so theirs reads "Around 05:10". Iqama only exists in mosque mode;
-            // the mosque's published time or the usual local gap after the
-            // adhan (see `nextPrayerIqamaDate`).
+            // so theirs reads "Around 05:10". The iqama is always that prayer's
+            // estimate after the adhan — one source for auto/manual location
+            // and mosque timetables alike (see `nextPrayerIqamaDate`).
             if !timesLine.isEmpty {
                 Text(timesLine)
                     .scaledFont(.caption)
@@ -307,8 +350,8 @@ struct NextPrayerCountdownHeader: View {
     }
 
     /// Adhan and iqama on one line, separated by the middle dot used across the
-    /// panel. Parts that don't exist yet are dropped, so on calculated times the
-    /// line degrades to the adhan alone.
+    /// panel. Parts that don't exist yet are dropped — a sunnah prayer has no
+    /// congregation, so its line stops at the "Around 05:10" adhan estimate.
     private var adhanAndIqamaLine: String { adhanAndIqamaParts.joined(separator: " • ") }
 
     private var adhanAndIqamaParts: [String] {

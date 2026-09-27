@@ -11,10 +11,6 @@ import SwiftUI
 struct MosqueTimetablePicker: View {
     @EnvironmentObject var vm: PrayerTimeViewModel
 
-    /// Settings shows the fallback iqama-gap stepper under the active
-    /// mosque; onboarding hides it to keep the welcome screen compact.
-    var showIqamaDelay = true
-
     @State private var mosqueQuery = ""
     @State private var mosqueResults: [MosqueSearchResult] = []
     @State private var isDownloadingMosque = false
@@ -88,15 +84,6 @@ struct MosqueTimetablePicker: View {
                     Button("Refresh") { refreshMosqueSchedule() }.buttonStyle(.bordered)
                     Spacer(minLength: 4)
                     Button("Use Calculated Times Instead") { vm.disableMosqueSchedule() }.buttonStyle(.bordered)
-                }
-                if showIqamaDelay {
-                    // Fallback iqama gap — used when the mosque
-                    // doesn't publish iqama times. Default +8.
-                    HStack {
-                        Text("Iqama Delay").scaledFont(.subheadline)
-                        Spacer()
-                        SajdaStepper(value: Binding(get: { Double(vm.iqamaDelayMinutes) }, set: { vm.iqamaDelayMinutes = Int($0) }), range: 0...60)
-                    }
                 }
             }
             // Chrome is drawn by the app (see `SajdaSearchField`):

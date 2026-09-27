@@ -1,18 +1,31 @@
 // MARK: - Sajda/FavoritesSection.swift
 //
-// Main-screen favorites: up to 5 saved cities + mosque timetables.
-// The accordion chevron lives on the location caption line in MainView
-// (trailing edge, same row) — this view only renders the expanded rows.
-// Tapping a row switches straight to it; the "Automatic" row switches back
-// to system location via `switchToAutomaticLocation`.
+// Favorites rows for the Location page: up to 5 saved cities + mosque
+// timetables, then the two search rows. Tapping a favorite switches straight
+// to it; the "Automatic" row switches back to system location via
+// `switchToAutomaticLocation`.
+//
+// The search rows are accordions: tapping one reveals its search UI inline —
+// a city field with its results, or the mosque timetable picker — instead of
+// popping this page and pushing the search page. That pop-then-push was what
+// flickered (both pages blended mid-transition while the panel resized and the
+// search field re-resolved its chrome), so nothing here navigates any more.
+// `openSearch` starts `nil` every time the page is (re)created, so the
+// accordions always open shut.
 
 import SwiftUI
-import NavigationStack
 
 struct FavoritesSection: View {
     @EnvironmentObject var vm: PrayerTimeViewModel
-    @EnvironmentObject var navigationModel: NavigationModel
 
+    /// Which inline search is open; `nil` = both shut. Single-open like the
+    /// Settings accordions, so opening one closes the other.
+    private enum OpenSearch: Equatable {
+        case city
+        case mosque
+    }
+
+    @State private var openSearch: OpenSearch?
     @State private var hoveringFavoriteID: String?
     @State private var isAutomaticHovering = false
     @State private var isCityHovering = false
@@ -20,29 +33,85 @@ struct FavoritesSection: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
-                automaticRow
-                if vm.favoritePlaces.isEmpty {
-                    // No favorites yet: direct shortcuts to the two search
-                    // pages (same rows, same hover, just no star column),
-                    // so starring can start from here.
-                    citySearchRow
-                    mosqueSearchRow
-                } else {
-                    ForEach(vm.favoritePlaces) { favorite in
-                        favoriteRow(favorite)
-                    }
-                    // Divider between saved favorites and the two search
-                    // shortcuts below them.
-                    Rectangle()
-                        .fill(Color("DividerColor"))
-                        .frame(height: 0.5)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 2)
-                    citySearchRow
-                    mosqueSearchRow
+            automaticRow
+            if !vm.favoritePlaces.isEmpty {
+                ForEach(vm.favoritePlaces) { favorite in
+                    favoriteRow(favorite)
+                }
+                // Divider between saved favorites and the two search rows
+                // below them.
+                Rectangle()
+                    .fill(Color("DividerColor"))
+                    .frame(height: 0.5)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 2)
+            }
+            // The search rows show in both states: with no favorites yet they
+            // are the only way to start starring; with favorites they sit
+            // under the divider.
+            citySearchRow
+            if openSearch == .city { citySearchContent }
+            mosqueSearchRow
+            if openSearch == .mosque { mosqueSearchContent }
+        }
+        .padding(.vertical, 2)
+        .clipped()
+    }
+
+    // MARK: - Inline searches
+
+    /// Single-open toggle, animated on the accordion curve so the panel (and
+    /// the menu window behind it) resizes in lockstep with the reveal — the
+    /// same curve the Settings sections use.
+    private func toggleSearch(_ target: OpenSearch) {
+        withAnimation(.sajdaAccordion) {
+            openSearch = (openSearch == target) ? nil : target
+        }
+        // Closing the city search forgets its query, exactly like leaving the
+        // dedicated search page used to (its `onDisappear` reset).
+        if openSearch != .city, !vm.locationSearchQuery.isEmpty {
+            vm.locationSearchQuery = ""
+        }
+    }
+
+    /// Inline city search: the same field + results the Set Location page
+    /// shows, rendered under its row. Picking a result applies the
+    /// coordinates and folds the accordion back up (the page flow popped the
+    /// search page instead).
+    private var citySearchContent: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            // Chrome drawn by the app (see `SajdaSearchField`) instead of the
+            // native rounded bezel, which could blink black mid-transition.
+            SajdaSearchField(placeholder: "Search for a city or paste coordinates...", text: $vm.locationSearchQuery)
+
+            if vm.isLocationSearching {
+                ProgressView()
+                    .controlSize(.small)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 4)
+            } else {
+                LocationSearchResultsList { result in
+                    vm.setManualLocation(city: result.name, coordinates: result.coordinates)
+                    withAnimation(.sajdaAccordion) { openSearch = nil }
                 }
             }
-            .padding(.vertical, 2)
+        }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 4)
+        // Height slide + fade, clipped, so rows never fly outside the section
+        // while the panel grows — the reveal the Settings accordions use.
+        .transition(.opacity.combined(with: .move(edge: .top)))
+        .clipped()
+    }
+
+    /// Inline mosque search: the same self-contained picker Settings embeds —
+    /// it owns its query, results and download state, so nothing here has to.
+    private var mosqueSearchContent: some View {
+        MosqueTimetablePicker()
+            .environmentObject(vm)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .transition(.opacity.combined(with: .move(edge: .top)))
             .clipped()
     }
 
@@ -85,21 +154,11 @@ struct FavoritesSection: View {
         }
     }
 
-    /// Shortcuts shown when no favorites exist yet: jump straight to the
-    /// city or mosque search, where the star beside a result saves it.
-    /// Same row metrics + chevron as the favorite rows so hover pills and
-    /// trailing symbols line up exactly.
+    /// City search accordion header: same row metrics + chevron as the
+    /// favorite rows so hover pills and trailing symbols line up exactly.
+    /// Expanded it points up (the `SettingsAccordion` convention).
     private var citySearchRow: some View {
-        Button(action: {
-            // This row renders inside FavoritesView, which is itself the
-            // active alternative view of ContentView.id — a second
-            // showView on the same id trips NavigationStack's
-            // 'replacing showing navigation view' fatalError. Pop the
-            // favorites page first (synchronous, no animation), then push
-            // the search exactly like the old main-screen flow did.
-            navigationModel.hideView(ContentView.id, animation: nil)
-            navigationModel.showView(ContentView.id, animation: vm.forwardAnimation()) { ManualLocationView(isModal: true) }
-        }) {
+        Button(action: { toggleSearch(.city) }) {
             HStack(spacing: 6) {
                 Image(systemName: "mappin.circle")
                     .scaledFont(.caption)
@@ -110,7 +169,7 @@ struct FavoritesSection: View {
                     .lineLimit(1)
                     .truncationMode(.tail)
                 Spacer(minLength: 4)
-                Image(systemName: vm.forwardChevron)
+                Image(systemName: openSearch == .city ? "chevron.up" : vm.forwardChevron)
                     .scaledFont(.caption, weight: .bold)
                     .foregroundColor(.secondary)
                     .frame(width: 20)
@@ -124,13 +183,10 @@ struct FavoritesSection: View {
         .onHover { hovering in isCityHovering = hovering }
     }
 
+    /// Mosque search accordion header, same shape as `citySearchRow` — its
+    /// expanded content is the picker Settings uses.
     private var mosqueSearchRow: some View {
-        Button(action: {
-            // Same double-push guard as citySearchRow: pop FavoritesView
-            // off ContentView.id before pushing the mosque search.
-            navigationModel.hideView(ContentView.id, animation: nil)
-            navigationModel.showView(ContentView.id, animation: vm.forwardAnimation()) { MosqueSearchView() }
-        }) {
+        Button(action: { toggleSearch(.mosque) }) {
             HStack(spacing: 6) {
                 Image(systemName: "building.columns")
                     .scaledFont(.caption)
@@ -141,7 +197,7 @@ struct FavoritesSection: View {
                     .lineLimit(1)
                     .truncationMode(.tail)
                 Spacer(minLength: 4)
-                Image(systemName: vm.forwardChevron)
+                Image(systemName: openSearch == .mosque ? "chevron.up" : vm.forwardChevron)
                     .scaledFont(.caption, weight: .bold)
                     .foregroundColor(.secondary)
                     .frame(width: 20)

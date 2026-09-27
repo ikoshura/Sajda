@@ -67,16 +67,18 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
         // We still play here as a safety net so audio is not missed if the timer
         // fires while the user is interacting with the menu.
         let prayerName = notification.request.identifier
-        let config = vm.soundConfig(for: prayerName)
-        AdhanAudioPlayer.shared.play(adhanType: config.adhanType, customFilePath: config.customFilePath, prayerName: prayerName)
+        if let sound = vm.adhanSound(for: prayerName) {
+            AdhanAudioPlayer.shared.play(adhanType: sound.adhanType, customFilePath: sound.customFilePath, prayerName: prayerName)
+        }
         completionHandler([.banner])
     }
 
     func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
         // User clicked the notification — ensure audio plays even if the timer missed.
         let prayerName = response.notification.request.identifier
-        let config = vm.soundConfig(for: prayerName)
-        AdhanAudioPlayer.shared.play(adhanType: config.adhanType, customFilePath: config.customFilePath, prayerName: prayerName)
+        if let sound = vm.adhanSound(for: prayerName) {
+            AdhanAudioPlayer.shared.play(adhanType: sound.adhanType, customFilePath: sound.customFilePath, prayerName: prayerName)
+        }
         completionHandler()
     }
 

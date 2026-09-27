@@ -55,7 +55,12 @@ class AnyLanguageBundle: Bundle, @unchecked Sendable {
 extension Bundle {
     static func setLanguage(_ language: String) {
         defer { object_setClass(Bundle.main, AnyLanguageBundle.self) }
-        let value = language == "en" ? nil : Bundle.main.path(forResource: language, ofType: "lproj")
+        // Always pin an explicit .lproj — including English. Leaving the
+        // "en" association nil used to fall through to the *system* language
+        // there, so on a French system the `NSLocalizedString` surfaces (the
+        // menu bar title among them) stayed French after switching the app
+        // back to English.
+        let value = Bundle.main.path(forResource: language, ofType: "lproj")
         objc_setAssociatedObject(Bundle.main, &BundleLanguageKey.key, value, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
     }
 }

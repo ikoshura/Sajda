@@ -61,4 +61,28 @@ enum AdhanType: String, CaseIterable, Identifiable, Codable {
 struct PrayerSoundConfig: Codable, Equatable {
     var adhanType: AdhanType = .defaultBeep
     var customFilePath: String = ""
+    /// Adhan muted from the home panel's per-prayer speaker toggle (or from
+    /// Settings). Kept separate from `adhanType` so muting never throws away
+    /// the sound picked in Settings.
+    var muted: Bool = false
+
+    private enum CodingKeys: String, CodingKey {
+        case adhanType, customFilePath, muted
+    }
+
+    init(adhanType: AdhanType = .defaultBeep, customFilePath: String = "", muted: Bool = false) {
+        self.adhanType = adhanType
+        self.customFilePath = customFilePath
+        self.muted = muted
+    }
+
+    /// Explicit decode (with defaults) so configs stored before `muted`
+    /// existed keep loading — the synthesized decoder would throw
+    /// `keyNotFound` on the missing key instead.
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        adhanType = try container.decodeIfPresent(AdhanType.self, forKey: .adhanType) ?? .defaultBeep
+        customFilePath = try container.decodeIfPresent(String.self, forKey: .customFilePath) ?? ""
+        muted = try container.decodeIfPresent(Bool.self, forKey: .muted) ?? false
+    }
 }

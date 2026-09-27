@@ -5,11 +5,12 @@
 // reveals the group's rows inline. The parent owns which section is open so
 // opening one group always closes the previous one.
 //
-// Expand/collapse drives the menu height through `SettingsAccordion.animation`
+// Expand/collapse drives the menu height through `Animation.sajdaAccordion`
 // (a slow 0.38 s smooth curve), so the panel and the MenuBarExtra window
-// resize in lockstep (see `toggleSection` call sites). Content reveals with
-// a height slide + fade and is clipped, so rows never visibly fly or flash
-// outside the bounds while the window slides to its new size.
+// resize in lockstep. Content reveals with a height slide + fade and is
+// clipped, so rows never visibly fly or flash outside the bounds while the
+// window slides to its new size. The same curve drives the inline searches on
+// the Location page.
 
 import SwiftUI
 
@@ -28,14 +29,6 @@ struct SettingsAccordion<Content: View>: View {
     let onToggle: () -> Void
     @ViewBuilder let content: Content
 
-    /// Slow, calm expand/collapse curve so the toggle feels smooth rather
-    /// than shocking. Deliberately slower than the snappy
-    /// `.macControlCenterMenuResize` (0.2 s) window snap — the panel window
-    /// tracks the animating content size frame-by-frame, so stretching the
-    /// SwiftUI animation stretches the whole resize with it.
-    static var animation: Animation {
-        .smooth(duration: 0.38, extraBounce: 0)
-    }
     /// Gap between the collapse and the expand when switching sections
     /// (single-open): long enough that both contents never overlap
     /// mid-animation, short enough to still feel like one motion.

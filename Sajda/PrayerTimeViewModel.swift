@@ -39,6 +39,13 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
     @Published var isLocationSearching: Bool = false
     @Published var locationInfoText: String = ""
     @Published var isPrayerImminent: Bool = false
+    /// True between a prayer's adhan and its iqama — the gathering window in
+    /// which the menu bar tints with `iqamaWaitingColor`.
+    @Published var isIqamaWaiting: Bool = false
+    /// Yellow-orange for that window: deliberately halfway between
+    /// `systemYellow` and `systemOrange` (#FFA300), dark enough to read on
+    /// both light and dark status bars.
+    static let iqamaWaitingColor = NSColor(red: 1.0, green: 0.64, blue: 0.0, alpha: 1.0)
     @Published var isRequestingLocation: Bool = false
     @Published var isAdhanPlaying: Bool = false
     @Published var activeAdhanPrayerName: String = ""
@@ -61,15 +68,20 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
     /// swaps its content branch when the precede flag flips, which recreates
     /// the pushed SettingsView with fresh @State — a fresh `.display` is what
     /// used to flash over Appearance during the fade back to Main.
-    /// Selected Settings tab (Display / Appearance / Prayer / System),
-    /// persisted so a NavigationStack pop can't reset it mid-exit: the library
-    /// swaps its content branch when the precede flag flips, which recreates
-    /// the pushed SettingsView with fresh @State — a fresh `.display` is what
-    /// used to flash over Appearance during the fade back to Main.
-    @AppStorage("settingsSelectedTab") var settingsSelectedTab: String = "display"
+    /// Republishes on every write: Settings' tab bar is a dropdown, so this is
+    /// what repaints the page *and* re-keys the menu's resize animation for the
+    /// panel to grow/collapse to the picked tab's height.
+    @AppStorage("settingsSelectedTab") var settingsSelectedTab: String = "display" { didSet { objectWillChange.send() } }
     /// When on, reopening Settings keeps the last-used tab; when off, Settings
     /// always opens on Display.
     @AppStorage("settingsTabLocked") var settingsTabLocked: Bool = false
+    /// Whether Settings > Appearance's colour surface is dropped down under the
+    /// "Custom Color" row. On the view model rather than in the view's `@State`
+    /// because it is part of `SajdaControlCenterMenu.panelLayoutSignature`: that
+    /// is what animates the panel's height as the dropdown opens instead of
+    /// letting the window snap — and NavigationStack's page recreation would
+    /// otherwise lose it mid-pop.
+    @Published var settingsColorPickerOpen: Bool = false
     @AppStorage("useMinimalMenuBarText") var useMinimalMenuBarText: Bool = false { didSet { updateAndDisplayTimes() } }
     @AppStorage("showSunnahPrayers") var showSunnahPrayers: Bool = false { didSet { updatePrayerTimes() } }
     @AppStorage("useAccentColor") var useAccentColor: Bool = true
@@ -182,6 +194,7 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
         startTimer()
         setupSearchPublisher()
         setupAdhanObservers()
+        setupLanguageRefresh()
     }
 
     private func migratePrayerSoundConfigs() {
@@ -540,17 +553,29 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
     /// `[fajr, sunrise, dhuhr, asr, maghrib, isha]` ("HH:MM", Mac timezone).
     private func applyMawaqitDay(_ day: [String], mosque: MawaqitMosque) {
         guard day.count >= 6,
-              let fajr = dateFromHM(day[0]), let dhuhr = dateFromHM(day[2]),
-              let asr = dateFromHM(day[3]), let maghrib = dateFromHM(day[4]),
-              let isha = dateFromHM(day[5]) else {
+              let rawFajr = dateFromHM(day[0]), let rawDhuhr = dateFromHM(day[2]),
+              let rawAsr = dateFromHM(day[3]), let rawMaghrib = dateFromHM(day[4]),
+              let rawIsha = dateFromHM(day[5]) else {
             logger.warning("Mawaqit day entry incomplete; keeping previous times.")
             return
         }
 
+        // The same per-prayer offsets the Time Correction page applies to
+        // calculated times — one page for both modes. They shift only these
+        // in-memory Dates: `mosque.calendar` (the downloaded JSON on disk) is
+        // never written to, so the mosque's own times stay pristine and a
+        // refresh simply re-applies the offsets on top of them.
+        let fajr = rawFajr.addingTimeInterval(fajrCorrection * 60)
+        let dhuhr = rawDhuhr.addingTimeInterval(dhuhrCorrection * 60)
+        let asr = rawAsr.addingTimeInterval(asrCorrection * 60)
+        let maghrib = rawMaghrib.addingTimeInterval(maghribCorrection * 60)
+        let isha = rawIsha.addingTimeInterval(ishaCorrection * 60)
+
         // Sunnah prayers stay usable in mosque mode, counted locally: Tahajud
         // from the *ongoing* night (yesterday's mosque Isha → today's Fajr,
         // only while still before today's Fajr) and Dhuha 20 minutes after
-        // the mosque's sunrise.
+        // the mosque's sunrise. Yesterday's Isha gets its offset too, so the
+        // night window matches what the calculated path derives.
         var extras: [(name: String, time: Date)] = []
         if showSunnahPrayers {
             let now = Date()
@@ -558,7 +583,8 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
             if now < fajr,
                let yesterdayDay = MawaqitService.times(for: yesterday, in: mosque.calendar),
                yesterdayDay.count >= 6,
-               let yesterdayIsha = dateFromHM(yesterdayDay[5], on: yesterday) {
+               let rawYesterdayIsha = dateFromHM(yesterdayDay[5], on: yesterday) {
+                let yesterdayIsha = rawYesterdayIsha.addingTimeInterval(ishaCorrection * 60)
                 let night = fajr.timeIntervalSince(yesterdayIsha)
                 if night > 0 {
                     extras.append(("Tahajud", yesterdayIsha.addingTimeInterval(night * (2 / 3.0))))
@@ -573,10 +599,11 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
         // new calendar may not be published yet, so fall back to today's Fajr
         // clock time on tomorrow's date (the estimate the Mawaqit applet uses).
         let tomorrow = Date().addingTimeInterval(86_400)
-        let fajrTomorrow = MawaqitService.times(for: tomorrow, in: mosque.calendar)
+        let rawFajrTomorrow = MawaqitService.times(for: tomorrow, in: mosque.calendar)
             .flatMap { dateFromHM($0[0], on: tomorrow) }
             ?? dateFromHM(day[0], on: tomorrow)
-            ?? fajr.addingTimeInterval(86_400)
+            ?? rawFajr.addingTimeInterval(86_400)
+        let fajrTomorrow = rawFajrTomorrow.addingTimeInterval(fajrCorrection * 60)
 
         var entries: [(name: String, time: Date)] = [
             ("Fajr", fajr), ("Dhuhr", dhuhr), ("Asr", asr),
@@ -626,34 +653,172 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
         }
     }
 
-    /// Minutes after the adhan for the iqama when the mosque doesn't publish
-    /// its own iqama times — set with the +/- stepper in Settings (default 8).
-    /// Republishes because the stepper must redraw immediately.
+    /// Default minutes after the adhan for prayers the user hasn't given
+    /// their own gap (default 8). It has no UI of its own any more — the
+    /// mosque picker's "Iqama Delay" stepper is gone, so the per-prayer rows
+    /// on the Time Correction page are the only way to configure the iqama,
+    /// and they all read/write through `iqamaDelay(for:)`. The key is kept so
+    /// previously chosen defaults still carry over.
+    /// Republishes because a change must redraw the rows immediately.
     @AppStorage("iqamaDelayMinutes") var iqamaDelayMinutes: Int = 8 { didSet { objectWillChange.send() } }
 
-    /// Iqama time for the next prayer (mosque mode only): the mosque's published
-    /// absolute iqama for the occurrence's day when available, otherwise the
-    /// adhan time plus `iqamaDelayMinutes`, counted locally. Sunnah prayers
-    /// have no congregation, so they get no iqama.
-    var nextPrayerIqamaDate: Date? {
-        guard useMawaqitSchedule,
-              let mosque = mawaqitMosque,
-              let occ = nextPrayerOccurrenceDate,
-              let index = Self.mosquePrayerIndex[nextPrayerName] else { return nil }
-        // The occurrence can be tomorrow's Fajr (after Isha), so the calendar is
-        // read for the occurrence's own day instead of always today.
-        if let iqama = mosque.iqamaCalendar,
-           let entry = MawaqitService.times(for: occ, in: iqama, minimumColumns: 5),
-           index < entry.count,
-           let published = dateFromHM(entry[index], on: occ), published >= occ {
-            return published
+    /// Jumu'ah session times as minutes past midnight in the shown timezone,
+    /// kept as a free list in Settings so mosques with several Friday
+    /// sessions can list them all (at most `maxJumuahSessions`). Empty means
+    /// "no Jumu'ah row": the panel never invents session times.
+    @AppStorage("jumuahSessions") var jumuahSessionsJSON: String = "[]" { didSet { objectWillChange.send() } }
+
+    /// Listing cap — one or two Friday sessions is the norm; five stays
+    /// generous while keeping the panel row a single clean line.
+    static let maxJumuahSessions = 5
+
+    /// Per-prayer gaps the user set on the Time Correction page, stored as JSON
+    /// like `prayerSoundConfigsJSON`. Prayers absent from the map keep following
+    /// `iqamaDelayMinutes`, which is therefore just the untouched baseline — the
+    /// rows are the only place the iqama gets configured.
+    @AppStorage("iqamaDelayOverrides") var iqamaDelayOverridesJSON: String = "{}" { didSet { objectWillChange.send() } }
+
+    var iqamaDelayOverrides: [String: Int] {
+        get {
+            guard let data = iqamaDelayOverridesJSON.data(using: .utf8),
+                  let dict = try? JSONDecoder().decode([String: Int].self, from: data)
+            else { return [:] }
+            return dict
         }
-        return occ.addingTimeInterval(Double(iqamaDelayMinutes) * 60)
+        set {
+            guard let data = try? JSONEncoder().encode(newValue) else { return }
+            iqamaDelayOverridesJSON = String(data: data, encoding: .utf8) ?? "{}"
+        }
     }
 
-    /// Mosque calendar column per prayer: [fajr, dhuhr, asr, maghrib, isha]
-    /// (the adhan calendar's sunrise column is skipped).
-    private static let mosquePrayerIndex = ["Fajr": 0, "Dhuhr": 1, "Asr": 2, "Maghrib": 3, "Isha": 4]
+    /// Effective gap for a prayer: its own override when set, otherwise the
+    /// default.
+    func iqamaDelay(for prayer: String) -> Int {
+        iqamaDelayOverrides[prayer] ?? iqamaDelayMinutes
+    }
+
+    /// Stores a prayer's gap. A value equal to the default drops the
+    /// override instead of pinning it, so that prayer keeps tracking later
+    /// changes to `iqamaDelayMinutes`.
+    func setIqamaDelay(_ minutes: Int, for prayer: String) {
+        var overrides = iqamaDelayOverrides
+        if minutes == iqamaDelayMinutes {
+            overrides.removeValue(forKey: prayer)
+        } else {
+            overrides[prayer] = minutes
+        }
+        iqamaDelayOverrides = overrides
+        // Republish on the spot so the row previews and the countdown header
+        // redraw without waiting for the next unrelated view-model change.
+        objectWillChange.send()
+    }
+
+    /// Iqama time for the next prayer — the one iqama source for every mode:
+    /// the adhan plus that prayer's gap (`iqamaDelay(for:)`, the per-prayer
+    /// estimate configured on the Time Correction page, falling back to the
+    /// default). Mosque timetables no longer feed their own iqama in, so the
+    /// same number applies on calculated times and on a timetable alike.
+    /// Sunnah prayers have no congregation, so they get none.
+    /// Note: even when the per-prayer adhan above is muted, its time still
+    /// reads here — the mute silences audio, it never moves a clock.
+    var nextPrayerIqamaDate: Date? {
+        guard let occ = nextPrayerOccurrenceDate,
+              Self.congregationalPrayers.contains(nextPrayerName) else { return nil }
+        return occ.addingTimeInterval(Double(iqamaDelay(for: nextPrayerName)) * 60)
+    }
+
+    /// Sanitised Jumu'ah sessions (each a valid 0...1439 clock time, sorted,
+    /// deduped, capped): the single source the Settings editor and the
+    /// panel's Friday row both read and write through.
+    var jumuahSessions: [Int] {
+        get {
+            let sorted = Self.sanitiseJumuahSessions(decodedJumuahSessions)
+            if sorted != decodedJumuahSessions {
+                // Fold stale extras away a tick later so reading the value in
+                // a body never writes state mid-render.
+                DispatchQueue.main.async { [weak self] in self?.jumuahSessions = sorted }
+            }
+            return sorted
+        }
+        set {
+            if let data = try? JSONEncoder().encode(Self.sanitiseJumuahSessions(newValue)) {
+                jumuahSessionsJSON = String(data: data, encoding: .utf8) ?? "[]"
+            }
+        }
+    }
+
+    /// Raw stored list (may hold junk from hand edits): validated on the way
+    /// in and out by `jumuahSessions` above.
+    private var decodedJumuahSessions: [Int] {
+        guard let data = jumuahSessionsJSON.data(using: .utf8),
+              let list = try? JSONDecoder().decode([Int].self, from: data) else { return [] }
+        return list
+    }
+
+    private static func sanitiseJumuahSessions(_ values: [Int]) -> [Int] {
+        Array(Set(values.filter { (0..<1440).contains($0) }).sorted().prefix(maxJumuahSessions))
+    }
+
+    /// The five congregational prayers — the only ones that get an iqama.
+    private static let congregationalPrayers: Set<String> = ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"]
+
+    /// True while some congregational prayer sits between its adhan and its
+    /// iqama — the window the menu bar tints yellow-orange. Read from
+    /// `updateCountdown`'s once-a-second tick, so a gap edited on the Time
+    /// Correction page is picked up within a second of the row moving.
+    private func isWithinIqamaWait(at now: Date) -> Bool {
+        for name in Self.congregationalPrayers {
+            guard let adhan = todayTimes[name] else { continue }
+            let iqama = adhan.addingTimeInterval(Double(iqamaDelay(for: name)) * 60)
+            if now >= adhan, now < iqama { return true }
+        }
+        return false
+    }
+
+    /// True on Fridays by the clock the panel shows: that's when the Jumu'ah
+    /// row joins the schedule (`weekday == 6` is Friday in the Gregorian
+    /// calendar).
+    var isFriday: Bool {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = displayTimeZone
+        return calendar.component(.weekday, from: Date()) == 6
+    }
+
+    /// Today's Jumu'ah sessions as display-timezone Dates, sorted. Empty when
+    /// none are configured — the panel row renders only off this.
+    var jumuahSessionDates: [Date] {
+        let sessions = jumuahSessions
+        guard !sessions.isEmpty else { return [] }
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = displayTimeZone
+        let day = calendar.dateComponents([.year, .month, .day], from: Date())
+        return sessions.compactMap { minutes -> Date? in
+            var components = day
+            components.hour = minutes / 60
+            components.minute = minutes % 60
+            components.second = 0
+            return calendar.date(from: components)
+        }
+    }
+
+    /// Seed for a newly added Jumu'ah session: today's Dhuhr on the panel's
+    /// clock rounded up to the next quarter hour — Jumu'ah follows Dhuhr, so a
+    /// session added in Settings should start around there instead of at
+    /// whatever o'clock the + happened to be tapped. Falls back to 12:30
+    /// before any prayer time is known.
+    var jumuahSeedMinutes: Int {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = displayTimeZone
+        let dhuhr = todayTimes["Dhuhr"].map { calendar.dateComponents([.hour, .minute], from: $0) }
+        return Self.jumuahSessionSeed(hour: dhuhr?.hour ?? 12, minute: dhuhr?.minute ?? 15)
+    }
+
+    /// Quarter-hour rounding behind `jumuahSeedMinutes`, kept pure so the
+    /// midnight wrap is unit-testable without a live view model.
+    static func jumuahSessionSeed(hour: Int, minute: Int) -> Int {
+        let total = hour * 60 + ((minute / 15) + 1) * 15
+        return ((total % 1440) + 1440) % 1440
+    }
 
     /// Panel caption: the mosque's name while the mosque timetable is active.
     var panelLocationCaption: String {
@@ -738,13 +903,17 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
 
     private func updateCountdown() {
         guard let nextDate = nextPrayerOccurrenceDate else {
-            countdown = "--:--"; detailedCountdown = "--:--:--"; updateMenuTitle(); return
+            countdown = "--:--"; detailedCountdown = "--:--:--"; isIqamaWaiting = false; updateMenuTitle(); return
         }
 
         let diff = Int(nextDate.timeIntervalSince(Date()))
         // Red alert: the imminent styling starts `redAlertMinutes` minutes
         // before the prayer; 0 never triggers it.
         isPrayerImminent = (redAlertMinutes > 0 && diff <= redAlertMinutes * 60 && diff > 0)
+        // Iqama window: adhan passed, iqama not yet, so the menu bar goes
+        // yellow-orange. Mutually exclusive with the red alert above, which
+        // only ever runs *before* the prayer time.
+        isIqamaWaiting = isWithinIqamaWait(at: Date())
 
         // hh:mm:ss for the panel's countdown header (same locale digits as
         // the menu-bar countdown).
@@ -771,8 +940,9 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
             }
         } else {
             countdown = NSLocalizedString("Now", comment: "")
-            let config = soundConfig(for: nextPrayerName)
-            AdhanAudioPlayer.shared.play(adhanType: config.adhanType, customFilePath: config.customFilePath, prayerName: nextPrayerName)
+            if let sound = adhanSound(for: nextPrayerName) {
+                AdhanAudioPlayer.shared.play(adhanType: sound.adhanType, customFilePath: sound.customFilePath, prayerName: nextPrayerName)
+            }
             DispatchQueue.main.asyncAfter(deadline: .now() + 2) { self.updateNextPrayer() }
         }
         updateMenuTitle()
@@ -843,6 +1013,18 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
         }
         let alpha = Int((min(max(a, 0), 1) * 255).rounded())
         return String(format: "#%02X%02X%02X%02X", r, g, b, alpha)
+    }
+
+    /// Hue / saturation / brightness / alpha of a picked colour, as the HSB
+    /// state the colour surface works in. The ColorSelector package converts
+    /// with these internally, but its `Color.hue/saturation/brightness/alpha`
+    /// helpers are internal to it — so the inline (non-popover) surface seeds
+    /// itself from here instead, through AppKit's sRGB components.
+    static func hsbaComponents(from color: Color?) -> (hue: CGFloat, saturation: CGFloat, brightness: CGFloat, alpha: CGFloat) {
+        guard let color, let srgb = NSColor(color).usingColorSpace(.sRGB) else {
+            return (0, 1, 1, 1)
+        }
+        return (srgb.hueComponent, srgb.saturationComponent, srgb.brightnessComponent, srgb.alphaComponent)
     }
 
     /// On-state tint for native controls (switches, checkboxes): the selected
@@ -1089,6 +1271,8 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
         var attributes: [NSAttributedString.Key: Any] = [:]
         if isPrayerImminent {
             attributes[.foregroundColor] = NSColor.systemRed
+        } else if isIqamaWaiting {
+            attributes[.foregroundColor] = Self.iqamaWaitingColor
         }
         // Aksesibilitas: judul menu bar bisa diperbesar dan/atau ditebalkan
         // agar tetap terbaca tanpa zoom sistem. Dengan "Show Seconds" aktif
@@ -1186,6 +1370,32 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
         prayerSoundConfigs[prayerName] ?? PrayerSoundConfig()
     }
 
+    /// Sound to play for a prayer's adhan, or nil when it should stay silent:
+    /// the prayer is muted from the home panel, or "None" is chosen in
+    /// Settings. The notification banner still shows either way.
+    func adhanSound(for prayerName: String) -> (adhanType: AdhanType, customFilePath: String)? {
+        let config = soundConfig(for: prayerName)
+        guard !config.muted, config.adhanType != .none else { return nil }
+        return (config.adhanType, config.customFilePath)
+    }
+
+    /// Whether a prayer currently makes no sound — muted from the home panel
+    /// or "None" in Settings. Drives that row's speaker icon on the panel.
+    func isAdhanMuted(_ prayerName: String) -> Bool {
+        adhanSound(for: prayerName) == nil
+    }
+
+    /// Per-prayer adhan mute from the home panel. Muting only flips `muted`,
+    /// never the sound picked in Settings; enabling a prayer whose type is
+    /// "None" falls back to the default beep so the toggle actually turns
+    /// sound back on.
+    func setAdhanMuted(_ muted: Bool, for prayerName: String) {
+        var config = soundConfig(for: prayerName)
+        config.muted = muted
+        if !muted, config.adhanType == .none { config.adhanType = .defaultBeep }
+        setSoundConfig(config, for: prayerName)
+    }
+
     func stopAdhan() {
         AdhanAudioPlayer.shared.stop()
     }
@@ -1193,6 +1403,19 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
     private func setupAdhanObservers() {
         NotificationCenter.default.addObserver(self, selector: #selector(handleAdhanDidStart(_:)), name: .adhanDidStart, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(handleAdhanDidStop(_:)), name: .adhanDidStop, object: nil)
+    }
+
+    /// Rebuilds the menu bar title the moment the app language is switched —
+    /// the menu bar label lives outside `LanguageManagerView`'s
+    /// `.id(language)` re-render, so without this the old-language title
+    /// would linger until the countdown tick rebuilt it a second later.
+    private func setupLanguageRefresh() {
+        NotificationCenter.default.publisher(for: UserDefaults.didChangeNotification)
+            .compactMap { _ in UserDefaults.standard.string(forKey: "selectedLanguage") }
+            .removeDuplicates()
+            .receive(on: RunLoop.main)
+            .sink { [weak self] _ in self?.updateMenuTitle() }
+            .store(in: &cancellables)
     }
 
     @objc private func handleAdhanDidStart(_ notification: Notification) {

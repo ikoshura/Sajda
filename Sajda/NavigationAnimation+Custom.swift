@@ -10,6 +10,18 @@ extension Animation {
     /// navigation curve so page transitions and the panel's height resize
     /// move as one motion instead of two speeds racing each other.
     static let sajdaResizePace: Animation = .macControlCenterMenuResize
+
+    /// Slow, calm expand/collapse curve for the panel's accordions (Settings
+    /// sections and the Location page's inline searches), so a reveal feels
+    /// smooth rather than shocking. Deliberately slower than the snappy
+    /// `.macControlCenterMenuResize` (0.2 s) window snap — the panel window
+    /// tracks the animating content size frame-by-frame, so stretching the
+    /// SwiftUI animation stretches the whole resize with it.
+    ///
+    /// Lives here rather than only on `SettingsAccordion` because that type is
+    /// generic: `SettingsAccordion.animation` cannot be referenced without a
+    /// `Content` to infer, which makes it unusable from other views.
+    static let sajdaAccordion: Animation = .smooth(duration: 0.38, extraBounce: 0)
 }
 
 extension NavigationAnimation {
