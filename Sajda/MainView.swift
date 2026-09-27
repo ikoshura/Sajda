@@ -11,6 +11,10 @@ struct MainView: View {
     @State private var isAboutHovering = false
     @State private var isQuitHovering = false
     @State private var isLocationHovering = false
+    /// Update availability, observed directly: the footer badge below reflects
+    /// it live, and AboutView binds the same shared checker.
+    @ObservedObject private var updater = UpdateChecker.shared
+    @State private var isUpdateHovering = false
     /// Location row. A push to the Favorites page (same NavigationStack
     /// mechanism as Settings/About): tapping opens FavoritesView, and the
     /// accordion state lives on that page's @State — so it is born shut on
@@ -84,7 +88,6 @@ struct MainView: View {
             // card is off, and sits under the list (behind its own separator)
             // when the card is on.
             let showCountdownCard = vm.isPrayerDataAvailable && vm.showCountdownHeader && vm.nextPrayerOccurrenceDate != nil
-            UpdateBannerRow()
             if showCountdownCard {
                 NextPrayerCountdownHeader()
             }
@@ -148,6 +151,24 @@ struct MainView: View {
 
                     Spacer(minLength: 0)
 
+                    // Update badge, leading the trailing icon group so it sits
+                    // immediately beside About. Only rendered while a newer
+                    // release is known; tapping it opens the release page.
+                    if case .updateAvailable(let version, _) = updater.state {
+                        Button(action: { updater.openReleasePage() }) {
+                            Image(systemName: "arrow.down.circle.fill")
+                                .scaledFont(.body)
+                                .foregroundColor(vm.selectedHighlightColor)
+                                .padding(.vertical, 5).padding(.horizontal, 8)
+                                .liquidHover(isUpdateHovering)
+                        }
+                        .buttonStyle(.plain)
+                        .onHover { hovering in isUpdateHovering = hovering }
+                        .focusable(false)
+                        .help(Text(String(format: NSLocalizedString("Update available: %@", comment: ""), version)))
+                        .accessibilityLabel(Text(String(format: NSLocalizedString("Update available: %@", comment: ""), version)))
+                    }
+
                     Button(action: {
                         navigationModel.showView(ContentView.id, animation: vm.forwardAnimation()) { AboutView() }
                     }) {
@@ -194,42 +215,6 @@ struct MainView: View {
         .padding(.bottom, 2)
         .frame(width: viewWidth)
 
-    }
-}
-
-/// Update banner for the main panel: visible only while a newer release is
-/// known and not dismissed. Tapping opens the release page; "Later" hides it
-/// for this launch (About still shows the update). Dismissable by design so
-/// the banner can live on Main without nagging.
-struct UpdateBannerRow: View {
-    @ObservedObject private var updater = UpdateChecker.shared
-    @EnvironmentObject var vm: PrayerTimeViewModel
-
-    var body: some View {
-        if case .updateAvailable(let version, _) = updater.state, !updater.updateBannerDismissed {
-            HStack(spacing: 6) {
-                Button(action: { updater.openReleasePage() }) {
-                    HStack(spacing: 6) {
-                        Image(systemName: "arrow.down.circle.fill")
-                        Text(String(format: NSLocalizedString("Update available: %@", comment: ""), version))
-                            .scaledFont(.caption, weight: .semibold)
-                            .lineLimit(1)
-                    }
-                    .padding(.vertical, 5).padding(.horizontal, 8)
-                }
-                .buttonStyle(.plain)
-                .foregroundColor(vm.selectedHighlightColor)
-                Spacer(minLength: 0)
-                Button(action: { updater.updateBannerDismissed = true }) {
-                    Text(NSLocalizedString("Later", comment: "")).scaledFont(.caption)
-                        .padding(.vertical, 5).padding(.horizontal, 6)
-                }
-                .buttonStyle(.plain)
-                .foregroundColor(Color("SecondaryTextColor"))
-                .help(Text(NSLocalizedString("Dismiss for now", comment: "")))
-            }
-            .padding(.horizontal, 5)
-        }
     }
 }
 
