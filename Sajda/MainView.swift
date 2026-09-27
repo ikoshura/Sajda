@@ -434,22 +434,64 @@ struct PrayerListView: View {
         return ("88:88" as NSString).size(withAttributes: [.font: font]).width + 4
     }
 
+    /// Width the sunnah "plusminus" estimate mark adds to the time column.
+    ///
+    /// Reserved on *every* row, not just the sunnah ones. That sounds wasteful,
+    /// but it's what keeps the digits aligned: the column is right-aligned, so
+    /// a wider column on sunnah rows alone would push those two times further
+    /// left than the five beside them. Reserving it everywhere instead means
+    /// every clock in the panel ends on the same x, and the mark sits hard
+    /// against its own digits.
+    static func sunnahMarkWidth(fontScale: CGFloat) -> CGFloat {
+        // The mark is an SF Symbol, so its width comes from the symbol image
+        // rather than from a font — a `Text` measurement would be measuring the
+        // wrong thing entirely.
+        //
+        // Measured at its *own* drawing size (`sunnahMarkSize`), not at its
+        // natural size, because the panel scales the mark and the row reserves
+        // what is actually drawn. Reserving the natural size here would leave a
+        // growing gap beside the mark at larger panel text sizes.
+        let drawnSize = sunnahMarkSize(fontScale: fontScale)
+        let symbol = NSImage(systemSymbolName: "plusminus", accessibilityDescription: nil)
+        // SF Symbols keep a square aspect, so the drawn point size is the width.
+        // The fallback is only reachable on a system that lacks the symbol.
+        let width = symbol.map { $0.size.width * (drawnSize / max($0.size.height, 1)) }
+            ?? drawnSize
+        // A little slack: SF Symbols carry side bearings that the measured box
+        // doesn't account for, and the mark must never push into the digits.
+        return width + 4
+    }
+
+    /// Point size the sunnah mark is drawn at, matching the row's `.callout`
+    /// text.
+    ///
+    /// `.callout` rather than the row's `.body`: the mark is a qualifier hung off
+    /// the clock, not part of the value, and at body size a glyph's full height
+    /// competed with the digits instead of sitting under them. It still tracks
+    /// the panel's text size — a symbol can't take a font from `scaledFont`, so
+    /// the scale is applied here from the same `callout` base that modifier
+    /// resolves to. Keep the two in step: if this drifts from the size the row
+    /// uses, the mark stops reading as part of the number it qualifies.
+    static func sunnahMarkSize(fontScale: CGFloat) -> CGFloat {
+        NSFont.preferredFont(forTextStyle: .callout).pointSize * fontScale
+    }
+
     /// Fixed width for the iqama gap column ("+8") that sits between the mute
     /// toggle and the time, drawn only when `displayedIqamaDelay(for:)` returns
     /// a number. Measured from the widest string the gap can be — "+88" — in the
-    /// scaled caption font, and reserved on *every* row while a mosque timetable
+    /// scaled callout font, and reserved on *every* row while a mosque timetable
     /// is active, whether or not this prayer shows a gap, so the times don't
     /// shift as the highlight moves or when one prayer's gap differs from
     /// another's. Under calculated times no row shows a gap at all, so nothing
     /// reserves it (see `hasIqamaColumn`).
     static func iqamaColumnWidth(fontScale: CGFloat) -> CGFloat {
-        // Same font the row draws the gap in: `scaledFont(.caption)` resolves to
-        // the caption style's preferred font at the panel scale (see
-        // `ScaledFontModifier`), so measuring anything else would clip it.
-        // `.caption` maps to `NSFont.TextStyle.caption1` here, matching
-        // `ScaledFontModifier.nsTextStyle`, which is the font the row draws the
-        // gap in — measuring a different one would clip the widest case.
-        let size = NSFont.preferredFont(forTextStyle: .caption1).pointSize * fontScale
+        // Must stay in step with the font `iqamaCell` draws the gap in:
+        // `scaledFont(.callout)` resolves to the callout style's preferred font
+        // at the panel scale, and `ScaledFontModifier.nsTextStyle` maps
+        // `.callout` to `NSFont.TextStyle.callout`. Measuring a different style
+        // would either clip the widest case or reserve a column the text no
+        // longer fills.
+        let size = NSFont.preferredFont(forTextStyle: .callout).pointSize * fontScale
         let font = NSFont.systemFont(ofSize: size)
         return ("+88" as NSString).size(withAttributes: [.font: font]).width + 4
     }
@@ -502,10 +544,6 @@ private struct PrayerRow: View {
                     .fixedSize(horizontal: false, vertical: true)
                     .multilineTextAlignment(.leading)
                     .padding(.leading, PrayerListView.rowHorizontalInset)
-                if prayerName == "Tahajud" || prayerName == "Dhuha" {
-                    Text("Around").scaledFont(.caption).foregroundColor(isNextPrayer ? textColor.opacity(0.8) : Color("SecondaryTextColor"))
-                        .fixedSize(horizontal: false, vertical: true)
-                }
                 Spacer(minLength: 4)
                 toggleCell(isNextPrayer: isNextPrayer, textColor: textColor)
                 // The gap goes on whichever side the user picked (Settings >
@@ -518,12 +556,58 @@ private struct PrayerRow: View {
                 if vm.iqamaDelayPosition == .leading {
                     iqamaCell(isNextPrayer: isNextPrayer, textColor: textColor)
                 }
-                Text(vm.dateFormatter.string(from: displayTime)).scaledFont(.body, weight: isNextPrayer ? .bold : nil)
-                    // Right-anchored, one shared width: every time's leading
-                    // edge starts at the same x. The width is measured in the
-                    // scaled bold body font, so the time never wraps.
-                    .lineLimit(1)
-                    .frame(width: timeColumnWidth, alignment: .trailing)
+                // Time, with the estimate mark for sunnah prayers hard against
+                // the digits. Sunnah times are estimates, and "±" says that in
+                // one glyph where "Around" needed a word to say the same thing.
+                // It lives inside this group rather than out by the prayer name
+                // so the pair reads as one qualified value — "±01:46" — instead
+                // of a mark stranded mid-row, and so it can never be separated
+                // from its time by the row's flexible `Spacer`.
+                //
+                // `.body`, same style as the time itself: the mark is a
+                // qualifier on that clock, not a caption beneath it, and at
+                // caption size it read as a speck beside a full-size number.
+                // Same scaled style rather than a fixed point size, so it keeps
+                // tracking the panel's text size — at XXL a hardcoded 12pt
+                // would be the one thing on the row that didn't grow.
+                //
+                // The frame is on the *group*, not the digits. Putting it on the
+                // `Text` instead is what left the mark stranded: a right-aligned
+                // frame measured for "88:88" aligns the digits to their own
+                // right edge, which pinned every clock to the same x and left
+                // the mark adrift in the space the wider sunnah text had opened
+                // up between it and the digits. Framing the group right-aligns
+                // the mark *and* the digits together, so they stay joined — and
+                // since the mark's width is reserved on every row
+                // (`sunnahMarkWidth`), all seven clocks still end on one line.
+                HStack(spacing: 1) {
+                    if prayerName == "Tahajud" || prayerName == "Dhuha" {
+                        // The SF Symbol rather than a "±" character: it matches
+                        // the rest of the panel's iconography, and it renders
+                        // identically in every language and at every weight.
+                        // Sized from the panel's scale by hand, because
+                        // `scaledFont` sets a font and a symbol is not text.
+                        //
+                        // `.secondary` on every ordinary row: the mark is a
+                        // qualifier, not a value, so it recedes exactly like
+                        // the iqama gap and the mute ring beside it. The
+                        // highlighted row is the exception — `.secondary` on an
+                        // accent fill is unreadable, so there it takes the row's
+                        // own text colour.
+                        Image(systemName: "plusminus")
+                            .font(.system(size: PrayerListView.sunnahMarkSize(fontScale: fontScale)))
+                            .foregroundStyle(isNextPrayer ? textColor.opacity(0.8) : Color.secondary)
+                    }
+                    Text(vm.dateFormatter.string(from: displayTime)).scaledFont(.body, weight: isNextPrayer ? .bold : nil)
+                        // Right-anchored, one shared width: every time's leading
+                        // edge starts at the same x. The width is measured in the
+                        // scaled bold body font, so the time never wraps.
+                        .lineLimit(1)
+                        // Fixed so a wide "±" can't reflow the row at a large
+                        // panel text size; the group's frame does the aligning.
+                        .fixedSize(horizontal: true, vertical: false)
+                }
+                .frame(width: timeColumnWidth + PrayerListView.sunnahMarkWidth(fontScale: fontScale), alignment: .trailing)
                 if vm.iqamaDelayPosition == .trailing {
                     iqamaCell(isNextPrayer: isNextPrayer, textColor: textColor)
                 }
@@ -574,7 +658,11 @@ private struct PrayerRow: View {
     private func iqamaCell(isNextPrayer: Bool, textColor: Color) -> some View {
         if let minutes = vm.displayedIqamaDelay(for: prayerName) {
             Text(String(format: "+%d", minutes))
-                .scaledFont(.caption)
+                // `.callout`, matching the sunnah estimate mark beside the time.
+                // Both annotate a clock rather than being one, and they read as
+                // a matched pair at the same size; at `.caption` the gap was a
+                // speck while its neighbour had just grown.
+                .scaledFont(.callout)
                 // `.secondary`, the system colour, like the mute ring beside it
                 // — the gap is a qualifier on the time, not a value of its own,
                 // so it should recede the same way the ring does. On the

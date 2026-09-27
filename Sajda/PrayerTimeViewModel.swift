@@ -714,29 +714,6 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
         let maghrib = rawMaghrib
         let isha = rawIsha
 
-        // Sunnah prayers stay usable in mosque mode, counted locally: Tahajud
-        // from the *ongoing* night (yesterday's mosque Isha → today's Fajr,
-        // only while still before today's Fajr) and Dhuha 20 minutes after
-        // the mosque's sunrise. Both are derived from the mosque's own times, so
-        // neither carries an adhan offset.
-        var extras: [(name: String, time: Date)] = []
-        if showSunnahPrayers {
-            let now = Date()
-            let yesterday = now.addingTimeInterval(-86_400)
-            if now < fajr,
-               let yesterdayDay = MawaqitService.times(for: yesterday, in: mosque.calendar),
-               yesterdayDay.count >= 6,
-               let yesterdayIsha = dateFromHM(yesterdayDay[5], on: yesterday) {
-                let night = fajr.timeIntervalSince(yesterdayIsha)
-                if night > 0 {
-                    extras.append(("Tahajud", yesterdayIsha.addingTimeInterval(night * (2 / 3.0))))
-                }
-            }
-            if let sunrise = dateFromHM(day[1]) {
-                extras.append(("Dhuha", sunrise.addingTimeInterval(20 * 60)))
-            }
-        }
-
         // Tomorrow's Fajr for the after-Isha highlight. At the year's edge the
         // new calendar may not be published yet, so fall back to today's Fajr
         // clock time on tomorrow's date (the estimate the Mawaqit applet uses).
@@ -745,6 +722,58 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
             .flatMap { dateFromHM($0[0], on: tomorrow) }
             ?? dateFromHM(day[0], on: tomorrow)
             ?? rawFajr.addingTimeInterval(86_400)
+
+        // Sunnah prayers stay usable in mosque mode, counted locally: Tahajud
+        // from the *ongoing* night, and Dhuha 20 minutes after the mosque's
+        // sunrise. Both are derived from the mosque's own times, so neither
+        // carries an adhan offset.
+        var extras: [(name: String, time: Date)] = []
+        if showSunnahPrayers {
+            // Which night is "ongoing" is the whole trick, and it depends on
+            // where we are in the day. Before Fajr it is last night's, running
+            // into this morning's Fajr; after Fajr the night that *will* run is
+            // this evening's Isha into tomorrow's Fajr. Anchoring to today's
+            // Isha unconditionally would put the row a full day ahead once
+            // Fajr had passed, and anchoring only to the before-Fajr window (as
+            // this used to) dropped Tahajud from the panel for the rest of the
+            // day — the row simply vanished until the small hours.
+            //
+            // `nightEnd` is the *upcoming* Fajr, which `fajrTomorrow` already
+            // resolves, so the night is a real span of hours rather than a
+            // guess from today's clock time.
+            let now = Date()
+            let nightStart: Date
+            let nightEnd: Date
+            if now < fajr {
+                let yesterday = now.addingTimeInterval(-86_400)
+                if let yesterdayDay = MawaqitService.times(for: yesterday, in: mosque.calendar),
+                   yesterdayDay.count >= 6,
+                   let yesterdayIsha = dateFromHM(yesterdayDay[5], on: yesterday) {
+                    nightStart = yesterdayIsha
+                    nightEnd = fajr
+                } else {
+                    // Yesterday's calendar is missing (the year's first night,
+                    // before the new month is published): use tonight's instead.
+                    nightStart = isha
+                    nightEnd = fajrTomorrow
+                }
+            } else {
+                // After Fajr: the night that *will* run is this evening's Isha
+                // into tomorrow's Fajr. Anchoring to last night here would show
+                // a night that has already ended, and skipping the row entirely
+                // — as this once did — dropped Tahajud from the panel for the
+                // whole day.
+                nightStart = isha
+                nightEnd = fajrTomorrow
+            }
+            let nightDuration = nightEnd.timeIntervalSince(nightStart)
+            if nightDuration > 0 {
+                extras.append(("Tahajud", nightStart.addingTimeInterval(nightDuration * (2 / 3.0))))
+            }
+            if let sunrise = dateFromHM(day[1]) {
+                extras.append(("Dhuha", sunrise.addingTimeInterval(20 * 60)))
+            }
+        }
 
         var entries: [(name: String, time: Date)] = [
             ("Fajr", fajr), ("Dhuhr", dhuhr), ("Asr", asr),
