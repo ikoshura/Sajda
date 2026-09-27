@@ -277,6 +277,12 @@ struct PrayerListView: View {
     /// self-contained block, the rows are panel content.
     static let rowHorizontalInset: CGFloat = 12
 
+    /// Gap between the highlight capsule and the panel edge. Applied *inside*
+    /// the background closure, not as row padding: a full-width row padded on
+    /// the outside grows past the panel instead of insetting, which is what
+    /// made the highlight bleed edge to edge. Matches the countdown card.
+    static let highlightInset: CGFloat = 5
+
     /// Fixed width for the time column: the widest string the panel's date
     /// formatter can emit ("88:88"), measured in the row font — so every
     /// row's time starts at the same x no matter its value, weight, or the
@@ -290,8 +296,8 @@ struct PrayerListView: View {
 /// One prayer row: name … mute ring | time. The ring sits immediately left of
 /// the time so both trailing elements are right-anchored and the name keeps the
 /// leading edge — the name needs no fixed width, the `Spacer` takes the slack.
-/// The highlight is applied to the whole row rather than to individual cells,
-/// so it stays one continuous capsule.
+/// The highlight is one capsule behind the whole row, inset from the panel
+/// edges (see `highlightInset` for why the inset lives in the background).
 private struct PrayerRow: View {
     @EnvironmentObject var vm: PrayerTimeViewModel
     @Environment(\.colorScheme) private var colorScheme
@@ -311,6 +317,7 @@ private struct PrayerRow: View {
             }()
             HStack(spacing: 6) {
                 Text(vm.prayerDisplayName(prayerName))
+                    .padding(.leading, PrayerListView.rowHorizontalInset)
                 if prayerName == "Tahajud" || prayerName == "Dhuha" {
                     Text("Around").scaledFont(.caption).foregroundColor(isNextPrayer ? textColor.opacity(0.8) : Color("SecondaryTextColor"))
                 }
@@ -320,10 +327,14 @@ private struct PrayerRow: View {
                     // Right-anchored, one shared width: every time's leading
                     // edge starts at the same x.
                     .frame(width: timeColumnWidth, alignment: .trailing)
+                    .padding(.trailing, PrayerListView.rowHorizontalInset)
             }
-            // Inset matches the panel's text gutter (title / dividers / location
-            // row), so the names line up with them rather than looking indented.
-            .foregroundColor(textColor).fontWeight((isNextPrayer || vm.accessibilityBoldText) ? .bold : .regular).padding(.horizontal, PrayerListView.rowHorizontalInset).padding(.vertical, 4).background {
+            // The row is full-width (it holds a Spacer), so its own padding
+            // would push the row *outward* past the panel edges rather than
+            // inset it — the text insets but the highlight bleeds. Hence the
+            // insets live on the content above, and the capsule below is
+            // inset inside the background closure.
+            .foregroundColor(textColor).fontWeight((isNextPrayer || vm.accessibilityBoldText) ? .bold : .regular).padding(.vertical, 4).background {
                 ZStack {
                     RoundedRectangle(cornerRadius: 6).fill(highlightColor)
                     if isNextPrayer, vm.useGlassPrayerHighlight {
@@ -336,6 +347,9 @@ private struct PrayerRow: View {
                             .environment(\.colorScheme, (vm.useAccentColor || vm.customHighlightColor != nil) ? .dark : colorScheme)
                     }
                 }
+                // Gives the capsule a real gap on both sides, matching the
+                // countdown card's own 5 pt inset.
+                .padding(.horizontal, PrayerListView.highlightInset)
             }
         }
     }
@@ -396,16 +410,18 @@ private struct JumuahSessionRow: View {
     var body: some View {
         HStack(spacing: 6) {
             Text(vm.jumuahSessionLabel(index, total: total))
+                .padding(.leading, PrayerListView.rowHorizontalInset)
             Spacer(minLength: 4)
             // Same 25pt slot, on the same side, as the prayer rows.
             muteCell
             Text(vm.dateFormatter.string(from: date))
                 .scaledFont(.body)
                 .frame(width: timeColumnWidth, alignment: .trailing)
+                .padding(.trailing, PrayerListView.rowHorizontalInset)
         }
         .foregroundColor(.primary)
         .fontWeight(vm.accessibilityBoldText ? .bold : .regular)
-        .padding(.horizontal, PrayerListView.rowHorizontalInset).padding(.vertical, 4)
+        .padding(.vertical, 4)
     }
 
     private var muteCell: some View {
