@@ -1132,6 +1132,18 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
         return relativeLuminance(c.r, c.g, c.b) <= 0.45
     }
 
+    /// Legible text/icon tone for content sitting *on* the highlight fill.
+    /// The pick is a saturated block, so white reads on it far more often than
+    /// not — but a pale yellow or pastel pick would swallow white, so this
+    /// reuses the Accent Panel's WCAG luminance test rather than hardcoding a
+    /// tone per surface. Empty hex means the system accent is in use, which is
+    /// dark enough in both appearances to keep white.
+    static func onFillColorForHighlight(_ hex: String) -> Color {
+        let clean = hex.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !clean.isEmpty else { return .white }
+        return accentPanelPrefersLightText(fromHighlightHex: clean) ? .white : .black
+    }
+
     /// Panel colour scheme while `accentPanelTheme` is on: drives the dark/
     /// light variants of every asset colour (secondary text, dividers, hover,
     /// border) and the native controls so the rest of the panel matches the

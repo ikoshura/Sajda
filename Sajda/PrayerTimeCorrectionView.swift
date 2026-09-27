@@ -249,6 +249,7 @@ struct PrayerTimeCorrectionView: View {
                         isSelected: selectedTab == tab,
                         isHovering: hoveringTab == tab,
                         accent: vm.selectedHighlightColor,
+                        highlightHex: vm.customHighlightColorHex,
                         onTap: { selectedTabRaw = tab.rawValue },
                         onHover: { hovering in hoveringTab = hovering ? tab : nil }
                     )
@@ -426,16 +427,20 @@ struct PrayerTimeCorrectionView: View {
     
 }
 
-/// Text-only top tab in the Time Correction tab bar: a single centred label
-/// carrying the same liquid-hover pill and highlight-colour underline as
-/// `SettingsTabButton`, which stacks an icon above its label instead.
+/// Text-only top tab in the Time Correction tab bar: a single centred label.
+///
+/// Same selection treatment as `SettingsTabButton` — a solid pill in the
+/// highlight colour, no underline, hover only while unselected — so the two
+/// tab bars read as one system. This one stacks no icon above its label.
 private struct CorrectionTabButton: View {
     let tab: PrayerTimeCorrectionView.CorrectionTab
     let isSelected: Bool
     let isHovering: Bool
-    /// Selected-tab tint: the user's highlight colour, or the system accent
-    /// when none is picked (`vm.selectedHighlightColor`).
+    /// Selected-tab fill: the user's highlight colour, or the system accent when
+    /// none is picked (`vm.selectedHighlightColor`).
     let accent: Color
+    /// Raw picked colour, so the label tone can be chosen against the fill.
+    let highlightHex: String
     let onTap: () -> Void
     let onHover: (Bool) -> Void
 
@@ -443,25 +448,27 @@ private struct CorrectionTabButton: View {
         Button(action: onTap) {
             Text(LocalizedStringKey(tab.titleKey))
                 .scaledFont(.caption, weight: isSelected ? .semibold : .regular)
-                .foregroundColor(isSelected ? accent : .secondary)
+                .foregroundColor(isSelected ? onFillColor : .secondary)
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 6)
-                .liquidHover(isHovering || isSelected)
-                .overlay(alignment: .bottom) {
-                    if isSelected {
-                        RoundedRectangle(cornerRadius: 1)
-                            .fill(accent)
-                            .frame(height: 2)
-                            .padding(.horizontal, 10)
-                    }
+                .background {
+                    RoundedRectangle(cornerRadius: 5)
+                        .fill(isSelected ? accent : .clear)
                 }
+                // Hover only while unselected: a hover tint under the selected
+                // tab's fill would muddy the picked colour.
+                .liquidHover(isHovering && !isSelected)
         }
         .buttonStyle(.plain)
         .onHover(perform: onHover)
         .help(Text(LocalizedStringKey(tab.titleKey)))
         .accessibilityLabel(Text(LocalizedStringKey(tab.titleKey)))
         .accessibilityAddTraits(isSelected ? [.isSelected] : [])
+    }
+
+    private var onFillColor: Color {
+        PrayerTimeViewModel.onFillColorForHighlight(highlightHex)
     }
 }

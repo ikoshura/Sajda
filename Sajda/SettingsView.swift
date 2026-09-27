@@ -36,7 +36,7 @@ struct SettingsView: View {
             switch self {
             case .system: return "System"
             case .display: return "Display"
-            case .appearance: return "Appearance"
+            case .appearance: return "Visual"
             case .prayerTimes: return "Prayer"
             }
         }
@@ -57,7 +57,7 @@ struct SettingsView: View {
     /// Active Settings tab, persisted in `vm.settingsSelectedTab` (not `@State`):
     /// NavigationStack swaps its content branch when the pop's precede flag
     /// flips, recreating the pushed SettingsView with fresh state — fresh
-    /// `.display` is what used to flash over Appearance during the fade back
+    /// `.display` is what used to flash over Visual during the fade back
     /// to Main. Display starts open so the page still shows real settings.
     private var expandedSection: SettingsSection {
         SettingsSection(rawValue: vm.settingsSelectedTab) ?? .display
@@ -129,7 +129,7 @@ struct SettingsView: View {
         // Leaving a tab takes its transient UI with it: the colour dropdown's
         // rows are torn out by the swap now that only the picked tab is built,
         // so it is dismissed here rather than left open to re-expand the panel
-        // the next time Appearance is picked.
+        // the next time Visual is picked.
         if vm.settingsColorPickerOpen { vm.settingsColorPickerOpen = false }
 
         let order = SettingsSection.allCases
@@ -144,7 +144,7 @@ struct SettingsView: View {
         // view model) rather than local @State: NavigationStack recreates the
         // pushed SettingsView mid-pop (precede-branch swap), and fresh @State
         // would snap back to `.display` — the Display-tab flash over
-        // Appearance on the way back to Main.
+        // Visual on the way back to Main.
         DispatchQueue.main.async {
             withAnimation(tabAnimation) {
                 vm.settingsSelectedTab = section.rawValue
@@ -352,7 +352,7 @@ struct SettingsView: View {
         }
     }
 
-    /// Appearance rows. The colour surface's open flag lives on the view model
+    /// Visual rows. The colour surface's open flag lives on the view model
     /// (`settingsColorPickerOpen`) so the menu can animate the panel's height
     /// as it drops down — it is not a popover any more, it is rows of this page.
     private var appearanceSection: some View {
@@ -658,13 +658,10 @@ private struct SettingsTabButton: View {
         .accessibilityAddTraits(isSelected ? [.isSelected] : [])
     }
 
-    /// Icon/label tone on the accent fill. The pick is a saturated block, so
-    /// white reads on it far more often than not — but a pale yellow or pastel
-    /// pick would swallow white text, so the same WCAG luminance test the
-    /// Accent Panel uses picks the tone instead of hardcoding one.
+    /// Icon/label tone on the accent fill, shared with the Time Correction tab
+    /// bar so the two tab bars can't drift apart on a pale pick.
     private var onFillColor: Color {
-        guard !highlightHex.isEmpty else { return .white }
-        return PrayerTimeViewModel.accentPanelPrefersLightText(fromHighlightHex: highlightHex) ? .white : .black
+        PrayerTimeViewModel.onFillColorForHighlight(highlightHex)
     }
 }
 /// The colour surface behind ColorSelector's popover, hosted inline as a
