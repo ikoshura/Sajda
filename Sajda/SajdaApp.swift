@@ -121,10 +121,9 @@ struct SajdaMenuBarLabel: View {
     private var useImageLabel: Bool { false }
 
     /// Colour the label and icon bake in right now: red while the prayer is
-    /// imminent, yellow-orange while the iqama window runs, nil otherwise.
+    /// imminent, nil otherwise.
     private var menuBarTint: NSColor? {
         if vm.isPrayerImminent { return .systemRed }
-        if vm.isIqamaWaiting { return PrayerTimeViewModel.iqamaWaitingColor }
         return nil
     }
 
@@ -270,8 +269,7 @@ struct SajdaMenuBarLabel: View {
     ///
     /// - Parameter iconSize: glyph size in points, or `0` for text-only modes.
     /// - Parameter color: the tint to bake in — `systemRed` while the prayer
-    ///   is imminent, `PrayerTimeViewModel.iqamaWaitingColor` during the
-    ///   iqama window.
+    ///   is imminent.
     private static func tintedLabelImage(title: NSAttributedString, iconSize: CGFloat, color: NSColor) -> NSImage? {
         let attributed = NSMutableAttributedString(attributedString: title)
         let range = NSRange(location: 0, length: attributed.length)

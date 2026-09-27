@@ -39,13 +39,6 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
     @Published var isLocationSearching: Bool = false
     @Published var locationInfoText: String = ""
     @Published var isPrayerImminent: Bool = false
-    /// True between a prayer's adhan and its iqama — the gathering window in
-    /// which the menu bar tints with `iqamaWaitingColor`.
-    @Published var isIqamaWaiting: Bool = false
-    /// Yellow-orange for that window: deliberately halfway between
-    /// `systemYellow` and `systemOrange` (#FFA300), dark enough to read on
-    /// both light and dark status bars.
-    static let iqamaWaitingColor = NSColor(red: 1.0, green: 0.64, blue: 0.0, alpha: 1.0)
     @Published var isRequestingLocation: Bool = false
     @Published var isAdhanPlaying: Bool = false
     @Published var activeAdhanPrayerName: String = ""
@@ -762,19 +755,6 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
     /// The five congregational prayers — the only ones that get an iqama.
     private static let congregationalPrayers: Set<String> = ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"]
 
-    /// True while some congregational prayer sits between its adhan and its
-    /// iqama — the window the menu bar tints yellow-orange. Read from
-    /// `updateCountdown`'s once-a-second tick, so a gap edited on the Time
-    /// Correction page is picked up within a second of the row moving.
-    private func isWithinIqamaWait(at now: Date) -> Bool {
-        for name in Self.congregationalPrayers {
-            guard let adhan = todayTimes[name] else { continue }
-            let iqama = adhan.addingTimeInterval(Double(iqamaDelay(for: name)) * 60)
-            if now >= adhan, now < iqama { return true }
-        }
-        return false
-    }
-
     /// True on Fridays by the clock the panel shows: that's when the Jumu'ah
     /// row joins the schedule (`weekday == 6` is Friday in the Gregorian
     /// calendar).
@@ -903,17 +883,13 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
 
     private func updateCountdown() {
         guard let nextDate = nextPrayerOccurrenceDate else {
-            countdown = "--:--"; detailedCountdown = "--:--:--"; isIqamaWaiting = false; updateMenuTitle(); return
+            countdown = "--:--"; detailedCountdown = "--:--:--"; updateMenuTitle(); return
         }
 
         let diff = Int(nextDate.timeIntervalSince(Date()))
         // Red alert: the imminent styling starts `redAlertMinutes` minutes
         // before the prayer; 0 never triggers it.
         isPrayerImminent = (redAlertMinutes > 0 && diff <= redAlertMinutes * 60 && diff > 0)
-        // Iqama window: adhan passed, iqama not yet, so the menu bar goes
-        // yellow-orange. Mutually exclusive with the red alert above, which
-        // only ever runs *before* the prayer time.
-        isIqamaWaiting = isWithinIqamaWait(at: Date())
 
         // hh:mm:ss for the panel's countdown header (same locale digits as
         // the menu-bar countdown).
@@ -1271,8 +1247,6 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
         var attributes: [NSAttributedString.Key: Any] = [:]
         if isPrayerImminent {
             attributes[.foregroundColor] = NSColor.systemRed
-        } else if isIqamaWaiting {
-            attributes[.foregroundColor] = Self.iqamaWaitingColor
         }
         // Aksesibilitas: judul menu bar bisa diperbesar dan/atau ditebalkan
         // agar tetap terbaca tanpa zoom sistem. Dengan "Show Seconds" aktif
