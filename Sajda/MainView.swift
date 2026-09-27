@@ -187,11 +187,10 @@ struct MainView: View {
 
                     Button(action: {
                         // Unlocked always enters on Display; locked keeps the
-                        // last-used tab. The tab persists in
-                        // vm.settingsSelectedTab so the exit fade can't flash.
-                        if !vm.settingsTabLocked {
-                            vm.settingsSelectedTab = "display"
-                        }
+                        // last-used tab. The reset is non-animated so it can't
+                        // resize the panel as Settings is being pushed — see
+                        // `resetSettingsTabToDisplay`.
+                        vm.resetSettingsTabToDisplay()
                         navigationModel.showView(ContentView.id, animation: vm.forwardAnimation()) { SettingsView() }
                     }) {
                         Image(systemName: "gearshape")

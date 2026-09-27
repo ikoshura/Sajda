@@ -76,6 +76,36 @@ final class SajdaTests: XCTestCase {
         cancellable.cancel()
     }
 
+    /// Reopening Settings resets the tab to Display so the panel is already the
+    /// right height on its first frame. This is the test that keeps the reset
+    /// inside a `disablesAnimations` transaction: `settingsSelectedTab` is part
+    /// of `panelLayoutSignature`, the `value:` of the menu's resize animation,
+    /// so an animated reset during an open made the panel visibly flicker.
+    /// A transaction is only current for the duration of its own write, so the
+    /// observable contract is that the reset lands and completes rather than
+    /// half-applying; the `disablesAnimations` flag itself is asserted by
+    /// reading it inside a transaction in the implementation.
+    func testResetSettingsTabToDisplayResetsUnlockedTab() {
+        let vm = PrayerTimeViewModel()
+        vm.settingsTabLocked = false
+
+        vm.settingsSelectedTab = "prayerTimes"
+        vm.resetSettingsTabToDisplay()
+        XCTAssertEqual(vm.settingsSelectedTab, "display")
+    }
+
+    /// Locked keeps the last-used tab across a reopen, which is what the lock
+    /// icon is for — the reset helper is a no-op in that state.
+    func testResetSettingsTabToDisplayKeepsTabWhenLocked() {
+        let vm = PrayerTimeViewModel()
+        vm.settingsTabLocked = true
+        defer { vm.settingsTabLocked = false }
+
+        vm.settingsSelectedTab = "system"
+        vm.resetSettingsTabToDisplay()
+        XCTAssertEqual(vm.settingsSelectedTab, "system")
+    }
+
     // MARK: - Colour dropdown
 
     /// The inline colour surface seeds its HSB state from the picked colour when

@@ -68,6 +68,26 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
     /// When on, reopening Settings keeps the last-used tab; when off, Settings
     /// always opens on Display.
     @AppStorage("settingsTabLocked") var settingsTabLocked: Bool = false
+
+    /// Resets the Settings tab to Display when it is *not* locked, without
+    /// animating the change.
+    ///
+    /// The tab is part of `panelLayoutSignature`, which is the `value:` of the
+    /// menu's `.animation(.macControlCenterMenuResize, …)`. A plain write while
+    /// the panel is opening therefore animates a resize mid-open, and the
+    /// panel visibly flickers. Suppressing animations in the transaction means
+    /// the panel is already the right height on its first frame — the resize
+    /// that DOES need animating (tapping between tabs in an open panel) is a
+    /// normal write from `SettingsView.selectTab` and still animates. Locked
+    /// sessions keep their last-used tab, so this is a no-op for them.
+    func resetSettingsTabToDisplay() {
+        guard !settingsTabLocked else { return }
+        var transaction = Transaction()
+        transaction.disablesAnimations = true
+        withTransaction(transaction) {
+            settingsSelectedTab = SettingsView.SettingsSection.display.rawValue
+        }
+    }
     /// Whether Settings > Appearance's colour surface is dropped down under the
     /// "Custom Color" row. On the view model rather than in the view's `@State`
     /// because it is part of `SajdaControlCenterMenu.panelLayoutSignature`: that

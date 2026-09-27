@@ -115,10 +115,11 @@ struct SajdaControlCenterMenu: View {
         guard navigationModel.hasAlternativeViewShowing else { return }
         navigationModel.hideView(ContentView.id, animation: nil)
         // Panel closed/torn down: no exit animation to protect, so the next
-        // open enters Settings on Display — unless the tab is locked.
-        if !vm.settingsTabLocked {
-            vm.settingsSelectedTab = "display"
-        }
+        // open enters Settings on Display — unless the tab is locked. Reset
+        // without animating: this can run during an open, and an animated
+        // tab change would resize the panel mid-appearance (see
+        // `resetSettingsTabToDisplay`).
+        vm.resetSettingsTabToDisplay()
     }
 }
 
