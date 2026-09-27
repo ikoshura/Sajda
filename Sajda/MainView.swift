@@ -242,30 +242,59 @@ struct PrayerListView: View {
         let baseOrder = vm.showSunnahPrayers ? sunnahOrder : defaultOrder
         return baseOrder.filter { vm.todayTimes.keys.contains($0) }
     }
+    /// Names for every cell in column one — prayers plus the Jumu'ah session
+    /// labels, so the column is measured from the widest thing that can ever
+    /// land in it.
+    private var leadingNames: [String] {
+        var names = prayerOrder.map { vm.prayerDisplayName($0) }
+        let sessions = displayedJumuahSessionCount
+        if sessions > 0 {
+            names.append(vm.jumuahSessionLabel(0, total: sessions))
+            if sessions > 1 { names.append(vm.jumuahSessionLabel(sessions - 1, total: sessions)) }
+        }
+        return names
+    }
+
+    /// Fixed width for the name column: the widest label, measured in the row
+    /// font. The toggle slot then starts at the same x in every row, so the
+    /// mute rings form one clean column again (with a plain HStack row, the
+    /// gap is absorbed between the columns instead of splitting the highlight).
+    private var leadingColumnWidth: CGFloat {
+        let widest = leadingNames.map { name in
+            (name as NSString).size(withAttributes: [.font: NSFont.systemFont(ofSize: NSFont.systemFontSize)]).width
+        }.max() ?? 0
+        return widest + 2
+    }
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            VStack(spacing: 0) {
-                // Invisible grid (the transparent table): every row slots its
-                // cells into the same trailing columns (toggle | time), so no
-                // column can drift with name length, toggle state, or font
-                // weight. Times are right-anchored in one shared fixed width;
-                // toggles share one fixed box — immune to text length by
-                // construction.
-                Grid(alignment: .trailing, horizontalSpacing: 6, verticalSpacing: 0) {
-                    ForEach(prayerOrder, id: \.self) { prayerName in
-                        PrayerGridRow(prayerName: prayerName)
-                        // Friday sessions live on their own row right under Dhuhr
-                        // (Dhuhr itself stays put): shown on Fridays, or every day
-                        // while "Always Show Jumu'ah" is on so travellers can plan
-                        // ahead. Empty toggle cell keeps it on the same grid: its
-                        // times land exactly where the prayer times land.
-                        if prayerName == "Dhuhr", (vm.isFriday || vm.alwaysShowJumuah), !vm.jumuahSessionDates.isEmpty {
-                            JumuahGridRow()
-                        }
+        VStack(alignment: .leading, spacing: 0) {
+            ForEach(prayerOrder, id: \.self) { prayerName in
+                PrayerRow(prayerName: prayerName,
+                           leadingColumnWidth: leadingColumnWidth,
+                           timeColumnWidth: Self.timeColumnWidth)
+                // Friday sessions get their own rows right under Dhuhr (Dhuhr
+                // itself stays put): one row per gathering, each with its own
+                // clock and its own mute ring. Shown on Fridays, or every day
+                // while "Always Show Jumu'ah" is on so travellers can plan ahead.
+                if prayerName == "Dhuhr", (vm.isFriday || vm.alwaysShowJumuah) {
+                    ForEach(Array(vm.jumuahSessionDates.enumerated()), id: \.offset) { index, date in
+                        JumuahSessionRow(index: index,
+                                         date: date,
+                                         total: displayedJumuahSessionCount,
+                                         leadingColumnWidth: leadingColumnWidth,
+                                         timeColumnWidth: Self.timeColumnWidth)
                     }
                 }
-            }.padding(.horizontal, 5).padding(.top, 4)
+            }
         }
+        .padding(.top, 2)
+    }
+
+    /// How many Jumu'ah rows the list is about to draw — 0 when the row stays
+    /// hidden, so the name column is never measured wider than it needs.
+    private var displayedJumuahSessionCount: Int {
+        guard vm.isFriday || vm.alwaysShowJumuah else { return 0 }
+        return vm.jumuahSessionDates.count
     }
 
     /// Fixed width for the time column: the widest string the panel's date
@@ -278,12 +307,15 @@ struct PrayerListView: View {
     }
 }
 
-/// One prayer row inside `PrayerListView`'s Grid: name | toggle | "Around" |
-/// time. Extracted so the `if let` + `GridRow` nesting stays readable.
-private struct PrayerGridRow: View {
+/// One prayer row: name | toggle | "Around" | time, sized from the two shared
+/// column widths so nothing drifts. The highlight is applied to the whole row
+/// rather than to individual cells, so it stays one continuous capsule.
+private struct PrayerRow: View {
     @EnvironmentObject var vm: PrayerTimeViewModel
     @Environment(\.colorScheme) private var colorScheme
     let prayerName: String
+    let leadingColumnWidth: CGFloat
+    let timeColumnWidth: CGFloat
 
     var body: some View {
         if let prayerTime = vm.todayTimes[prayerName] {
@@ -296,20 +328,20 @@ private struct PrayerGridRow: View {
                 guard isNextPrayer else { return (.clear, .primary) }
                 return vm.nextPrayerHighlight()
             }()
-            GridRow {
+            HStack(spacing: 6) {
                 Text(vm.prayerDisplayName(prayerName))
-                    .gridColumnAlignment(.leading)
+                    .frame(width: leadingColumnWidth, alignment: .leading)
                 toggleCell(isNextPrayer: isNextPrayer, textColor: textColor)
                 if prayerName == "Tahajud" || prayerName == "Dhuha" {
                     Text("Around").scaledFont(.caption).foregroundColor(isNextPrayer ? textColor.opacity(0.8) : Color("SecondaryTextColor"))
                 }
+                Spacer(minLength: 4)
                 Text(vm.dateFormatter.string(from: displayTime)).scaledFont(.body, weight: isNextPrayer ? .bold : nil)
                     // Right-anchored, one shared width: every time's leading
                     // edge starts at the same x.
-                    .gridColumnAlignment(.trailing)
-                    .frame(width: PrayerListView.timeColumnWidth, alignment: .trailing)
+                    .frame(width: timeColumnWidth, alignment: .trailing)
             }
-            .foregroundColor(textColor).fontWeight((isNextPrayer || vm.accessibilityBoldText) ? .bold : .regular).padding(.horizontal, 12).padding(.vertical, 5).background {
+            .foregroundColor(textColor).fontWeight((isNextPrayer || vm.accessibilityBoldText) ? .bold : .regular).padding(.horizontal, 12).padding(.vertical, 4).background {
                 ZStack {
                     RoundedRectangle(cornerRadius: 6).fill(highlightColor)
                     if isNextPrayer, vm.useGlassPrayerHighlight {
@@ -367,28 +399,48 @@ private struct PrayerGridRow: View {
     }
 }
 
-/// Jumu'ah sessions row inside `PrayerListView`'s Grid: same trailing
-/// columns (empty toggle slot | times), so its times land exactly where the
-/// prayer times land.
-private struct JumuahGridRow: View {
+/// One Jumu'ah session row: label | mute ring | time. Each session is its own
+/// row with its own toggle, so several gatherings never collapse into one
+/// unreadable line. A single session keeps the bare "Jumu'ah" label; two or
+/// more are numbered ("Jumu'ah 1", "Jumu'ah 2", …) so the ring a user taps is
+/// unambiguous.
+private struct JumuahSessionRow: View {
     @EnvironmentObject var vm: PrayerTimeViewModel
+    let index: Int
+    let date: Date
+    let total: Int
+    let leadingColumnWidth: CGFloat
+    let timeColumnWidth: CGFloat
 
     var body: some View {
-        GridRow {
-            Text(vm.prayerDisplayName("Jumu'ah"))
-                .gridColumnAlignment(.leading)
-            Color.clear
-                .frame(width: 25, height: 25)
-            Text(vm.jumuahSessionDates.map { vm.dateFormatter.string(from: $0) }.joined(separator: " • "))
+        HStack(spacing: 6) {
+            Text(vm.jumuahSessionLabel(index, total: total))
+                .frame(width: leadingColumnWidth, alignment: .leading)
+            // Same 25pt slot as the prayer rows, so the rings line up.
+            muteCell
+            Spacer(minLength: 4)
+            Text(vm.dateFormatter.string(from: date))
                 .scaledFont(.body)
-                .lineLimit(1)
-                .minimumScaleFactor(0.6)
-                .truncationMode(.tail)
-                .gridColumnAlignment(.trailing)
-                .frame(width: PrayerListView.timeColumnWidth, alignment: .trailing)
+                .frame(width: timeColumnWidth, alignment: .trailing)
         }
         .foregroundColor(.primary)
-        .padding(.horizontal, 12).padding(.vertical, 5)
+        .fontWeight(vm.accessibilityBoldText ? .bold : .regular)
+        .padding(.horizontal, 12).padding(.vertical, 4)
+    }
+
+    private var muteCell: some View {
+        let key = vm.jumuahSessionSoundKey(index)
+        let muted = vm.isAdhanMuted(key)
+        return Button(action: { vm.setAdhanMuted(!muted, for: key) }) {
+            AdhanMuteIcon(muted: muted, activeColor: vm.selectedHighlightColor, size: 13)
+                .padding(6)
+                .frame(width: 25, height: 25, alignment: .center)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .focusable(false)
+        .help(muted ? "Unmute Adhan" : "Mute Adhan")
+        .accessibilityLabel(muted ? Text("Unmute Adhan") : Text("Mute Adhan"))
     }
 }
 /// header. Shares the row highlight logic via `nextPrayerHighlight()` so the

@@ -785,6 +785,18 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
         }
     }
 
+    /// Row label for a Jumu'ah session. One gathering needs no number; two or
+    /// more are numbered so each row's label maps to exactly one clock time and
+    /// one mute ring.
+    func jumuahSessionLabel(_ index: Int, total: Int) -> String {
+        let base = prayerDisplayName("Jumu'ah")
+        return total > 1 ? "\(base) \(index + 1)" : base
+    }
+
+    /// Key under which a session's adhan sound config is stored, so muting one
+    /// session never touches another's (or Dhuhr's).
+    func jumuahSessionSoundKey(_ index: Int) -> String { "Jumu'ah Session \(index + 1)" }
+
     /// Seed for a newly added Jumu'ah session: today's Dhuhr on the panel's
     /// clock rounded up to the next quarter hour — Jumu'ah follows Dhuhr, so a
     /// session added in Settings should start around there instead of at
