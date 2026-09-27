@@ -5,6 +5,10 @@ import Adhan
 import NavigationStack
 
 struct MainView: View {
+    /// TEMPORARY (position check only): forces the footer update badge to show
+    /// without a real pending release. Set back to `false` to restore.
+    private static let forceUpdateBadge = true
+
     @EnvironmentObject var vm: PrayerTimeViewModel
     @EnvironmentObject var navigationModel: NavigationModel
     @State private var isSettingsHovering = false
@@ -15,6 +19,16 @@ struct MainView: View {
     /// it live, and AboutView binds the same shared checker.
     @ObservedObject private var updater = UpdateChecker.shared
     @State private var isUpdateHovering = false
+
+    /// Version the footer badge advertises, or nil when no update is pending
+    /// (badge hidden). The `forceUpdateBadge` branch is temporary scaffolding
+    /// for checking the badge's position; with it off this is just the real
+    /// checker state.
+    private var updateBadgeVersion: String? {
+        if Self.forceUpdateBadge { return "9.9.9" }
+        if case .updateAvailable(let version, _) = updater.state { return version }
+        return nil
+    }
     /// Location row. A push to the Favorites page (same NavigationStack
     /// mechanism as Settings/About): tapping opens FavoritesView, and the
     /// accordion state lives on that page's @State — so it is born shut on
@@ -154,11 +168,18 @@ struct MainView: View {
                     // Update badge, leading the trailing icon group so it sits
                     // immediately beside About. Only rendered while a newer
                     // release is known; tapping it opens the release page.
-                    if case .updateAvailable(let version, _) = updater.state {
+                    if let version = updateBadgeVersion {
                         Button(action: { updater.openReleasePage() }) {
-                            Image(systemName: "arrow.down.circle.fill")
-                                .scaledFont(.body)
+                            // Short text rather than a glyph: an icon this far
+                            // from the About/settings icons read as another
+                            // panel control, and the version is the part worth
+                            // showing. Fixed-size so the label can never squeeze
+                            // its neighbours as the number's length changes.
+                            Text(String(format: NSLocalizedString("New %@", comment: ""), version))
+                                .scaledFont(.caption, weight: .semibold)
                                 .foregroundColor(vm.selectedHighlightColor)
+                                .lineLimit(1)
+                                .fixedSize()
                                 .padding(.vertical, 5).padding(.horizontal, 8)
                                 .liquidHover(isUpdateHovering)
                         }
