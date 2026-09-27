@@ -26,13 +26,8 @@ struct MainView: View {
     private static let updateBadgeTint = Color(red: 0.98, green: 0.68, blue: 0.13)
 
     /// Version the footer badge advertises, or nil when no update is pending
-    /// (badge hidden). The `forceShowBanner` branch is temporary scaffolding
-    /// for checking the badge's position; with it off this is just the real
-    /// checker state.
-    private static let forceShowBanner = true
-
+    /// (badge hidden).
     private var updateBadgeVersion: String? {
-        if Self.forceShowBanner { return "9.9.9" }
         if case .updateAvailable(let version, _) = updater.state { return version }
         return nil
     }
