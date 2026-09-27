@@ -139,6 +139,11 @@
 "Downloading..." = "Downloading...";
 "mawaqit_ready" = "✓ Ready offline (%@)";
 "Couldn't reach mawaqit.net." = "Couldn't reach mawaqit.net.";
+"Page %d of %d" = "Page %d of %d";
+"Top 10 matches — refine to narrow down." = "Top 10 matches — refine to narrow down.";
+"%d matches — refine your search to narrow it down." = "%d matches — refine your search to narrow it down.";
+"Next results" = "Next results";
+"Previous results" = "Previous results";
 "Refresh" = "Refresh";
 "Use Calculated Times Instead" = "Use Calculated Times Instead";
 "Use a mosque timetable instead" = "Use a mosque timetable instead";

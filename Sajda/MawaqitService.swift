@@ -5,6 +5,15 @@ struct MosqueSearchResult: Identifiable, Hashable {
     let slug: String
     /// Display name plus locality when the API didn't fold it into the name.
     let label: String
+    /// The mosque's own name on its own, without the locality appended. Kept
+    /// beside `label` so the search row can typeset the name and the address
+    /// as two separately-sized lines: fused into one string they share a font
+    /// and a line budget, which is what left "Villeneuve-la-Garenne — 32 rue
+    /// Lyes 47300…" cut off mid-address.
+    let name: String
+    /// Town/city the mosque is in, or empty when the API folded it into the
+    /// name or didn't publish one.
+    let locality: String
     var id: String { slug }
 }
 
@@ -63,12 +72,15 @@ enum MawaqitService {
 
     // MARK: - Search
 
-    /// Keyword search against Mawaqit's public endpoint (page 1, 10 hits).
-    static func searchMosques(matching word: String) async throws -> [MosqueSearchResult] {
+    /// Keyword search against Mawaqit's public endpoint.
+    ///
+    /// The app only ever asks for the first server page (10 hits); the results
+    /// list pages those locally. Higher pages exist for other callers.
+    static func searchMosques(matching word: String, page: Int = 1) async throws -> [MosqueSearchResult] {
         var comps = URLComponents(string: base + "/api/2.0/mosque/search")!
         comps.queryItems = [
             URLQueryItem(name: "word", value: word),
-            URLQueryItem(name: "page", value: "1"),
+            URLQueryItem(name: "page", value: String(max(1, page))),
         ]
         guard let url = comps.url else { throw FetchError.badData }
         var request = URLRequest(url: url)
@@ -86,11 +98,13 @@ enum MawaqitService {
         let items = try JSONDecoder().decode([SearchItem].self, from: data)
         return items.compactMap { item in
             guard !item.slug.isEmpty else { return nil }
-            var label = item.label ?? item.name ?? item.slug
-            if let locality = item.localisation, !label.contains(locality) {
-                label += " — \(locality)"
-            }
-            return MosqueSearchResult(slug: item.slug, label: label)
+            let name = item.label ?? item.name ?? item.slug
+            // Only show a locality the name doesn't already contain, otherwise
+            // the row would print "Paris" twice.
+            let rawLocality = item.localisation ?? ""
+            let locality = (rawLocality.isEmpty || name.contains(rawLocality)) ? "" : rawLocality
+            let label = locality.isEmpty ? name : "\(name) — \(locality)"
+            return MosqueSearchResult(slug: item.slug, label: label, name: name, locality: locality)
         }
     }
 

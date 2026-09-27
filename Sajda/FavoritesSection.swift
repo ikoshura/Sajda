@@ -82,7 +82,7 @@ struct FavoritesSection: View {
         VStack(alignment: .leading, spacing: 4) {
             // Chrome drawn by the app (see `SajdaSearchField`) instead of the
             // native rounded bezel, which could blink black mid-transition.
-            SajdaSearchField(placeholder: "Search for a city or paste coordinates...", text: $vm.locationSearchQuery)
+            SajdaSearchField(placeholder: "Search for a city or paste coordinates...", text: $vm.locationSearchQuery, accent: vm.selectedHighlightColor)
 
             if vm.isLocationSearching {
                 ProgressView()

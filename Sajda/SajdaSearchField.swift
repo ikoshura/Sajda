@@ -17,12 +17,22 @@ import SwiftUI
 ///
 /// The focus ring is drawn here too: `.plain` gives up the native one, and
 /// without it a focused field would be indistinguishable from an idle one.
+///
+/// The ring takes an explicit `accent` rather than `Color.accentColor`: the
+/// app's accent-panel theme flips the *colour scheme*, not the system accent,
+/// so a user-picked highlight colour (Visual → Highlight) never reached
+/// `Color.accentColor` and every search field kept a blue ring that clashed
+/// with the rest of the panel. Call sites pass `vm.selectedHighlightColor`.
 struct SajdaSearchField: View {
     /// Localized placeholder — a `LocalizedStringKey` so literals at the call
     /// sites stay translatable against `Localizable.strings`.
     let placeholder: LocalizedStringKey
 
     @Binding var text: String
+
+    /// Focus-ring colour. Defaults to the system accent for any call site
+    /// that has no view model to read the custom highlight from.
+    var accent: Color = .accentColor
 
     @FocusState private var isFocused: Bool
 
@@ -42,7 +52,7 @@ struct SajdaSearchField: View {
             }
             .overlay {
                 shape.strokeBorder(
-                    isFocused ? Color.accentColor : Color("BorderColor"),
+                    isFocused ? accent : Color("BorderColor"),
                     lineWidth: isFocused ? 1 : 0.5
                 )
             }
