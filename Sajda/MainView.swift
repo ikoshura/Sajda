@@ -245,108 +245,152 @@ struct PrayerListView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             VStack(spacing: 0) {
-                ForEach(prayerOrder, id: \.self) { prayerName in
-                    if let prayerTime = vm.todayTimes[prayerName] {
-                        let isNextPrayer = prayerName == vm.nextPrayerName
-                        // After Isha the highlighted Fajr is tomorrow's occurrence;
-                        // format the same Date the menu bar uses so the panel and
-                        // menu bar can never show different minutes.
-                        let displayTime = prayerName == "Fajr" ? (vm.displayedFajrTime ?? prayerTime) : prayerTime
-                        let (highlightColor, textColor): (Color, Color) = {
-                            guard isNextPrayer else { return (.clear, .primary) }
-                            return vm.nextPrayerHighlight()
-                        }()
-                        HStack(spacing: 6) {
-                            Text(vm.prayerDisplayName(prayerName)); Spacer()
-                            if vm.isAdhanPlaying && prayerName == vm.activeAdhanPrayerName {
-                                Button(action: { vm.stopAdhan() }) {
-                                    Image(systemName: "speaker.slash.fill")
-                                        .scaledFont(.caption)
-                                        .foregroundColor(textColor)
-                                        // Same 25pt hit box as the toggle below:
-                                        // the slot is always reserved, so the time
-                                        // column can't shift when adhan starts
-                                        // playing.
-                                        .frame(width: 13, height: 13)
-                                        .padding(6)
-                                        .contentShape(Rectangle())
-                                }
-                                .buttonStyle(.plain)
-                                .help("Stop Adhan")
-                            } else {
-                                // Per-prayer adhan on/off, right on the panel:
-                                // muting flips `PrayerSoundConfig.muted` (never
-                                // the sound picked in Settings). The slot is
-                                // always reserved, so the time column can't
-                                // shift when adhan starts playing.
-                                let muted = vm.isAdhanMuted(prayerName)
-                                Button(action: { vm.setAdhanMuted(!muted, for: prayerName) }) {
-                                    // Highlighted row: white ring + white dot for
-                                    // contrast (white even with accent mode off,
-                                    // where the row text itself is `.primary`).
-                                    // Other rows: the selected highlight colour
-                                    // (custom pick, or the system accent).
-                                    AdhanMuteIcon(muted: muted, activeColor: isNextPrayer ? (vm.useAccentColor ? textColor : .white) : vm.selectedHighlightColor, size: 13)
-                                        // The whole 25pt box is the hit target:
-                                        // generous invisible padding + rectangular
-                                        // content shape so there is no exact-pixel
-                                        // hunting. The time column is safe — the
-                                        // HStack spacing absorbs the padding.
-                                        // Centered so the glyph's centre sits on
-                                        // the same axis in every row (the drift in
-                                        // the screenshot was the Button's label
-                                        // hugging the leading edge of its frame).
-                                        .padding(6)
-                                        .frame(width: 25, height: 25, alignment: .center)
-                                        .contentShape(Rectangle())
-                                }
-                                .buttonStyle(.plain)
-                                .focusable(false)
-                                .help(muted ? "Unmute Adhan" : "Mute Adhan")
-                                .accessibilityLabel(muted ? Text("Unmute Adhan") : Text("Mute Adhan"))
-                            }
-                            if prayerName == "Tahajud" || prayerName == "Dhuha" { Text("Around").scaledFont(.caption).foregroundColor(isNextPrayer ? textColor.opacity(0.8) : Color("SecondaryTextColor")) }
-                            Text(vm.dateFormatter.string(from: displayTime)).scaledFont(.body, weight: isNextPrayer ? .bold : nil)
+                // Invisible grid (the transparent table): every row slots its
+                // cells into the same trailing columns (toggle | time), so no
+                // column can drift with name length, toggle state, or font
+                // weight. Times are right-anchored in one shared fixed width;
+                // toggles share one fixed box — immune to text length by
+                // construction.
+                Grid(alignment: .trailing, horizontalSpacing: 6, verticalSpacing: 0) {
+                    ForEach(prayerOrder, id: \.self) { prayerName in
+                        PrayerGridRow(prayerName: prayerName)
+                        // Friday sessions live on their own row right under Dhuhr
+                        // (Dhuhr itself stays put): shown on Fridays, or every day
+                        // while "Always Show Jumu'ah" is on so travellers can plan
+                        // ahead. Empty toggle cell keeps it on the same grid: its
+                        // times land exactly where the prayer times land.
+                        if prayerName == "Dhuhr", (vm.isFriday || vm.alwaysShowJumuah), !vm.jumuahSessionDates.isEmpty {
+                            JumuahGridRow()
                         }
-                        .foregroundColor(textColor).fontWeight((isNextPrayer || vm.accessibilityBoldText) ? .bold : .regular).padding(.horizontal, 12).padding(.vertical, 5).background {
-                            ZStack {
-                                RoundedRectangle(cornerRadius: 6).fill(highlightColor)
-                                if isNextPrayer, vm.useGlassPrayerHighlight {
-                                    RoundedRectangle(cornerRadius: 6, style: .continuous)
-                                        .fill(Color.clear)
-                                        .glassCard(cornerRadius: 6, interactive: true)
-                                        // Glass gelap hanya untuk highlight aksen (teks
-                                        // putih): glass terang di atas aksen di mode terang
-                                        // terlalu memutih. Non-ikut skema aslinya.
-                                        .environment(\.colorScheme, (vm.useAccentColor || vm.customHighlightColor != nil) ? .dark : colorScheme)
-                                }
-                            }
-                        }
-                    }
-                    // Friday sessions live on their own row right under Dhuhr
-                    // (Dhuhr itself stays put): shown on Fridays, or every day
-                    // while "Always Show Jumu'ah" is on so travellers can plan
-                    // ahead. Times joined with the panel's middle dot.
-                    if prayerName == "Dhuhr", (vm.isFriday || vm.alwaysShowJumuah), !vm.jumuahSessionDates.isEmpty {
-                        HStack(spacing: 6) {
-                            Text(vm.prayerDisplayName("Jumu'ah"))
-                            Spacer()
-                            Text(vm.jumuahSessionDates.map { vm.dateFormatter.string(from: $0) }.joined(separator: " • "))
-                                .scaledFont(.body)
-                                .lineLimit(1)
-                                .minimumScaleFactor(0.6)
-                                .truncationMode(.tail)
-                        }
-                        .foregroundColor(.primary)
-                        .padding(.horizontal, 12).padding(.vertical, 5)
                     }
                 }
             }.padding(.horizontal, 5).padding(.top, 4)
         }
     }
+
+    /// Fixed width for the time column: the widest string the panel's date
+    /// formatter can emit ("88:88"), measured in the row font — so every
+    /// row's time starts at the same x no matter its value, weight, or the
+    /// prayer name's length.
+    static var timeColumnWidth: CGFloat {
+        ("88:88" as NSString).size(
+            withAttributes: [.font: NSFont.systemFont(ofSize: NSFont.systemFontSize)]).width + 4
+    }
 }
 
-/// Big "ASR IN 00:13:01" card above the schedule, mirroring the Mawaqit-style
+/// One prayer row inside `PrayerListView`'s Grid: name | toggle | "Around" |
+/// time. Extracted so the `if let` + `GridRow` nesting stays readable.
+private struct PrayerGridRow: View {
+    @EnvironmentObject var vm: PrayerTimeViewModel
+    @Environment(\.colorScheme) private var colorScheme
+    let prayerName: String
+
+    var body: some View {
+        if let prayerTime = vm.todayTimes[prayerName] {
+            let isNextPrayer = prayerName == vm.nextPrayerName
+            // After Isha the highlighted Fajr is tomorrow's occurrence;
+            // format the same Date the menu bar uses so the panel and
+            // menu bar can never show different minutes.
+            let displayTime = prayerName == "Fajr" ? (vm.displayedFajrTime ?? prayerTime) : prayerTime
+            let (highlightColor, textColor): (Color, Color) = {
+                guard isNextPrayer else { return (.clear, .primary) }
+                return vm.nextPrayerHighlight()
+            }()
+            GridRow {
+                Text(vm.prayerDisplayName(prayerName))
+                    .gridColumnAlignment(.leading)
+                toggleCell(isNextPrayer: isNextPrayer, textColor: textColor)
+                if prayerName == "Tahajud" || prayerName == "Dhuha" {
+                    Text("Around").scaledFont(.caption).foregroundColor(isNextPrayer ? textColor.opacity(0.8) : Color("SecondaryTextColor"))
+                }
+                Text(vm.dateFormatter.string(from: displayTime)).scaledFont(.body, weight: isNextPrayer ? .bold : nil)
+                    // Right-anchored, one shared width: every time's leading
+                    // edge starts at the same x.
+                    .gridColumnAlignment(.trailing)
+                    .frame(width: PrayerListView.timeColumnWidth, alignment: .trailing)
+            }
+            .foregroundColor(textColor).fontWeight((isNextPrayer || vm.accessibilityBoldText) ? .bold : .regular).padding(.horizontal, 12).padding(.vertical, 5).background {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 6).fill(highlightColor)
+                    if isNextPrayer, vm.useGlassPrayerHighlight {
+                        RoundedRectangle(cornerRadius: 6, style: .continuous)
+                            .fill(Color.clear)
+                            .glassCard(cornerRadius: 6, interactive: true)
+                            // Glass gelap hanya untuk highlight aksen (teks
+                            // putih): glass terang di atas aksen di mode terang
+                            // terlalu memutih. Non-ikut skema aslinya.
+                            .environment(\.colorScheme, (vm.useAccentColor || vm.customHighlightColor != nil) ? .dark : colorScheme)
+                    }
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func toggleCell(isNextPrayer: Bool, textColor: Color) -> some View {
+        if vm.isAdhanPlaying && prayerName == vm.activeAdhanPrayerName {
+            Button(action: { vm.stopAdhan() }) {
+                Image(systemName: "speaker.slash.fill")
+                    .scaledFont(.caption)
+                    .foregroundColor(textColor)
+                    // Same 25pt hit box as the toggle below: the slot is
+                    // always reserved, so the time column can't shift when
+                    // adhan starts playing.
+                    .frame(width: 13, height: 13)
+                    .padding(6)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .help("Stop Adhan")
+        } else {
+            // Per-prayer adhan on/off, right on the panel: muting flips
+            // `PrayerSoundConfig.muted` (never the sound picked in Settings).
+            let muted = vm.isAdhanMuted(prayerName)
+            Button(action: { vm.setAdhanMuted(!muted, for: prayerName) }) {
+                // Highlighted row: white ring + white dot for contrast (white
+                // even with accent mode off, where the row text itself is
+                // `.primary`). Other rows: the selected highlight colour
+                // (custom pick, or the system accent).
+                AdhanMuteIcon(muted: muted, activeColor: isNextPrayer ? (vm.useAccentColor ? textColor : .white) : vm.selectedHighlightColor, size: 13)
+                    // The whole 25pt box is the hit target: generous invisible
+                    // padding + rectangular content shape so there is no
+                    // exact-pixel hunting.
+                    .padding(6)
+                    .frame(width: 25, height: 25, alignment: .center)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .focusable(false)
+            .help(muted ? "Unmute Adhan" : "Mute Adhan")
+            .accessibilityLabel(muted ? Text("Unmute Adhan") : Text("Mute Adhan"))
+        }
+    }
+}
+
+/// Jumu'ah sessions row inside `PrayerListView`'s Grid: same trailing
+/// columns (empty toggle slot | times), so its times land exactly where the
+/// prayer times land.
+private struct JumuahGridRow: View {
+    @EnvironmentObject var vm: PrayerTimeViewModel
+
+    var body: some View {
+        GridRow {
+            Text(vm.prayerDisplayName("Jumu'ah"))
+                .gridColumnAlignment(.leading)
+            Color.clear
+                .frame(width: 25, height: 25)
+            Text(vm.jumuahSessionDates.map { vm.dateFormatter.string(from: $0) }.joined(separator: " • "))
+                .scaledFont(.body)
+                .lineLimit(1)
+                .minimumScaleFactor(0.6)
+                .truncationMode(.tail)
+                .gridColumnAlignment(.trailing)
+                .frame(width: PrayerListView.timeColumnWidth, alignment: .trailing)
+        }
+        .foregroundColor(.primary)
+        .padding(.horizontal, 12).padding(.vertical, 5)
+    }
+}
 /// header. Shares the row highlight logic via `nextPrayerHighlight()` so the
 /// custom color/accent/imminent states always match the highlighted row, and
 /// shares the glass treatment via `useGlassPrayerHighlight`.
