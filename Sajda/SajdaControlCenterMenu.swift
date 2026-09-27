@@ -102,6 +102,8 @@ struct SajdaControlCenterMenu: View {
             "\(vm.accessibilityBoldText)",
             "\(vm.settingsSelectedTab)",
             "\(vm.settingsColorPickerOpen)",
+            "\(vm.alwaysShowJumuah)",
+            "\(UpdateChecker.shared.updateBannerDismissed)",
             languageManager.language,
         ].joined(separator: "-")
     }

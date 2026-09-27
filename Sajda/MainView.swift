@@ -84,6 +84,7 @@ struct MainView: View {
             // card is off, and sits under the list (behind its own separator)
             // when the card is on.
             let showCountdownCard = vm.isPrayerDataAvailable && vm.showCountdownHeader && vm.nextPrayerOccurrenceDate != nil
+            UpdateBannerRow()
             if showCountdownCard {
                 NextPrayerCountdownHeader()
             }
@@ -196,6 +197,42 @@ struct MainView: View {
     }
 }
 
+/// Update banner for the main panel: visible only while a newer release is
+/// known and not dismissed. Tapping opens the release page; "Later" hides it
+/// for this launch (About still shows the update). Dismissable by design so
+/// the banner can live on Main without nagging.
+struct UpdateBannerRow: View {
+    @ObservedObject private var updater = UpdateChecker.shared
+    @EnvironmentObject var vm: PrayerTimeViewModel
+
+    var body: some View {
+        if case .updateAvailable(let version, _) = updater.state, !updater.updateBannerDismissed {
+            HStack(spacing: 6) {
+                Button(action: { updater.openReleasePage() }) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "arrow.down.circle.fill")
+                        Text(String(format: NSLocalizedString("Update available: %@", comment: ""), version))
+                            .scaledFont(.caption, weight: .semibold)
+                            .lineLimit(1)
+                    }
+                    .padding(.vertical, 5).padding(.horizontal, 8)
+                }
+                .buttonStyle(.plain)
+                .foregroundColor(vm.selectedHighlightColor)
+                Spacer(minLength: 0)
+                Button(action: { updater.updateBannerDismissed = true }) {
+                    Text(NSLocalizedString("Later", comment: "")).scaledFont(.caption)
+                        .padding(.vertical, 5).padding(.horizontal, 6)
+                }
+                .buttonStyle(.plain)
+                .foregroundColor(Color("SecondaryTextColor"))
+                .help(Text(NSLocalizedString("Dismiss for now", comment: "")))
+            }
+            .padding(.horizontal, 5)
+        }
+    }
+}
+
 struct PrayerListView: View {
     @EnvironmentObject var vm: PrayerTimeViewModel
     @Environment(\.colorScheme) private var colorScheme
@@ -238,10 +275,8 @@ struct PrayerListView: View {
                                 // shift when adhan starts playing.
                                 let muted = vm.isAdhanMuted(prayerName)
                                 Button(action: { vm.setAdhanMuted(!muted, for: prayerName) }) {
-                                    Image(systemName: muted ? "speaker.slash.fill" : "speaker.wave.2.fill")
+                                    AdhanMuteIcon(muted: muted, activeColor: textColor)
                                         .scaledFont(.caption)
-                                        .foregroundColor(muted ? Color.secondary.opacity(0.5) : Color.secondary)
-                                        .frame(width: 16)
                                 }
                                 .buttonStyle(.plain)
                                 .focusable(false)
@@ -267,10 +302,10 @@ struct PrayerListView: View {
                         }
                     }
                     // Friday sessions live on their own row right under Dhuhr
-                    // (Dhuhr itself stays put): shown only on Fridays while
-                    // any session is configured, times joined with the panel's
-                    // middle dot.
-                    if prayerName == "Dhuhr", vm.isFriday, !vm.jumuahSessionDates.isEmpty {
+                    // (Dhuhr itself stays put): shown on Fridays, or every day
+                    // while "Always Show Jumu'ah" is on so travellers can plan
+                    // ahead. Times joined with the panel's middle dot.
+                    if prayerName == "Dhuhr", (vm.isFriday || vm.alwaysShowJumuah), !vm.jumuahSessionDates.isEmpty {
                         HStack(spacing: 6) {
                             Text(vm.prayerDisplayName("Jumu'ah"))
                             Spacer()

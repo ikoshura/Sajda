@@ -23,6 +23,10 @@ final class UpdateChecker: ObservableObject {
     @Published private(set) var state: State = .idle
     @Published private(set) var latestVersion: String?
     @Published private(set) var releaseURL: URL?
+    /// Dismissed from the MainView banner ("Later"): hides the banner for
+    /// this launch only. The About page keeps showing the update — it binds
+    /// `state` directly, never this flag.
+    @Published var updateBannerDismissed = false
 
     /// Opt-in: automatic checks only run when the user enables this.
     /// Stored here so both Settings and About bind to the same key.
@@ -46,10 +50,9 @@ final class UpdateChecker: ObservableObject {
     /// the user has opted in via Settings. Call on launch.
     func checkIfDue() {
         guard autoCheckEnabled else { return }
+        if case .updateAvailable = state { return }
         let last = UserDefaults.standard.object(forKey: Self.lastCheckKey) as? Date
-        if let last, Date().timeIntervalSince(last) < Self.checkInterval, latestVersion != nil {
-            return
-        }
+        if let last, Date().timeIntervalSince(last) < Self.checkInterval { return }
         Task { await check(showUpToDate: false) }
     }
 
@@ -69,12 +72,18 @@ final class UpdateChecker: ObservableObject {
     private func check(showUpToDate: Bool) async {
         if case .checking = state { return }
         state = .checking
-        defer { UserDefaults.standard.set(Date(), forKey: Self.lastCheckKey) }
         do {
             var request = URLRequest(url: Self.latestReleaseURL, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 15)
             request.setValue("Sajda", forHTTPHeaderField: "User-Agent")
             request.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
-            let (data, _) = try await URLSession.shared.data(for: request)
+            let (data, response) = try await URLSession.shared.data(for: request)
+            // Cache the check time only on a real answer from the API: a
+            // rate-limit (403/429) or any non-2xx must not start the 24h
+            // silence, or auto-check looks dead after one throttled call.
+            if let http = response as? HTTPURLResponse, !(200..<300).contains(http.statusCode) {
+                state = .failed; return
+            }
+            UserDefaults.standard.set(Date(), forKey: Self.lastCheckKey)
             guard
                 let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
                 let tag = json["tag_name"] as? String

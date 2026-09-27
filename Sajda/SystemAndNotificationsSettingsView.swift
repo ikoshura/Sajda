@@ -187,9 +187,7 @@ struct PrayerSoundRow: View {
                     newConfig.muted.toggle()
                     onUpdateConfig(newConfig)
                 }) {
-                    Image(systemName: config.muted ? "speaker.slash.fill" : "speaker.wave.2.fill")
-                        .font(.system(size: 12))
-                        .foregroundColor(config.muted ? .secondary.opacity(0.5) : .secondary)
+                    AdhanMuteIcon(muted: config.muted, size: 12)
                 }
                 .buttonStyle(.plain)
                 .help(config.muted ? "Unmute Adhan" : "Mute Adhan")

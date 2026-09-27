@@ -12,6 +12,7 @@
 		6A326937AAE44E87A4E5A9AF /* Doha_Qatar_Fajr_Adhan.caf in Resources */ = {isa = PBXBuildFile; fileRef = 92B2809E4FE34952864F8FAA /* Doha_Qatar_Fajr_Adhan.caf */; };
 		7BFBE565A1E84CA2915AE0C8 /* Mishary_Rashid_al_Afasy_Fajr_Adhan.caf in Resources */ = {isa = PBXBuildFile; fileRef = EBC237DE638145FF832C3A24 /* Mishary_Rashid_al_Afasy_Fajr_Adhan.caf */; };
 		7E7D402BCC8044B9AB70C508 /* Nasser_al_Qatami_Adhan.caf in Resources */ = {isa = PBXBuildFile; fileRef = C545EF0A5D474B7A869E963A /* Nasser_al_Qatami_Adhan.caf */; };
+		CCAA00112FABBC0200CCDDEE /* AdhanMuteIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCAA00102FABBC0200CCDDEE /* AdhanMuteIcon.swift */; };
 		A1B3068783F31CB16A0B04E4 /* AdhanAudioPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B220C2AC258F390A192FF3 /* AdhanAudioPlayer.swift */; };
 		CCAA00072FABBC0200CCDDEE /* MosqueTimetablePicker.swift in Sources */ = {isa = PBXBuildFile; buildActionMask = 2147483647; files = (
 		); fileRef = CCAA00062FABBC0200CCDDEE /* MosqueTimetablePicker.swift */; runOnlyForDeploymentPostprocessing = 0; };
@@ -115,6 +116,7 @@
 		CC786E5C2E636A58007299F3 /* timezones.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = timezones.json; sourceTree = "<group>"; };
 		CC786E5E2E637700007299F3 /* AdhanSound.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdhanSound.swift; sourceTree = "<group>"; };
 		CCAA00052FABBC0200CCDDEE /* SajdaSearchField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SajdaSearchField.swift; sourceTree = "<group>"; };
+		CCAA00102FABBC0200CCDDEE /* AdhanMuteIcon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdhanMuteIcon.swift; sourceTree = "<group>"; };
 		CCAA00062FABBC0200CCDDEE /* MosqueTimetablePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MosqueTimetablePicker.swift; sourceTree = "<group>"; };
 		CC786E622E63787E007299F3 /* MenuBarTextMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarTextMode.swift; sourceTree = "<group>"; };
 		CC786E642E638353007299F3 /* SajdaCalculationMethod.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SajdaCalculationMethod.swift; sourceTree = "<group>"; };
@@ -280,6 +282,7 @@
 				CC786E552E635ADA007299F3 /* AlertWindowManager.swift */,
 				CC786E572E635B46007299F3 /* PrayerTimerAlertView.swift */,
 				CC786E5E2E637700007299F3 /* AdhanSound.swift */,
+				CCAA00102FABBC0200CCDDEE /* AdhanMuteIcon.swift */,
 				CCAA00052FABBC0200CCDDEE /* SajdaSearchField.swift */,
 				CCAA00062FABBC0200CCDDEE /* MosqueTimetablePicker.swift */,
 				CC786E622E63787E007299F3 /* MenuBarTextMode.swift */,
@@ -529,6 +532,7 @@
 				CC786E542E6359E1007299F3 /* PrayerTimerMonitor.swift in Sources */,
 				CC786E742E63BD15007299F3 /* VisualEffectView.swift in Sources */,
 				CC786E5F2E637700007299F3 /* AdhanSound.swift in Sources */,
+				CCAA00112FABBC0200CCDDEE /* AdhanMuteIcon.swift in Sources */,
 				CCAA00042FABBC0200CCDDEE /* SajdaSearchField.swift in Sources */,
 				CCAA00072FABBC0200CCDDEE /* MosqueTimetablePicker.swift in Sources */,
 				CCE1BA3A2E61852B003AF03C /* EventMonitor.swift in Sources */,

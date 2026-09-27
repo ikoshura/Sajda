@@ -428,6 +428,9 @@ struct SettingsView: View {
             }
             StyledToggle(label: "Show Countdown Header", isOn: $vm.showCountdownHeader)
             StyledToggle(label: "Show Sunnah Prayers", isOn: $vm.showSunnahPrayers)
+            // Travellers plan around Friday: with this on, the Jumu'ah row
+            // under Dhuhr shows every day instead of Fridays only.
+            StyledToggle(label: "Always Show Jumu'ah", isOn: $vm.alwaysShowJumuah)
             // Friday (Jumu'ah) sessions, one clock row each: several mosques
             // hold multiple gatherings. Empty = no Jumu'ah row on the panel.
             // A text input was considered; the ± steppers win — free-typing

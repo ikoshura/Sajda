@@ -96,6 +96,10 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
     /// so existing choices carry over. Republishes because the Settings
     /// +/- stepper must redraw immediately.
     @AppStorage("redAlertTiming") var redAlertMinutes: Int = 10 { didSet { objectWillChange.send() } }
+    /// When on, the Jumu'ah sessions row shows under Dhuhr every day — not
+    /// just Fridays — so travellers can plan ahead. Republishes so the panel
+    /// redraws the moment the toggle flips.
+    @AppStorage("alwaysShowJumuah") var alwaysShowJumuah: Bool = false { didSet { objectWillChange.send() } }
     /// Downloaded Mawaqit mosque schedule; loaded from disk on first use.
     @Published var mawaqitMosque: MawaqitMosque?
     /// Saved favorite cities + mosque timetables (max 5), loaded from disk.
