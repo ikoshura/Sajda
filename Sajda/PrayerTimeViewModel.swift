@@ -637,22 +637,24 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
             return
         }
 
-        // The same per-prayer offsets the Time Correction page applies to
-        // calculated times — one page for both modes. They shift only these
-        // in-memory Dates: `mosque.calendar` (the downloaded JSON on disk) is
-        // never written to, so the mosque's own times stay pristine and a
-        // refresh simply re-applies the offsets on top of them.
-        let fajr = rawFajr.addingTimeInterval(fajrCorrection * 60)
-        let dhuhr = rawDhuhr.addingTimeInterval(dhuhrCorrection * 60)
-        let asr = rawAsr.addingTimeInterval(asrCorrection * 60)
-        let maghrib = rawMaghrib.addingTimeInterval(maghribCorrection * 60)
-        let isha = rawIsha.addingTimeInterval(ishaCorrection * 60)
+        // The mosque's published times are the answer in timetable mode, so
+        // the adhan offsets are deliberately *not* applied here: there is no
+        // calculated time here to bring into line with the local mosque, and
+        // shifting a mosque's own times only makes them wrong. The offsets stay
+        // stored and apply again the moment calculated times come back — which
+        // is why the Time Correction page greys this tab out while a timetable
+        // is active (see `isMosqueTimetableActive`).
+        let fajr = rawFajr
+        let dhuhr = rawDhuhr
+        let asr = rawAsr
+        let maghrib = rawMaghrib
+        let isha = rawIsha
 
         // Sunnah prayers stay usable in mosque mode, counted locally: Tahajud
         // from the *ongoing* night (yesterday's mosque Isha → today's Fajr,
         // only while still before today's Fajr) and Dhuha 20 minutes after
-        // the mosque's sunrise. Yesterday's Isha gets its offset too, so the
-        // night window matches what the calculated path derives.
+        // the mosque's sunrise. Both are derived from the mosque's own times, so
+        // neither carries an adhan offset.
         var extras: [(name: String, time: Date)] = []
         if showSunnahPrayers {
             let now = Date()
@@ -660,8 +662,7 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
             if now < fajr,
                let yesterdayDay = MawaqitService.times(for: yesterday, in: mosque.calendar),
                yesterdayDay.count >= 6,
-               let rawYesterdayIsha = dateFromHM(yesterdayDay[5], on: yesterday) {
-                let yesterdayIsha = rawYesterdayIsha.addingTimeInterval(ishaCorrection * 60)
+               let yesterdayIsha = dateFromHM(yesterdayDay[5], on: yesterday) {
                 let night = fajr.timeIntervalSince(yesterdayIsha)
                 if night > 0 {
                     extras.append(("Tahajud", yesterdayIsha.addingTimeInterval(night * (2 / 3.0))))
@@ -676,11 +677,10 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
         // new calendar may not be published yet, so fall back to today's Fajr
         // clock time on tomorrow's date (the estimate the Mawaqit applet uses).
         let tomorrow = Date().addingTimeInterval(86_400)
-        let rawFajrTomorrow = MawaqitService.times(for: tomorrow, in: mosque.calendar)
+        let fajrTomorrow = MawaqitService.times(for: tomorrow, in: mosque.calendar)
             .flatMap { dateFromHM($0[0], on: tomorrow) }
             ?? dateFromHM(day[0], on: tomorrow)
             ?? rawFajr.addingTimeInterval(86_400)
-        let fajrTomorrow = rawFajrTomorrow.addingTimeInterval(fajrCorrection * 60)
 
         var entries: [(name: String, time: Date)] = [
             ("Fajr", fajr), ("Dhuhr", dhuhr), ("Asr", asr),
@@ -782,6 +782,15 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
     /// Republishes because a change must redraw the rows immediately.
     @AppStorage("iqamaDelayMinutes") var iqamaDelayMinutes: Int = 8 { didSet { objectWillChange.send() } }
 
+    /// Whether the panel prints the iqama gap beside each prayer time
+    /// (`Dhuhr 13:53 +8`). On by default: it is the one line that tells you
+    /// when to head to the mosque, and it used to be printed with no way to
+    /// turn it off. `displayedIqamaDelay(for:)` decides *which* number (or
+    /// that there is none); this only decides whether any is drawn.
+    /// Republishes for the same reason the delay itself does: the rows are
+    /// already laid out, so this is a redraw, not a data change.
+    @AppStorage("showIqamaDelay") var showIqamaDelay: Bool = true { didSet { objectWillChange.send() } }
+
     /// Jumu'ah session times as minutes past midnight in the shown timezone,
     /// kept as a free list in Settings so mosques with several Friday
     /// sessions can list them all (at most `maxJumuahSessions`). Empty means
@@ -831,6 +840,32 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
         // Republish on the spot so the row previews and the countdown header
         // redraw without waiting for the next unrelated view-model change.
         objectWillChange.send()
+    }
+
+    /// The gap the panel prints beside a prayer time — "+8" — or nothing when
+    /// the delay shouldn't be shown. One source of truth for the rule that
+    /// decides both:
+    ///
+    /// - Sunnah prayers (Tahajud, Dhuha) have no congregation, so no iqama and
+    ///   no gap is ever printed for them.
+    /// - With a mosque timetable active the mosque's *published* gap wins: its
+    ///   iqama is the real answer, and "+8" under a mosque that runs "+20" was
+    ///   a number that doesn't exist. A mosque that publishes no gap for that
+    ///   prayer falls back to the user's own, which is what `effectiveIqamaDelay`
+    ///   already does.
+    /// - Otherwise the user's configured gap is shown, whether the location came
+    ///   from Automatic or Manual — neither mode changes the iqama, only where
+    ///   the coordinates came from.
+    ///
+    /// `nil` when the delay is off in Settings, or when the gap is zero (a
+    /// mosque that opens straight after the adhan has no delay to report, and
+    /// "+0" is noise). Returned as `Int?` rather than a formatted string so the
+    /// row draws the number in its own font and the accessibility label can
+    /// reuse it.
+    func displayedIqamaDelay(for prayer: String) -> Int? {
+        guard showIqamaDelay, Self.congregationalPrayers.contains(prayer) else { return nil }
+        let minutes = effectiveIqamaDelay(for: prayer)
+        return minutes > 0 ? minutes : nil
     }
 
     /// The iqama gap the panel actually shows for `prayer`: the mosque's own
@@ -903,6 +938,17 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = displayTimeZone
         return calendar.component(.weekday, from: Date()) == 6
+    }
+
+    /// True when a downloaded mosque timetable is the active source of the
+    /// times. Settings that only feed the *calculated* path (method, madhhab,
+    /// high-latitude rule, the hand-entered Jumu'ah list, the iqama gap) are
+    /// inert while this is on — the mosque's own published values are used
+    /// instead, and the user's stay stored for when the timetable is switched
+    /// off. The UI greys those rows out through this one flag rather than each
+    /// page re-deriving the condition (and disagreeing about what counts).
+    var isMosqueTimetableActive: Bool {
+        useMawaqitSchedule && mawaqitMosque != nil
     }
 
     /// The sessions the panel actually shows, in minutes past midnight.

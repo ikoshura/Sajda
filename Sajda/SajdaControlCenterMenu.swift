@@ -95,6 +95,7 @@ struct SajdaControlCenterMenu: View {
             "\(vm.isPrayerDataAvailable)",
             "\(vm.showCountdownHeader)",
             "\(vm.showSunnahPrayers)",
+            "\(vm.showIqamaDelay)",
             "\(vm.useCompactLayout)",
             "\(vm.menuBarTextMode)",
             "\(vm.isAdhanPlaying)",

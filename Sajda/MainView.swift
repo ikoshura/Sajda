@@ -434,6 +434,24 @@ struct PrayerListView: View {
         return ("88:88" as NSString).size(withAttributes: [.font: font]).width + 4
     }
 
+    /// Fixed width for the iqama gap column ("+8") that sits between the mute
+    /// toggle and the time, drawn only when `displayedIqamaDelay(for:)` returns
+    /// a number. Measured from the widest string the gap can be — "+88" — in the
+    /// scaled caption font, and reserved on *every* row whether or not this
+    /// prayer shows a gap, so the times don't shift as the highlight moves or
+    /// when one prayer's gap differs from another's.
+    static func iqamaColumnWidth(fontScale: CGFloat) -> CGFloat {
+        // Same font the row draws the gap in: `scaledFont(.caption)` resolves to
+        // the caption style's preferred font at the panel scale (see
+        // `ScaledFontModifier`), so measuring anything else would clip it.
+        // `.caption` maps to `NSFont.TextStyle.caption1` here, matching
+        // `ScaledFontModifier.nsTextStyle`, which is the font the row draws the
+        // gap in — measuring a different one would clip the widest case.
+        let size = NSFont.preferredFont(forTextStyle: .caption1).pointSize * fontScale
+        let font = NSFont.systemFont(ofSize: size)
+        return ("+88" as NSString).size(withAttributes: [.font: font]).width + 4
+    }
+
     /// Convenience for the common case: measure with the bold weight so every
     /// row reserves the same, widest slot and the column can never jitter as
     /// the highlight moves between prayers.
@@ -488,6 +506,13 @@ private struct PrayerRow: View {
                 }
                 Spacer(minLength: 4)
                 toggleCell(isNextPrayer: isNextPrayer, textColor: textColor)
+                // Between the mute toggle and the time, not after it: this is
+                // the column layout the panel has always used, and keeping the
+                // time hard against the trailing gutter is what lets it keep
+                // its fixed right-aligned column. Putting "+8" last pushed the
+                // time in from the edge and left the number floating on its
+                // own at the far right.
+                iqamaCell(isNextPrayer: isNextPrayer, textColor: textColor)
                 Text(vm.dateFormatter.string(from: displayTime)).scaledFont(.body, weight: isNextPrayer ? .bold : nil)
                     // Right-anchored, one shared width: every time's leading
                     // edge starts at the same x. The width is measured in the
@@ -522,6 +547,31 @@ private struct PrayerRow: View {
                 // countdown card's own 5 pt inset.
                 .padding(.horizontal, PrayerListView.highlightInset)
             }
+        }
+    }
+
+    /// The iqama gap ("+8") in the slot between the mute toggle and the time.
+    /// Renders nothing — and reserves no width — when there is no gap to show,
+    /// so the times keep their old positions for Sunnah prayers and for any row
+    /// the mosque publishes no gap for. The *width* is reserved even when the
+    /// gap is hidden but the setting is on, because otherwise the times would
+    /// jump sideways between prayers that do and don't have one.
+    @ViewBuilder
+    private func iqamaCell(isNextPrayer: Bool, textColor: Color) -> some View {
+        if let minutes = vm.displayedIqamaDelay(for: prayerName) {
+            Text(String(format: "+%d", minutes))
+                .scaledFont(.caption)
+                // Dimmer than the time, like the "Around" caption: it is a
+                // qualifier on the time, not another time. On the highlighted
+                // row it takes the row's own colour so it stays readable on
+                // both light and dark highlights.
+                .foregroundColor(isNextPrayer ? textColor.opacity(0.8) : Color("SecondaryTextColor"))
+                .monospacedDigit()
+                .lineLimit(1)
+                .frame(width: PrayerListView.iqamaColumnWidth(fontScale: fontScale), alignment: .trailing)
+                .help(String(format: NSLocalizedString("iqama_delay_minutes", comment: ""), minutes))
+        } else if vm.showIqamaDelay {
+            Color.clear.frame(width: PrayerListView.iqamaColumnWidth(fontScale: fontScale), height: 1)
         }
     }
 

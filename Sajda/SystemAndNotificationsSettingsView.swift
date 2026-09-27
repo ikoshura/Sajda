@@ -10,6 +10,11 @@ struct SystemAndNotificationsSettingsView: View {
     @State private var isHeaderHovering = false
     @State private var applyToAllAdhanType: AdhanType = .defaultBeep
     @State private var previewingPrayer: String? = nil
+    /// The per-prayer adhan list, folded away until asked for. `@State`, so it
+    /// starts shut on every open of the page: the panel tears this page down
+    /// when it closes, and a sound choice is not something to re-inspect each
+    /// time the page is opened.
+    @State private var perPrayerExpanded = false
 
     private let obligatoryPrayers = ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"]
     private let sunnahPrayers = ["Tahajud", "Dhuha"]
@@ -90,54 +95,68 @@ struct SystemAndNotificationsSettingsView: View {
                         }
                         .disabled(!vm.isNotificationsEnabled)
 
-                        Rectangle()
-                            .fill(Color("DividerColor"))
-                            .frame(height: 0.5)
-
-                        ForEach(allPrayers, id: \.self) { prayerName in
-                            PrayerSoundRow(
-                                prayerName: prayerName,
-                                config: vm.soundConfig(for: prayerName),
-                                isPreviewing: previewingPrayer == prayerName,
-                                isEnabled: vm.isNotificationsEnabled,
-                                onUpdateConfig: { newConfig in
-                                    vm.setSoundConfig(newConfig, for: prayerName)
-                                },
-                                onPreview: {
-                                    if previewingPrayer == prayerName {
-                                        AdhanAudioPlayer.shared.stop()
-                                        previewingPrayer = nil
-                                    } else {
-                                        AdhanAudioPlayer.shared.stop()
-                                        let config = vm.soundConfig(for: prayerName)
-                                        AdhanAudioPlayer.shared.preview(
-                                            adhanType: config.adhanType,
-                                            customFilePath: config.customFilePath
-                                        )
-                                        previewingPrayer = prayerName
-                                        DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
-                                            if previewingPrayer == prayerName {
-                                                previewingPrayer = nil
+                        // The per-prayer list is the tall part of this page
+                        // (five to seven rows, each with its own picker), and
+                        // it is the part almost nobody opens: "set them all" is
+                        // one control above and covers the common case. Folding
+                        // it means opening Adhan Sound shows the notification
+                        // switch, the apply-to-all row, and one line to get to
+                        // the rest — instead of a wall of pickers.
+                        SettingsAccordion(
+                            titleKey: "Per Prayer",
+                            isExpanded: perPrayerExpanded,
+                            collapsedChevron: vm.forwardChevron,
+                            onToggle: { perPrayerExpanded.toggle() },
+                            // 0, for the same reason as Calculation & Location:
+                            // the rows above already sit flush at the scroll
+                            // view's own 16 pt gutter.
+                            horizontalInset: 0
+                        ) {
+                            ForEach(allPrayers, id: \.self) { prayerName in
+                                PrayerSoundRow(
+                                    prayerName: prayerName,
+                                    config: vm.soundConfig(for: prayerName),
+                                    isPreviewing: previewingPrayer == prayerName,
+                                    isEnabled: vm.isNotificationsEnabled,
+                                    onUpdateConfig: { newConfig in
+                                        vm.setSoundConfig(newConfig, for: prayerName)
+                                    },
+                                    onPreview: {
+                                        if previewingPrayer == prayerName {
+                                            AdhanAudioPlayer.shared.stop()
+                                            previewingPrayer = nil
+                                        } else {
+                                            AdhanAudioPlayer.shared.stop()
+                                            let config = vm.soundConfig(for: prayerName)
+                                            AdhanAudioPlayer.shared.preview(
+                                                adhanType: config.adhanType,
+                                                customFilePath: config.customFilePath
+                                            )
+                                            previewingPrayer = prayerName
+                                            DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
+                                                if previewingPrayer == prayerName {
+                                                    previewingPrayer = nil
+                                                }
                                             }
                                         }
+                                    },
+                                    onBrowse: {
+                                        NSApp.activate(ignoringOtherApps: true)
+                                        let openPanel = NSOpenPanel()
+                                        openPanel.canChooseFiles = true
+                                        openPanel.canChooseDirectories = false
+                                        openPanel.allowsMultipleSelection = false
+                                        openPanel.allowedContentTypes = [.audio]
+                                        if openPanel.runModal() == .OK {
+                                            let config = PrayerSoundConfig(
+                                                adhanType: .custom,
+                                                customFilePath: openPanel.url?.absoluteString ?? ""
+                                            )
+                                            vm.setSoundConfig(config, for: prayerName)
+                                        }
                                     }
-                                },
-                                onBrowse: {
-                                    NSApp.activate(ignoringOtherApps: true)
-                                    let openPanel = NSOpenPanel()
-                                    openPanel.canChooseFiles = true
-                                    openPanel.canChooseDirectories = false
-                                    openPanel.allowsMultipleSelection = false
-                                    openPanel.allowedContentTypes = [.audio]
-                                    if openPanel.runModal() == .OK {
-                                        let config = PrayerSoundConfig(
-                                            adhanType: .custom,
-                                            customFilePath: openPanel.url?.absoluteString ?? ""
-                                        )
-                                        vm.setSoundConfig(config, for: prayerName)
-                                    }
-                                }
-                            )
+                                )
+                            }
                         }
                     }
                     .controlSize(.small)

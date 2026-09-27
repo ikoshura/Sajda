@@ -27,6 +27,12 @@ struct SettingsAccordion<Content: View>: View {
     let isExpanded: Bool
     let collapsedChevron: String
     let onToggle: () -> Void
+    /// Horizontal inset the header row and the expanded content add *inside*
+    /// the accordion, on top of whatever padding the page already applies.
+    /// The default (8 + 5 = 13) is what the About page's content wants; a page
+    /// whose surrounding rows already sit flush at their own padding passes 0
+    /// so the header and its content line up with them instead of stepping in.
+    var horizontalInset: CGFloat = 13
     @ViewBuilder let content: Content
 
     /// Gap between the collapse and the expand when switching sections
@@ -53,19 +59,19 @@ struct SettingsAccordion<Content: View>: View {
                 .liquidHover(isHovering)
             }
             .buttonStyle(.plain)
-            .padding(.horizontal, 5)
+            .padding(.horizontal, horizontalInset - 8)
             .onHover { hovering in isHovering = hovering }
 
             if isExpanded {
                 VStack(alignment: .leading, spacing: 12) {
                     content
                 }
-                // Same geometry as the header row above it (outer 5 +
-                // inner 8) so the expanded rows' text sits flush under the
+                // Same geometry as the header row above it (the same 8 + inset
+                // split) so the expanded rows' text sits flush under the
                 // section title — and flush with the sub-page buttons too.
                 .padding(.horizontal, 8)
                 .padding(.vertical, 6)
-                .padding(.horizontal, 5)
+                .padding(.horizontal, horizontalInset - 8)
                 // Slow height reveal + fade together: the window frame
                 // animation tracks the animating content size, so this one
                 // curve drives the smooth panel resize. Clipped so rows never

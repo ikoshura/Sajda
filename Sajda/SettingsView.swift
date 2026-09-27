@@ -434,6 +434,11 @@ struct SettingsView: View {
                 ), options: LocationRowPosition.allCases) { NSLocalizedString($0.rawValue, comment: "") }
             }
             StyledToggle(label: "Show Sunnah Prayers", isOn: $vm.showSunnahPrayers)
+            // "Dhuhr 13:53 +8": how long after the adhan the iqama is. With a
+            // mosque timetable on, the number shown is the mosque's own
+            // published gap (see `displayedIqamaDelay(for:)`); the gap itself is
+            // set per prayer under Calculation & Location > Time Correction.
+            StyledToggle(label: "Show Iqama Delay", isOn: $vm.showIqamaDelay)
             // Travellers plan around Friday: with this on, the Jumu'ah row
             // under Dhuhr shows every day instead of Fridays only.
             StyledToggle(label: "Always Show Jumu'ah", isOn: $vm.alwaysShowJumuah)
@@ -454,12 +459,19 @@ struct SettingsView: View {
                             .font(.system(size: 12, weight: .semibold))
                     }
                     .buttonStyle(.plain)
-                    .disabled(!canAddJumuahSession)
-                    .opacity(canAddJumuahSession ? 1 : 0.3)
+                    .disabled(!canAddJumuahSession || sessionsAreInert)
+                    .opacity((canAddJumuahSession && !sessionsAreInert) ? 1 : 0.3)
                     .help(Text(NSLocalizedString("Add session", comment: "")))
                     .accessibilityLabel(Text(NSLocalizedString("Add session", comment: "")))
                 }
-                if vm.jumuahSessions.isEmpty {
+                if sessionsAreInert {
+                    // Says *why* rather than just going dim: a greyed block with
+                    // no explanation reads as a broken setting, and the fix is
+                    // not obvious.
+                    Text(NSLocalizedString("mosque_sessions_in_use", comment: ""))
+                        .scaledFont(.caption2)
+                        .foregroundColor(Color("SecondaryTextColor"))
+                } else if vm.jumuahSessions.isEmpty {
                     Text("No sessions — nothing extra shows on Fridays.")
                         .scaledFont(.caption2)
                         .foregroundColor(Color("SecondaryTextColor"))
@@ -475,6 +487,12 @@ struct SettingsView: View {
                     }
                 }
             }
+            // Kept enabled rather than disabled-and-dimmed as a whole: the rows
+            // stay readable and, if the user does tap one, the control ignores
+            // it. `.disabled` alone would grey the caption too and lose the
+            // reason shown above.
+            .allowsHitTesting(!sessionsAreInert)
+            .opacity(sessionsAreInert ? 0.5 : 1)
             // The two stepper rows sit at the bottom, below the Jumu'ah block:
             // both are corrective overrides for a value the panel already
             // computes, so they read as fine-tuning after the main toggles
@@ -499,6 +517,11 @@ struct SettingsView: View {
             }
         }
     }
+
+    /// The hand-entered Jumu'ah rows are ignored while a mosque timetable is
+    /// the active source — the mosque publishes its own sessions (see
+    /// `effectiveJumuahSessions`). Only then, and only for that block.
+    private var sessionsAreInert: Bool { vm.isMosqueTimetableActive }
 
     /// Whether one more Friday session can be appended: strictly below the cap.
     private var canAddJumuahSession: Bool {

@@ -324,12 +324,27 @@ struct PrayerTimeCorrectionView: View {
                     .padding(.bottom, 2)
 
                 VStack(spacing: 8) {
+                    // A mosque timetable publishes the mosque's own adhan
+                    // times, so the adhan offsets have nothing to correct —
+                    // `applyMawaqitDay` no longer shifts them. Dimmed for the
+                    // same reason as the Iqama tab below, and for the same
+                    // reason the stored values are kept rather than cleared:
+                    // they come straight back with calculated times.
+                    if vm.isMosqueTimetableActive {
+                        Text(NSLocalizedString("mosque_adhan_in_use", comment: ""))
+                            .scaledFont(.caption2)
+                            .foregroundColor(Color("SecondaryTextColor"))
+                            .padding(.bottom, 2)
+                    }
                     CorrectionRow(prayerName: "Fajr", value: $fajrValue)
                     CorrectionRow(prayerName: "Dhuhr", value: $dhuhrValue)
                     CorrectionRow(prayerName: "Asr", value: $asrValue)
                     CorrectionRow(prayerName: "Maghrib", value: $maghribValue)
                     CorrectionRow(prayerName: "Isha", value: $ishaValue)
                 }
+                .allowsHitTesting(!vm.isMosqueTimetableActive)
+                .disabled(vm.isMosqueTimetableActive)
+                .opacity(vm.isMosqueTimetableActive ? 0.5 : 1)
             } else {
                 VStack(alignment: .center, spacing: 1) {
                     // Reuses the existing translated "Iqama Delay" key.
@@ -344,13 +359,28 @@ struct PrayerTimeCorrectionView: View {
                 .padding(.top, 4)
                 .padding(.bottom, 2)
 
+                // The mosque's published iqama wins for every prayer it
+                // publishes one for (`effectiveIqamaDelay(for:)`), so these
+                // rows are inert while a timetable is the active source. Dimmed
+                // with a reason, matching the Jumu'ah sessions block in
+                // Settings — the stored gaps come straight back when the
+                // timetable is switched off.
                 VStack(spacing: 8) {
+                    if vm.isMosqueTimetableActive {
+                        Text(NSLocalizedString("mosque_iqama_in_use", comment: ""))
+                            .scaledFont(.caption2)
+                            .foregroundColor(Color("SecondaryTextColor"))
+                            .padding(.bottom, 2)
+                    }
                     IqamaRow(prayerName: "Fajr", value: $fajrIqamaValue)
                     IqamaRow(prayerName: "Dhuhr", value: $dhuhrIqamaValue)
                     IqamaRow(prayerName: "Asr", value: $asrIqamaValue)
                     IqamaRow(prayerName: "Maghrib", value: $maghribIqamaValue)
                     IqamaRow(prayerName: "Isha", value: $ishaIqamaValue)
                 }
+                .allowsHitTesting(!vm.isMosqueTimetableActive)
+                .disabled(vm.isMosqueTimetableActive)
+                .opacity(vm.isMosqueTimetableActive ? 0.5 : 1)
             }
 
             if tabHasChanges(tab) {
