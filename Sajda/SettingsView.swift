@@ -364,6 +364,9 @@ struct SettingsView: View {
             // Tints the whole panel; the panel's colour scheme flips
             // to balance text and controls against the tint.
             StyledToggle(label: "Accent Panel", isOn: $vm.accentPanelTheme)
+            // Above Custom Color so the two appearance toggles sit together
+            // and the colour rows read as one block underneath them.
+            StyledToggle(label: "Glass Highlight", isOn: $vm.useGlassPrayerHighlight)
             VStack(alignment: .leading, spacing: 6) {
                 HStack {
                     Text("Custom Color").scaledFont(.subheadline)
@@ -406,7 +409,6 @@ struct SettingsView: View {
                     InlineColorSelector(selection: highlightColorSelection)
                 }
             } // closes the Custom Color inner stack
-            StyledToggle(label: "Glass Highlight", isOn: $vm.useGlassPrayerHighlight)
         }
     }
 
