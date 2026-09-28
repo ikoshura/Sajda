@@ -759,7 +759,7 @@
 				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 33;
+				CURRENT_PROJECT_VERSION = 34;
 				DEVELOPMENT_ASSET_PATHS = "\"Sajda/Preview Content\"";
 				DEVELOPMENT_TEAM = KTKP595G3B;
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = "";
@@ -774,7 +774,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 4.4.11;
+				MARKETING_VERSION = 4.4.12;
 				PRODUCT_BUNDLE_IDENTIFIER = com.madda.Sajda;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "";
@@ -793,7 +793,7 @@
 				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 33;
+				CURRENT_PROJECT_VERSION = 34;
 				DEVELOPMENT_ASSET_PATHS = "\"Sajda/Preview Content\"";
 				DEVELOPMENT_TEAM = KTKP595G3B;
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = "";
@@ -808,7 +808,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 4.4.11;
+				MARKETING_VERSION = 4.4.12;
 				PRODUCT_BUNDLE_IDENTIFIER = com.madda.Sajda;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "";
