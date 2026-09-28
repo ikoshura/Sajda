@@ -418,6 +418,22 @@ struct PrayerListView: View {
         return max(16, (line * 1.5).rounded())
     }
 
+    /// Slack baked into the measured time column (and the iqama column).
+    ///
+    /// The measurement pads the reserved box a little wider than "88:88" really
+    /// needs, so a wide glyph or a bolder weight can never push the digits out
+    /// of their column. But that slack sits on the *trailing* edge, and the row's
+    /// trailing inset is measured from the box — so the time ended up 4 pt further
+    /// from the right edge than the prayer name is from the left, and the row
+    /// read as cramped on the left and slack on the right even though the
+    /// highlight capsule itself was perfectly balanced.
+    ///
+    /// `rowTrailingInset` subtracts it back off, which puts the time's right edge
+    /// exactly on the same 12 pt gutter as the name's left edge. Without this the
+    /// two ends of every row disagree by this much, on every row, at every text
+    /// size.
+    static let columnSlack: CGFloat = 4
+
     /// Fixed width for the time column: the widest string the panel's date
     /// formatter can emit ("88:88"), measured in the row font — so every
     /// row's time starts at the same x no matter its value, weight, or the
@@ -431,8 +447,16 @@ struct PrayerListView: View {
     static func timeColumnWidth(fontScale: CGFloat, bold: Bool) -> CGFloat {
         let size = PanelTextSize.baseBodyPointSize * fontScale
         let font = NSFont.systemFont(ofSize: size, weight: bold ? .bold : .regular)
-        return ("88:88" as NSString).size(withAttributes: [.font: font]).width + 4
+        return ("88:88" as NSString).size(withAttributes: [.font: font]).width + columnSlack
     }
+
+    /// Trailing gutter for a schedule row, measured to the *ink* of the last
+    /// element rather than to the edge of the box that holds it.
+    ///
+    /// Clamped at zero so a future measurement that returns a box narrower than
+    /// the slack can never hand back a negative inset and throw the time past
+    /// the right edge.
+    static var rowTrailingInset: CGFloat { max(0, rowHorizontalInset - columnSlack) }
 
     /// Width the sunnah "plusminus" estimate mark adds to the time column.
     ///
@@ -493,7 +517,7 @@ struct PrayerListView: View {
         // longer fills.
         let size = NSFont.preferredFont(forTextStyle: .callout).pointSize * fontScale
         let font = NSFont.systemFont(ofSize: size)
-        return ("+88" as NSString).size(withAttributes: [.font: font]).width + 4
+        return ("+88" as NSString).size(withAttributes: [.font: font]).width + columnSlack
     }
 
     /// Convenience for the common case: measure with the bold weight so every
@@ -612,7 +636,12 @@ private struct PrayerRow: View {
                 if vm.iqamaDelayPosition == .trailing {
                     iqamaCell(isNextPrayer: isNextPrayer, textColor: textColor)
                 }
-                Spacer().frame(width: PrayerListView.rowHorizontalInset)
+                // Measured to the time's own right edge, not to the edge of the
+                // reserved box around it — see `rowTrailingInset` for why the
+                // two are not the same number. The name's leading inset is a
+                // flat 12 pt, and this is what makes the trailing side match it
+                // instead of sitting 4 pt further out on every row.
+                Spacer().frame(width: PrayerListView.rowTrailingInset)
             }
             // The row is full-width (it holds a Spacer), so its own padding
             // would push the row *outward* past the panel edges rather than
