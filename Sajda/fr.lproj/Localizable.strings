@@ -155,10 +155,37 @@
 "Acknowledgements" = "Remerciements";
 "Opens the location list" = "Ouvre la liste des lieux";
 
-"Always Show Jumu'ah
-=
-Always Show Jumu'ah";
-"Later" = "Later";
-"Dismiss for now" = "Dismiss for now";
+"Always Show Jumu'ah" = "Toujours afficher le vendredi";
+"Later" = "Plus tard";
+"Dismiss for now" = "Ignorer pour l'instant";
 "Top" = "En haut"; "Middle" = "Milieu"; "Bottom" = "En bas";
-"Icône de muet" = "Icône de muet"; "Halo" = "Halo"; "Bell" = "Cloche"; "Speaker" = "Haut-parleur"; "None" = "Aucun";
+"Mute Icon" = "Icône de sourdine"; "Halo" = "Halo"; "Bell" = "Cloche"; "Speaker" = "Haut-parleur"; "None" = "Aucun";
+
+/* Added by localization repair */
+"Jumu'ah Sessions" = "Séances du vendredi";
+"No sessions — nothing extra shows on Fridays." = "Aucune séance — rien de plus ne s'affiche le vendredi.";
+"Custom Color" = "Couleur personnalisée";
+"Add session" = "Ajouter une séance";
+"Remove session" = "Supprimer la séance";
+"Session" = "Séance";
+"Location Row" = "Ligne de localisation";
+"Turn On" = "Activer";
+"Recommended: turn on Compact View to fit this text size." = "Recommandé : activez la vue compacte pour cette taille de texte.";
+"Page %d of %d" = "Page %d sur %d";
+"Top 10 matches — refine to narrow down." = "10 meilleurs résultats — affinez votre recherche.";
+"%d matches — refine your search to narrow it down." = "%d résultats — affinez votre recherche.";
+"Next results" = "Résultats suivants";
+"Previous results" = "Résultats précédents";
+"Mute Adhan" = "Couper l'adhan";
+"Unmute Adhan" = "Rétablir l'adhan";
+"Retry Location" = "Réessayer la localisation";
+"Remove from Favorites" = "Retirer des favoris";
+"Add to Favorites" = "Ajouter aux favoris";
+"Search for a city…" = "Rechercher une ville…";
+"Search for a mosque…" = "Rechercher une mosquée…";
+"Use Automatic Location" = "Utiliser la localisation automatique";
+"Refresh the mosque's schedule" = "Actualiser le planning de la mosquée";
+"Check for the latest version" = "Vérifier la dernière version";
+"Adjust prayer times to match your local mosque." = "Ajustez les horaires selon votre mosquée.";
+"Unlock Settings tab" = "Déverrouiller les réglages";
+"Lock Settings tab" = "Verrouiller les réglages";

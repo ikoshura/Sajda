@@ -385,7 +385,12 @@ struct SettingsView: View {
 
     private var displaySection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack { Text("Language").scaledFont(.subheadline); Spacer(); ScaledMenuPicker(selection: $languageManager.language, options: ["en", "ar", "id", "es", "fr", "de", "ja", "日本語", "zh-Hans", "ko"]) { code in ["en": "English", "ar": "العربية", "id": "Indonesia", "es": "Español", "fr": "Français", "de": "Deutsch", "ja": "日本語", "zh-Hans": "简体中文", "ko": "한국어"][code] ?? code } }
+            // Options and names come from `LanguageManager` so the list can
+            // never offer a code with no `.lproj` behind it. There used to be a
+            // literal "日本語" entry here: selecting it pinned no bundle, so the
+            // panel quietly fell back to the *system* language instead of the
+            // one that was picked.
+            HStack { Text("Language").scaledFont(.subheadline); Spacer(); ScaledMenuPicker(selection: $languageManager.language, options: LanguageManager.supportedCodes) { LanguageManager.displayName(for: $0) } }
             HStack { Text("Menu Bar Style").scaledFont(.subheadline); Spacer(); ScaledMenuPicker(selection: $vm.menuBarTextMode, options: MenuBarTextMode.allCases) { NSLocalizedString($0.rawValue, comment: "") } }
             // Seconds only exist in the countdown modes: the exact-time modes
             // print a fixed clock time, and Icon Only prints no text at all.

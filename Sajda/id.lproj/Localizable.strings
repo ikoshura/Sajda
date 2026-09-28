@@ -116,7 +116,7 @@
 "Text Size" = "Ukuran Teks"; "Small" = "Kecil"; "Default" = "Bawaan"; "Large" = "Besar"; "Extra Large" = "Sangat Besar";
 
 /* Accessibility settings */
-"Accessibility" = "Aksesibilitas"; "Text" = "Teks"; "Menu Bar" = "Menu Bar"; "Bold Text" = "Teks Tebal"; "Uppercase Text" = "Teks Kapital"; "Larger Menu Bar Text" = "Teks Menu Bar Lebih Besar"; "XXL" = "Paling Besar";
+"Accessibility" = "Aksesibilitas"; "Text" = "Teks"; "Menu Bar" = "Bilah Menu"; "Bold Text" = "Teks Tebal"; "Uppercase Text" = "Teks Kapital"; "Larger Menu Bar Text" = "Teks Menu Bar Lebih Besar"; "XXL" = "Paling Besar";
 "Make text easier to read across the panel and menu bar." = "Membuat teks lebih mudah dibaca di panel dan menu bar.";
 
 /* Countdown header + highlight color */
@@ -154,10 +154,38 @@
 "Acknowledgements" = "Ucapan Terima Kasih";
 "Opens the location list" = "Membuka daftar lokasi";
 
-"Always Show Jumu'ah
-=
-Always Show Jumu'ah";
-"Later" = "Later";
-"Dismiss for now" = "Dismiss for now";
+"Always Show Jumu'ah" = "Selalu Tampilkan Jumu'ah";
+"Later" = "Nanti";
+"Dismiss for now" = "Tutup untuk sekarang";
 "Top" = "Atas"; "Middle" = "Tengah"; "Bottom" = "Bawah";
-"Ikon Bisukan" = "Ikon Bisukan"; "Halo" = "Halo"; "Bell" = "Lonceng"; "Speaker" = "Speaker"; "None" = "Tidak Ada";
+"Mute Icon" = "Ikon Bisukan"; "Halo" = "Halo"; "Bell" = "Lonceng"; "Speaker" = "Pengeras Suara"; "None" = "Tidak Ada";
+
+/* Added by localization repair */
+"Jumu'ah Sessions" = "Sesi Jumu'ah";
+"No sessions — nothing extra shows on Fridays." = "Tidak ada sesi — tidak ada tambahan yang tampil pada hari Jumat.";
+"Custom Color" = "Warna Khusus";
+"Add session" = "Tambah sesi";
+"Remove session" = "Hapus sesi";
+"Session" = "Sesi";
+"Location Row" = "Baris Lokasi";
+"Turn On" = "Aktifkan";
+"Recommended: turn on Compact View to fit this text size." = "Disarankan: aktifkan Tampilan Ringkas agar ukuran teks ini muat.";
+"Page %d of %d" = "Halaman %d dari %d";
+"Top 10 matches — refine to narrow down." = "10 hasil teratas — perjelas pencarian.";
+"%d matches — refine your search to narrow it down." = "%d hasil — perjelas pencarian Anda.";
+"Next results" = "Hasil berikutnya";
+"Previous results" = "Hasil sebelumnya";
+"Mute Adhan" = "Bisukan Azan";
+"Unmute Adhan" = "Nyalakan Azan";
+"Retry Location" = "Coba Lagi Lokasi";
+"Remove from Favorites" = "Hapus dari Favorit";
+"Add to Favorites" = "Tambah ke Favorit";
+"Search for a city…" = "Cari kota…";
+"Search for a mosque…" = "Cari masjid…";
+"Use Automatic Location" = "Gunakan Lokasi Otomatis";
+"Refresh the mosque's schedule" = "Segarkan jadwal masjid";
+"Check for the latest version" = "Periksa versi terbaru";
+"Adjust prayer times to match your local mosque." = "Sesuaikan waktu shalat dengan masjid setempat Anda.";
+"Unlock Settings tab" = "Buka kunci Pengaturan";
+"Lock Settings tab" = "Kunci Pengaturan";
+"Azan Sound" = "Suara Azan";

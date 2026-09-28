@@ -155,10 +155,37 @@
 "Acknowledgements" = "감사의 말";
 "Opens the location list" = "위치 목록을 엽니다";
 
-"Always Show Jumu'ah
-=
-Always Show Jumu'ah";
-"Later" = "Later";
-"Dismiss for now" = "Dismiss for now";
+"Always Show Jumu'ah" = "주무아 항상 표시";
+"Later" = "나중에";
+"Dismiss for now" = "지금은 닫기";
 "Top" = "위"; "Middle" = "가운데"; "Bottom" = "아래";
-"음소거 아이콘" = "음소거 아이콘"; "Halo" = "헤일로"; "Bell" = "종"; "Speaker" = "스피커"; "None" = "없음";
+"Mute Icon" = "음소거 아이콘"; "Halo" = "헤일로"; "Bell" = "종"; "Speaker" = "스피커"; "None" = "없음";
+
+/* Added by localization repair */
+"Jumu'ah Sessions" = "주무아 시간대";
+"No sessions — nothing extra shows on Fridays." = "시간대가 없습니다 — 금요일에 추가로 표시되는 항목이 없습니다.";
+"Custom Color" = "사용자 설정 색상";
+"Add session" = "시간대 추가";
+"Remove session" = "시간대 삭제";
+"Session" = "시간대";
+"Location Row" = "위치 행";
+"Turn On" = "켜기";
+"Recommended: turn on Compact View to fit this text size." = "권장: 이 텍스트 크기에 맞추려면 간결한 보기를 켜세요.";
+"Page %d of %d" = "%d / %d 페이지";
+"Top 10 matches — refine to narrow down." = "상위 10개 결과 — 검색어를 좁혀 보세요.";
+"%d matches — refine your search to narrow it down." = "%d개 결과 — 검색어를 좁혀 보세요.";
+"Next results" = "다음 결과";
+"Previous results" = "이전 결과";
+"Mute Adhan" = "아잔 음소거";
+"Unmute Adhan" = "아잔 음소거 해제";
+"Retry Location" = "위치 다시 시도";
+"Remove from Favorites" = "즐겨찾기에서 제거";
+"Add to Favorites" = "즐겨찾기에 추가";
+"Search for a city…" = "도시 검색…";
+"Search for a mosque…" = "모스크 검색…";
+"Use Automatic Location" = "자동 위치 사용";
+"Refresh the mosque's schedule" = "모스크 일정 새로 고침";
+"Check for the latest version" = "최신 버전 확인";
+"Adjust prayer times to match your local mosque." = "지역 모스크에 맞게 예배 시간을 조정하세요.";
+"Unlock Settings tab" = "설정 잠금 해제";
+"Lock Settings tab" = "설정 잠금";

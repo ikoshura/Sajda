@@ -159,9 +159,7 @@
 "Acknowledgements" = "Acknowledgements";
 "Opens the location list" = "Opens the location list";
 
-"Always Show Jumu'ah
-=
-Always Show Jumu'ah";
+"Always Show Jumu'ah" = "Always Show Jumu'ah";
 "Later" = "Later";
 "Dismiss for now" = "Dismiss for now";
 
@@ -171,3 +169,24 @@ Always Show Jumu'ah";
 "Turn On" = "Turn On";
 "Top" = "Top"; "Middle" = "Middle"; "Bottom" = "Bottom";
 "Mute Icon" = "Mute Icon"; "Halo" = "Halo"; "Bell" = "Bell"; "Speaker" = "Speaker"; "None" = "None";
+
+/* Added by localization repair */
+"Adhan Sound" = "Adhan Sound";
+"Jumu'ah Sessions" = "Jumu'ah Sessions";
+"No sessions — nothing extra shows on Fridays." = "No sessions — nothing extra shows on Fridays.";
+"Custom Color" = "Custom Color";
+"Add session" = "Add session";
+"Remove session" = "Remove session";
+"Mute Adhan" = "Mute Adhan";
+"Unmute Adhan" = "Unmute Adhan";
+"Retry Location" = "Retry Location";
+"Remove from Favorites" = "Remove from Favorites";
+"Add to Favorites" = "Add to Favorites";
+"Search for a city…" = "Search for a city…";
+"Search for a mosque…" = "Search for a mosque…";
+"Use Automatic Location" = "Use Automatic Location";
+"Refresh the mosque's schedule" = "Refresh the mosque's schedule";
+"Check for the latest version" = "Check for the latest version";
+"Adjust prayer times to match your local mosque." = "Adjust prayer times to match your local mosque.";
+"Unlock Settings tab" = "Unlock Settings tab";
+"Lock Settings tab" = "Lock Settings tab";

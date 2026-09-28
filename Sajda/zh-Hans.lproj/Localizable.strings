@@ -155,10 +155,37 @@
 "Acknowledgements" = "致谢";
 "Opens the location list" = "打开位置列表";
 
-"Always Show Jumu'ah
-=
-Always Show Jumu'ah";
-"Later" = "Later";
-"Dismiss for now" = "Dismiss for now";
+"Always Show Jumu'ah" = "始终显示主麻";
+"Later" = "稍后";
+"Dismiss for now" = "暂时关闭";
 "Top" = "顶部"; "Middle" = "中间"; "Bottom" = "底部";
-"静音图标" = "静音图标"; "Halo" = "光环"; "Bell" = "铃铛"; "Speaker" = "扬声器"; "None" = "无";
+"Mute Icon" = "静音图标"; "Halo" = "光环"; "Bell" = "铃铛"; "Speaker" = "扬声器"; "None" = "无";
+
+/* Added by localization repair */
+"Jumu'ah Sessions" = "主麻场次";
+"No sessions — nothing extra shows on Fridays." = "暂无场次 — 周五不会显示额外内容。";
+"Custom Color" = "自定义颜色";
+"Add session" = "添加场次";
+"Remove session" = "删除场次";
+"Session" = "场次";
+"Location Row" = "位置行";
+"Turn On" = "开启";
+"Recommended: turn on Compact View to fit this text size." = "建议：开启紧凑视图以适配此文字大小。";
+"Page %d of %d" = "第 %d 页，共 %d 页";
+"Top 10 matches — refine to narrow down." = "前 10 个结果 — 请细化搜索。";
+"%d matches — refine your search to narrow it down." = "%d 个结果 — 请细化搜索。";
+"Next results" = "下一页结果";
+"Previous results" = "上一页结果";
+"Mute Adhan" = "静音宣礼";
+"Unmute Adhan" = "取消静音宣礼";
+"Retry Location" = "重试定位";
+"Remove from Favorites" = "从收藏中移除";
+"Add to Favorites" = "添加到收藏";
+"Search for a city…" = "搜索城市…";
+"Search for a mosque…" = "搜索清真寺…";
+"Use Automatic Location" = "使用自动定位";
+"Refresh the mosque's schedule" = "刷新清真寺时间表";
+"Check for the latest version" = "检查最新版本";
+"Adjust prayer times to match your local mosque." = "调整礼拜时间以匹配您当地的清真寺。";
+"Unlock Settings tab" = "解锁设置标签页";
+"Lock Settings tab" = "锁定设置标签页";

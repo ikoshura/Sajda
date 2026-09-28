@@ -155,10 +155,37 @@
 "Acknowledgements" = "Agradecimientos";
 "Opens the location list" = "Abre la lista de ubicaciones";
 
-"Always Show Jumu'ah
-=
-Always Show Jumu'ah";
-"Later" = "Later";
-"Dismiss for now" = "Dismiss for now";
+"Always Show Jumu'ah" = "Mostrar siempre el yumuá";
+"Later" = "Más tarde";
+"Dismiss for now" = "Descartar por ahora";
 "Top" = "Arriba"; "Middle" = "Centro"; "Bottom" = "Abajo";
-"Icono de silencio" = "Icono de silencio"; "Halo" = "Halo"; "Bell" = "Campana"; "Speaker" = "Altavoz"; "None" = "Ninguno";
+"Mute Icon" = "Icono de silencio"; "Halo" = "Halo"; "Bell" = "Campana"; "Speaker" = "Altavoz"; "None" = "Ninguno";
+
+/* Added by localization repair */
+"Jumu'ah Sessions" = "Sesiones del yumuá";
+"No sessions — nothing extra shows on Fridays." = "Sin sesiones: no se muestra nada adicional los viernes.";
+"Custom Color" = "Color personalizado";
+"Add session" = "Añadir sesión";
+"Remove session" = "Eliminar sesión";
+"Session" = "Sesión";
+"Location Row" = "Fila de ubicación";
+"Turn On" = "Activar";
+"Recommended: turn on Compact View to fit this text size." = "Recomendado: activa la vista compacta para este tamaño de texto.";
+"Page %d of %d" = "Página %d de %d";
+"Top 10 matches — refine to narrow down." = "10 mejores resultados: afina la búsqueda.";
+"%d matches — refine your search to narrow it down." = "%d resultados: afina la búsqueda.";
+"Next results" = "Siguientes resultados";
+"Previous results" = "Resultados anteriores";
+"Mute Adhan" = "Silenciar adhan";
+"Unmute Adhan" = "Activar el sonido del adhan";
+"Retry Location" = "Reintentar ubicación";
+"Remove from Favorites" = "Quitar de favoritos";
+"Add to Favorites" = "Añadir a favoritos";
+"Search for a city…" = "Buscar una ciudad…";
+"Search for a mosque…" = "Buscar una mezquita…";
+"Use Automatic Location" = "Usar ubicación automática";
+"Refresh the mosque's schedule" = "Actualizar el horario de la mezquita";
+"Check for the latest version" = "Buscar la última versión";
+"Adjust prayer times to match your local mosque." = "Ajusta los horarios para que coincidan con tu mezquita.";
+"Unlock Settings tab" = "Desbloquear ajustes";
+"Lock Settings tab" = "Bloquear ajustes";

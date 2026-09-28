@@ -155,10 +155,37 @@
 "Acknowledgements" = "謝辞";
 "Opens the location list" = "場所のリストを開きます";
 
-"Always Show Jumu'ah
-=
-Always Show Jumu'ah";
-"Later" = "Later";
-"Dismiss for now" = "Dismiss for now";
+"Always Show Jumu'ah" = "ジュムアを常に表示";
+"Later" = "後で";
+"Dismiss for now" = "今は閉じる";
 "Top" = "上"; "Middle" = "中央"; "Bottom" = "下";
-"ミュートアイコン" = "ミュートアイコン"; "Halo" = "ハロ"; "Bell" = "ベル"; "Speaker" = "スピーカー"; "None" = "なし";
+"Mute Icon" = "ミュートアイコン"; "Halo" = "ハロ"; "Bell" = "ベル"; "Speaker" = "スピーカー"; "None" = "なし";
+
+/* Added by localization repair */
+"Jumu'ah Sessions" = "ジュムアの時間帯";
+"No sessions — nothing extra shows on Fridays." = "時間帯がありません — 金曜日に追加表示はされません。";
+"Custom Color" = "カスタムカラー";
+"Add session" = "時間帯を追加";
+"Remove session" = "時間帯を削除";
+"Session" = "時間帯";
+"Location Row" = "位置の行";
+"Turn On" = "オンにする";
+"Recommended: turn on Compact View to fit this text size." = "推奨: この文字サイズに合わせてコンパクト表示をオンにしてください。";
+"Page %d of %d" = "%d / %d ページ";
+"Top 10 matches — refine to narrow down." = "上位10件 — 検索を絞り込んでください。";
+"%d matches — refine your search to narrow it down." = "%d 件 — 検索を絞り込んでください。";
+"Next results" = "次の結果";
+"Previous results" = "前の結果";
+"Mute Adhan" = "アザーンをミュート";
+"Unmute Adhan" = "アザーンのミュート解除";
+"Retry Location" = "位置情報を再取得";
+"Remove from Favorites" = "お気に入りから削除";
+"Add to Favorites" = "お気に入りに追加";
+"Search for a city…" = "都市を検索…";
+"Search for a mosque…" = "モスクを検索…";
+"Use Automatic Location" = "自動位置情報を使用";
+"Refresh the mosque's schedule" = "モスクのスケジュールを更新";
+"Check for the latest version" = "最新バージョンを確認";
+"Adjust prayer times to match your local mosque." = "地元のモスクに合わせて礼拝時間を調整します。";
+"Unlock Settings tab" = "設定のロックを解除";
+"Lock Settings tab" = "設定をロック";
