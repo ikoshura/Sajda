@@ -170,6 +170,45 @@ struct MainView: View {
     /// space instead of clinging to the first prayer.
     private static let locationRowGap: CGFloat = 4
 
+    /// Spacing the page's outer stack keeps between its blocks. Named because
+    /// the location row's clearance below it in the `.bottom` position is built
+    /// out of this plus the footer divider's own padding — see
+    /// `locationRowBottomPull`.
+    static let pageStackSpacing: CGFloat = 6
+
+    /// Gap between the location row and the divider drawn above it in the
+    /// `.bottom` position, carried by that divider's own padding.
+    static let locationRowBottomTopGap: CGFloat = 6
+
+    /// Padding the footer's divider carries above and below its 1pt line.
+    static let footerDividerPadding: CGFloat = 2
+
+    /// Correction applied under the location row in the `.bottom` position, so
+    /// the space above the row and the space below it read the same.
+    ///
+    /// The two sides are assembled from different pieces, which is the whole
+    /// reason this exists. Under the row sit *two* stacked gaps —
+    /// `pageStackSpacing` (6) and the footer divider's `footerDividerPadding`
+    /// (2) — so the footer's line lands 8pt below the row's box, against the 6pt
+    /// the divider above it leaves. Taking that difference back out of the row
+    /// block's height makes both sides 6pt.
+    ///
+    /// What this balances is the row's *box*, which is the thing both neighbours
+    /// measure against and the thing the hover pill draws. The text inside keeps
+    /// the font's own asymmetry on top of it — a line of digits and capitals sits
+    /// roughly 2pt high in its line box, in this panel as anywhere else — so the
+    /// ink is not the thing to measure; `build/locrow-verify.swift` prints both
+    /// readings side by side rather than trusting either by eye.
+    ///
+    /// It is a pull on the row's *block*, not padding on the row: the box is the
+    /// row's hover pill and hit area, and it has to keep its padding. The
+    /// previous -5 came from a sum that counted the row's own 5pt padding as if
+    /// it also sat outside the pill, which left the row 3pt closer to the
+    /// footer's line than to the one above it.
+    static var locationRowBottomPull: CGFloat {
+        pageStackSpacing + footerDividerPadding - locationRowBottomTopGap
+    }
+
     /// Version the footer badge advertises, or nil when no update is pending
     /// (badge hidden).
     private var updateBadgeVersion: String? {
@@ -197,9 +236,10 @@ struct MainView: View {
         VStack(alignment: .leading, spacing: 0) {
             Button(action: {
                 if isLocationExpanded {
-                    // Same curve as the Settings and search accordions: the
-                    // panel and the menu window behind it track the animating
-                    // content size and resize in lockstep. The close goes
+                    // Same curve as the search accordions inside: the panel
+                    // and the menu window behind it track the animating content
+                    // size and resize in lockstep. (The settings accordions —
+                    // `SettingsAccordion` — snap instead.) The close goes
                     // through `collapseLocation` so the content resets with it.
                     withAnimation(.sajdaAccordion) {
                         collapseLocation()
@@ -267,7 +307,7 @@ struct MainView: View {
     private var viewWidth: CGFloat { return vm.panelWidth(base: vm.useCompactLayout ? 220 : 260) }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: Self.pageStackSpacing) {
             HStack(spacing: 8) {
                 // Left edge lines up with the location caption and prayer rows
                 // below (the panel's 12pt gutter); no arrow here — the main
@@ -368,29 +408,25 @@ struct MainView: View {
                         .fill(Color("DividerColor"))
                         .frame(height: 0.5)
                         .padding(.horizontal, 12)
-                        // Jarak di bawah garis dibuat lebih besar dari jarak di
-                        // atasnya (2pt vs 6pt). Baris lokasi punya 5pt padding
-                        // vertikal sendiri, sehingga sebelumnya jaraknya hanya 5pt
-                        // di bawah garis — teksnya nempel — sementara di sisi lain
-                        // ada 6pt spacing VStack luar + 2pt padding footer,
-                        // jadi jaraknya 13pt. Hasilnya satu sisi terlihat absen
-                        // dan sisi lain terlalu longgar.
+                        // 2pt above the line, `locationRowBottomTopGap` below it:
+                        // the line is the row's own separator, so it belongs to
+                        // the row rather than to the prayer list above it.
                         .padding(.top, 2)
-                        .padding(.bottom, 6)
+                        .padding(.bottom, Self.locationRowBottomTopGap)
                     locationFavoritesBlock
-                        // Menarik kembali sebagian jarak di bawah baris. Padding
-                        // 5pt bawaannya ditumpuk dengan 6pt spacing VStack luar
-                        // dan 2pt padding footer, jadi tanpa ini baris ini
-                        // bergeser 13pt dari footer — hampir dua kali jarak di
-                        // atas garis pemisah. Padding negatif ini disengaja dan
-                        // hanya berlaku untuk posisi `.bottom`.
+                        // Pulled back so the row's clearance below matches the
+                        // gap above it. Two other gaps stack up under the row
+                        // here (the page stack's spacing and the footer divider's
+                        // padding), which is the whole reason a pull exists at
+                        // all — `locationRowBottomPull` has the arithmetic, and
+                        // why it is a pull on the block instead of padding on
+                        // the row.
                         //
-                        // Hanya selama akordeonnya tertutup: tarikan itu untuk
-                        // merapatkan *baris* ke footer, dan begitu daftarnya
-                        // terbuka yang berada di atas footer adalah daftarnya,
-                        // bukan barisnya — tetap dipakai, konten yang terbuka
-                        // ditarik 5pt menembus footer.
-                        .padding(.bottom, isLocationExpanded ? 0 : -5)
+                        // Only while the accordion is shut: the pull is there to
+                        // close the *row* up to the footer, and once the list is
+                        // open it is the list that sits above the footer — the
+                        // pull would drag the expanded content through it.
+                        .padding(.bottom, isLocationExpanded ? 0 : -Self.locationRowBottomPull)
                 }
             }
 
@@ -403,7 +439,9 @@ struct MainView: View {
                     .fill(Color("DividerColor"))
                     .frame(height: 1)
                     .padding(.horizontal, 12)
-                    .padding(.vertical, 2)
+                    // Named as well as `locationRowBottomTopGap`: this 2pt is
+                    // half of what the row above has to balance against.
+                    .padding(.vertical, Self.footerDividerPadding)
 
                 HStack(spacing: 2) {
                     Button(action: { NSApp.terminate(nil) }) {
@@ -591,7 +629,16 @@ struct PrayerListView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             ForEach(prayerOrder, id: \.self) { prayerName in
-                PrayerRow(prayerName: prayerName, timeColumnWidth: Self.timeColumnWidth(fontScale: fontScale))
+                // One width for the whole column — the mark's slot included while
+                // sunnah rows can appear — handed to every row from here, so no
+                // clock and no mute ring can step out of line with the others.
+                PrayerRow(
+                    prayerName: prayerName,
+                    timeColumnWidth: Self.timeColumnWidth(
+                        fontScale: fontScale,
+                        reservingSunnahMark: vm.showSunnahPrayers
+                    )
+                )
             }
             // Jumu'ah is not one of the five daily prayers — it replaces Dhuhr
             // only on a Friday, and a busy mosque can run up to three khutbah
@@ -693,12 +740,14 @@ struct PrayerListView: View {
 
     /// Width the sunnah "plusminus" estimate mark adds to the time column.
     ///
-    /// Reserved on *every* row, not just the sunnah ones. That sounds wasteful,
-    /// but it's what keeps the digits aligned: the column is right-aligned, so
-    /// a wider column on sunnah rows alone would push those two times further
-    /// left than the five beside them. Reserving it everywhere instead means
-    /// every clock in the panel ends on the same x, and the mark sits hard
-    /// against its own digits.
+    /// When it is reserved it is reserved on *every* row, not just the sunnah
+    /// ones: the column is right-aligned, so a wider column on those two rows
+    /// alone would push their times — and the mute rings in front of them — out
+    /// of line with the five beside them. Whether it is reserved at all is
+    /// `timeColumnWidth(fontScale:reservingSunnahMark:)`'s call, and that gates it
+    /// on the setting that puts the mark's rows in the list: with sunnah prayers
+    /// off, nothing can draw the mark and this slot is pure distance between the
+    /// ring and its clock.
     static func sunnahMarkWidth(fontScale: CGFloat) -> CGFloat {
         // The mark is an SF Symbol, so its width comes from the symbol image
         // rather than from a font — a `Text` measurement would be measuring the
@@ -758,6 +807,28 @@ struct PrayerListView: View {
     /// the highlight moves between prayers.
     static func timeColumnWidth(fontScale: CGFloat) -> CGFloat {
         timeColumnWidth(fontScale: fontScale, bold: true)
+    }
+
+    /// The width a row hands its clock column: the digits' column, plus the
+    /// estimate mark's slot while sunnah rows can appear at all.
+    ///
+    /// This is the gate for `sunnahMarkWidth`, and it is worth ~14pt of the
+    /// distance between the mute ring and the time. The mark is hung off
+    /// Tahajud's and Dhuha's clocks, and those rows only exist while "Show
+    /// Sunnah Prayers" is on — so with the setting off nothing can ever draw it,
+    /// and reserving its slot anyway parks the ring 14pt further from the clock
+    /// on *every* row for nothing.
+    ///
+    /// Gated on the setting rather than on the rows that draw the mark, exactly
+    /// like the iqama column above: a width that differed per row would step
+    /// Tahajud's and Dhuha's digits and rings out of line with the five beside
+    /// them, and gating on today's loaded times would shift the column as they
+    /// arrive. The clock never moves either way — both frames are
+    /// trailing-aligned, so all this decides is how wide the air *in front of*
+    /// the digits is.
+    static func timeColumnWidth(fontScale: CGFloat, reservingSunnahMark: Bool) -> CGFloat {
+        let digits = timeColumnWidth(fontScale: fontScale)
+        return reservingSunnahMark ? digits + sunnahMarkWidth(fontScale: fontScale) : digits
     }
 }
 
@@ -836,8 +907,8 @@ private struct PrayerRow: View {
                 // the mark adrift in the space the wider sunnah text had opened
                 // up between it and the digits. Framing the group right-aligns
                 // the mark *and* the digits together, so they stay joined — and
-                // since the mark's width is reserved on every row
-                // (`sunnahMarkWidth`), all seven clocks still end on one line.
+                // `timeColumnWidth` carries the mark's slot whenever sunnah rows
+                // can appear, so all the clocks still end on one line.
                 HStack(spacing: 1) {
                     if prayerName == "Tahajud" || prayerName == "Dhuha" {
                         // The SF Symbol rather than a "±" character: it matches
@@ -865,7 +936,12 @@ private struct PrayerRow: View {
                         // panel text size; the group's frame does the aligning.
                         .fixedSize(horizontal: true, vertical: false)
                 }
-                .frame(width: timeColumnWidth + PrayerListView.sunnahMarkWidth(fontScale: fontScale), alignment: .trailing)
+                // The width handed in already carries the estimate mark's slot
+                // whenever sunnah rows can appear; the digits sit on this frame's
+                // trailing edge either way, so the mute ring in front of them is
+                // the only thing that moves. See
+                // `PrayerListView.timeColumnWidth(fontScale:reservingSunnahMark:)`.
+                .frame(width: timeColumnWidth, alignment: .trailing)
                 if vm.iqamaDelayPosition == .trailing {
                     iqamaCell(isNextPrayer: isNextPrayer, textColor: textColor)
                 }
