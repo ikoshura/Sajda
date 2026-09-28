@@ -422,16 +422,16 @@ struct PrayerListView: View {
     ///
     /// The measurement pads the reserved box a little wider than "88:88" really
     /// needs, so a wide glyph or a bolder weight can never push the digits out
-    /// of their column. But that slack sits on the *trailing* edge, and the row's
-    /// trailing inset is measured from the box — so the time ended up 4 pt further
-    /// from the right edge than the prayer name is from the left, and the row
-    /// read as cramped on the left and slack on the right even though the
-    /// highlight capsule itself was perfectly balanced.
+    /// of their column. That slack opens on the *inner* side of the digits, not
+    /// the outer one: both frames are `.trailing`-aligned, so the content hugs
+    /// the frame's trailing edge and the spare width shows up on the leading
+    /// side — between the digits and whatever sits to their left (the iqama gap,
+    /// the mute ring, the row's flexible `Spacer`).
     ///
-    /// `rowTrailingInset` subtracts it back off, which puts the time's right edge
-    /// exactly on the same 12 pt gutter as the name's left edge. Without this the
-    /// two ends of every row disagree by this much, on every row, at every text
-    /// size.
+    /// So it never reaches the row's outer gutter. Subtracting it from the
+    /// trailing inset — which 4.4.11 did, reading the slack as if it landed
+    /// outside the digits — pulls the clock 4 pt closer to the panel edge than
+    /// the prayer name on the opposite end. See `rowTrailingInset`.
     static let columnSlack: CGFloat = 4
 
     /// Fixed width for the time column: the widest string the panel's date
@@ -450,13 +450,30 @@ struct PrayerListView: View {
         return ("88:88" as NSString).size(withAttributes: [.font: font]).width + columnSlack
     }
 
-    /// Trailing gutter for a schedule row, measured to the *ink* of the last
-    /// element rather than to the edge of the box that holds it.
+    /// Trailing gutter for a schedule row: the same 12 pt the prayer name gets
+    /// on the leading end, so both ends of a row sit on the panel's gutter.
     ///
-    /// Clamped at zero so a future measurement that returns a box narrower than
-    /// the slack can never hand back a negative inset and throw the time past
-    /// the right edge.
-    static var rowTrailingInset: CGFloat { max(0, rowHorizontalInset - columnSlack) }
+    /// Two traps live here, and 4.4.11 fell into both.
+    ///
+    /// Measured, not shifted: this is deliberately *not*
+    /// `rowHorizontalInset - columnSlack`. The column slack sits inside a
+    /// `.trailing`-aligned frame, so it never reaches the outer edge — the digits
+    /// are already flush with the frame's trailing edge, and their ink lands
+    /// 0.4–0.7 pt inside it, the same sub-point bearing a prayer name carries at
+    /// the other end.
+    ///
+    /// Applied as padding on the row's content, *not* as another row child. A
+    /// trailing `Spacer().frame(width:)` sits in the stack like any other view,
+    /// so it also collects the stack's 6 pt spacing, and the clock's gutter came
+    /// out as `width + 6 + bearing`. That is why a nominal 12 pt read as 18.7 pt
+    /// before 4.4.11, and why a nominal 8 pt still read as 14.7 pt after it: the
+    /// row was never as off as the constant made it look, and the fix for the
+    /// first number was applied to a spacer that was not the whole story.
+    ///
+    /// Padding shrinks the content inside the row instead, so the number here is
+    /// the number of points the ink sits from the panel edge, and this constant
+    /// is once again the panel's own gutter.
+    static var rowTrailingInset: CGFloat { rowHorizontalInset }
 
     /// Width the sunnah "plusminus" estimate mark adds to the time column.
     ///
@@ -636,18 +653,18 @@ private struct PrayerRow: View {
                 if vm.iqamaDelayPosition == .trailing {
                     iqamaCell(isNextPrayer: isNextPrayer, textColor: textColor)
                 }
-                // Measured to the time's own right edge, not to the edge of the
-                // reserved box around it — see `rowTrailingInset` for why the
-                // two are not the same number. The name's leading inset is a
-                // flat 12 pt, and this is what makes the trailing side match it
-                // instead of sitting 4 pt further out on every row.
-                Spacer().frame(width: PrayerListView.rowTrailingInset)
             }
-            // The row is full-width (it holds a Spacer), so its own padding
-            // would push the row *outward* past the panel edges rather than
-            // inset it — the text insets but the highlight bleeds. Hence the
-            // insets live on the content above, and the capsule below is
-            // inset inside the background closure.
+            // The trailing gutter is padding on the content — the same 12 pt the
+            // prayer name carries at the other end. See `rowTrailingInset` for
+            // why it is neither a trailing `Spacer` (the stack's 6 pt spacing
+            // would ride along with it, which is how a nominal 12 pt measured
+            // 18.7) nor `12 - columnSlack`.
+            //
+            // Padding still leaves the row full-width, so the highlight keeps
+            // hugging the panel edges exactly as before: the row is given the
+            // panel's width, the content inside it insets, and the capsule then
+            // insets itself 5 pt inside the background closure.
+            .padding(.trailing, PrayerListView.rowTrailingInset)
             .foregroundColor(textColor).fontWeight((isNextPrayer || vm.accessibilityBoldText) ? .bold : .regular).padding(.vertical, 4).background {
                 ZStack {
                     RoundedRectangle(cornerRadius: 6).fill(highlightColor)

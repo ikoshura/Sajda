@@ -8,6 +8,8 @@
 import XCTest
 import Combine
 import SwiftUI
+import AppKit
+import CoreText
 @testable import Sajda
 
 final class SajdaTests: XCTestCase {
@@ -273,6 +275,79 @@ final class SajdaTests: XCTestCase {
         XCTAssertEqual(none.saturation, 1)
         XCTAssertEqual(none.brightness, 1)
         XCTAssertEqual(none.alpha, 1)
+    }
+
+    // MARK: - Prayer row gutters
+
+    /// Gap between a text box's leading edge and the first pixel of ink in it.
+    private func leadingBearing(_ string: String, font: NSFont) -> CGFloat {
+        inkBounds(string, font: font).minX
+    }
+
+    /// Gap between the last pixel of ink and the text box's trailing edge.
+    private func trailingBearing(_ string: String, font: NSFont) -> CGFloat {
+        let attributed = NSAttributedString(string: string, attributes: [.font: font])
+        let line = CTLineCreateWithAttributedString(attributed)
+        let advance = CGFloat(CTLineGetTypographicBounds(line, nil, nil, nil))
+        return advance - inkBounds(string, font: font).maxX
+    }
+
+    private func inkBounds(_ string: String, font: NSFont) -> CGRect {
+        let attributed = NSAttributedString(string: string, attributes: [.font: font])
+        let line = CTLineCreateWithAttributedString(attributed)
+        return CTLineGetBoundsWithOptions(line, .useGlyphPathBounds)
+    }
+
+    /// Both ends of a schedule row must sit on the panel's 12 pt gutter.
+    ///
+    /// 4.4.11 shipped two mistakes here, and this pins the constant half of both.
+    /// The trailing inset is the panel's gutter again — *not*
+    /// `rowHorizontalInset - columnSlack`, because the time column's reserved
+    /// slack opens on the inner side of a `.trailing`-aligned frame and never
+    /// reaches the outer edge. And it is applied as padding on the row content
+    /// rather than as a trailing `Spacer().frame(width:)`: a spacer is an ordinary
+    /// stack child, so it also collects the stack's 6 pt spacing, which is how a
+    /// nominal 12 pt rendered as an 18.7 pt gutter and a nominal 8 pt as 14.7 pt.
+    ///
+    /// That second half — the spacing — is invisible to a constant like this one,
+    /// so `build/gutter-verify.swift` renders the row shapes headlessly and
+    /// measures the ink when the structure changes.
+    func testPrayerRowTrailingGutterMatchesTheLeadingOne() {
+        XCTAssertEqual(PrayerListView.rowTrailingInset, PrayerListView.rowHorizontalInset)
+        XCTAssertEqual(PrayerListView.rowTrailingInset, 12)
+    }
+
+    /// The gutters have to *look* equal, not merely measure equal in the layout:
+    /// a text box is wider than its ink, so each end carries its own side bearing
+    /// — the gap between the box edge and the first/last pixel of ink. Digits and
+    /// prayer names, in both scripts, differ by well under a point. Anything past
+    /// that is a structural inset that has drifted again, not a font quirk.
+    ///
+    /// The tolerance is what keeps this useful rather than brittle: the worst
+    /// pairing the panel can produce — a name opening on "F" (1.17 pt) against a
+    /// clock ending on "٤" (0.46 pt) — is 0.7 pt, and the rendered row measures
+    /// 0.5 pt. The 4.4.11 shape measured 1.5 pt and the shape before it 5.5 pt, so
+    /// this catches the regression it is here for without failing on a font
+    /// revision that moves a bearing by a tenth.
+    func testPrayerRowInkGuttersAgreeWithinASideBearing() {
+        // The row font, at the same size the layout measures its columns in: the
+        // panel's body size at scale 1, bold for the clock because the next-prayer
+        // row draws it bold.
+        let size = PanelTextSize.baseBodyPointSize
+        let nameFont = NSFont.systemFont(ofSize: size, weight: .regular)
+        let timeFont = NSFont.systemFont(ofSize: size, weight: .bold)
+
+        let names = ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha", "Tahajud", "Dhuha",
+                     "الفجر", "الظهر", "العصر", "المغرب", "العشاء", "تهجد", "الضحى"]
+        let times = ["05:04", "12:17", "٠٥:٠٤", "١٢:١٧"]
+
+        let leadingInk = names.map { leadingBearing($0, font: nameFont) }.max() ?? 0
+        let trailingInk = times.map { trailingBearing($0, font: timeFont) }.max() ?? 0
+        let leadingGutter = PrayerListView.rowHorizontalInset + leadingInk
+        let trailingGutter = PrayerListView.rowTrailingInset + trailingInk
+
+        XCTAssertEqual(leadingGutter, trailingGutter, accuracy: 1,
+                       "ink gutters differ by \(abs(leadingGutter - trailingGutter)) pt")
     }
 
 }
