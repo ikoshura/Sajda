@@ -1,52 +1,46 @@
 // MARK: - Sajda/FavoritesSection.swift
 //
-// Favorites rows for the Location page: up to 5 saved cities + mosque
-// timetables, then the two search rows. Tapping a favorite switches straight
-// to it; the "Automatic" row switches back to system location via
-// `switchToAutomaticLocation`.
+// The location list that unfolds under the location row on the main panel:
+// "Use Automatic Location", then the saved favourites — cities and mosque
+// timetables — then one row into Settings → Calculation & Location.
 //
-// The search rows are accordions: tapping one reveals its search UI inline —
-// a city field with its results, or the mosque timetable picker — instead of
-// popping this page and pushing the search page. That pop-then-push was what
-// flickered (both pages blended mid-transition while the panel resized and the
-// search field re-resolved its chrome), so nothing here navigates any more.
-// `openSearch` starts `nil` every time the page is (re)created, so the
-// accordions always open shut.
+// That shape is @iMacLion's suggestion (issue #23), taken up in 4.4.13: this
+// used to carry the two inline search accordions as well, so the dropdown the
+// user opened to *switch* somewhere also held a search UI. Searching, starring
+// and browsing live on the Location settings page; the panel's job is to switch
+// between the places already saved and then get out of the way. Tapping a
+// favourite switches to it and folds the list, leaving the schedule on screen
+// (his words: "instantly switch to it, close the dropdown").
+//
+// Removing a favourite is still one tap from here — that is an undo, not a
+// browse, so it stays.
 
 import SwiftUI
 
 struct FavoritesSection: View {
     @EnvironmentObject var vm: PrayerTimeViewModel
 
-    /// Bumped by the owner whenever this section should forget its own state.
+    /// Called after a location switch from this list has been requested, so the
+    /// owner can fold it — Automatic included, because the caption row above is
+    /// where its progress and its failures are reported. Deliberately *not*
+    /// called while a mosque timetable is still downloading: that row's spinner
+    /// is the only feedback the download has, and folding would take it off
+    /// screen. See `FavoritePlaceStore.activateFavorite(_:)`, which reports
+    /// which it was.
     ///
-    /// This section used to live inside an `if` that unmounted it on collapse,
-    /// which reset `openSearch` for free. It no longer does: `MainView` keeps
-    /// it permanently in the tree and collapses it by animating its height,
-    /// because an unmount/mount transition stranded a ghost copy of the rows
-    /// over the prayer list while the panel resized. So the reset the unmount
-    /// used to provide is driven from outside through this counter —
-    /// otherwise reopening the accordion would restore whatever search the user
-    /// had open last time.
-    ///
-    /// A counter rather than a plain `Bool` on purpose: the owner folds the
-    /// searches at the *start* of a collapse, and a second collapse with no
-    /// reopen in between must fold them again, which a `Bool` edge (only
-    /// meaningful on change) would swallow.
-    let collapseToken: Int
+    /// Folding is the owner's business, curve included: the panel folds on
+    /// `.sajdaAccordion` (see `MainView.collapseLocationAfterPick`).
+    let onLocationPicked: () -> Void
 
-    /// Which inline search is open; `nil` = both shut. Single-open like the
-    /// Settings accordions, so opening one closes the other.
-    private enum OpenSearch: Equatable {
-        case city
-        case mosque
-    }
+    /// Opens Settings → Calculation & Location. The owner collapses this list
+    /// first, so the panel does not resize through the push (the same reason
+    /// the Settings and About buttons fold it — see
+    /// `MainView.collapseLocationForNavigation`).
+    let onOpenLocationSettings: () -> Void
 
-    @State private var openSearch: OpenSearch?
     @State private var hoveringFavoriteID: String?
     @State private var isAutomaticHovering = false
-    @State private var isCityHovering = false
-    @State private var isMosqueHovering = false
+    @State private var isLocationSettingsHovering = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
@@ -55,99 +49,53 @@ struct FavoritesSection: View {
                 ForEach(vm.favoritePlaces) { favorite in
                     favoriteRow(favorite)
                 }
-                // Divider between saved favorites and the two search rows
-                // below them.
+                // Divider between the saved favourites and the way into Settings.
                 Rectangle()
                     .fill(Color("DividerColor"))
                     .frame(height: 0.5)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 2)
             }
-            // The search rows show in both states: with no favorites yet they
-            // are the only way to start starring; with favorites they sit
-            // under the divider.
-            citySearchRow
-            if openSearch == .city { citySearchContent }
-            mosqueSearchRow
-            if openSearch == .mosque { mosqueSearchContent }
+            // Always shown, favourites or not: with nothing saved yet it is the
+            // only way to start saving, which is all this list can do when empty.
+            locationSettingsRow
         }
         .padding(.vertical, 2)
         .clipped()
-        .onChange(of: collapseToken) { _, _ in
-            // Mirrors the unmount this view no longer gets: fold the inline
-            // searches and forget the pending query, so a reopen always
-            // starts from a plain collapsed list. Animated on the same curve
-            // as the height collapse that runs alongside it, otherwise the
-            // searches would snap shut while the section is still sliding
-            // closed. `fixedSize` inside `AccordionReveal` means the section
-            // still reports its full natural height while this plays, so the
-            // panel finishes the collapse with this one still in the tree.
-            withAnimation(.sajdaAccordion) {
-                openSearch = nil
-            }
-            if !vm.locationSearchQuery.isEmpty {
-                vm.locationSearchQuery = ""
-            }
-        }
     }
 
-    // MARK: - Inline searches
-
-    /// Single-open toggle, animated on the accordion curve so the panel (and
-    /// the menu window behind it) resizes in lockstep with the reveal — the
-    /// same curve the location row this section hangs off uses.
-    private func toggleSearch(_ target: OpenSearch) {
-        withAnimation(.sajdaAccordion) {
-            openSearch = (openSearch == target) ? nil : target
-        }
-        // Closing the city search forgets its query, exactly like leaving the
-        // dedicated search page used to (its `onDisappear` reset).
-        if openSearch != .city, !vm.locationSearchQuery.isEmpty {
-            vm.locationSearchQuery = ""
-        }
-    }
-
-    /// Inline city search: the same field + results the Set Location page
-    /// shows, rendered under its row. Picking a result applies the
-    /// coordinates and folds the accordion back up (the page flow popped the
-    /// search page instead).
-    private var citySearchContent: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            // Chrome drawn by the app (see `SajdaSearchField`) instead of the
-            // native rounded bezel, which could blink black mid-transition.
-            SajdaSearchField(placeholder: "Search for a city or paste coordinates...", text: $vm.locationSearchQuery, accent: vm.selectedHighlightColor)
-
-            if vm.isLocationSearching {
-                ProgressView()
-                    .controlSize(.small)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 4)
-            } else {
-                LocationSearchResultsList { result in
-                    vm.setManualLocation(city: result.name, coordinates: result.coordinates)
-                    withAnimation(.sajdaAccordion) { openSearch = nil }
-                }
+    /// The way into Settings → Calculation & Location, where searching, starring
+    /// and browsing live.
+    ///
+    /// Not an accordion: it navigates, so it carries the panel's forward chevron
+    /// instead of one that flips — the same trailing symbol the sub-page rows use
+    /// in Settings, so it reads as "goes somewhere" rather than "opens here".
+    /// Same row metrics as every other row here (16pt icon slot, 20pt trailing
+    /// slot), so the column lines up with the hearts above it.
+    private var locationSettingsRow: some View {
+        Button(action: onOpenLocationSettings) {
+            HStack(spacing: 6) {
+                Image(systemName: "slider.horizontal.3")
+                    .scaledFont(.caption)
+                    .foregroundColor(.secondary)
+                    .frame(width: 16)
+                Text(NSLocalizedString("Location Settings", comment: ""))
+                    .scaledFont(.subheadline)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+                Spacer(minLength: 4)
+                Image(systemName: vm.forwardChevron)
+                    .scaledFont(.caption, weight: .semibold)
+                    .foregroundColor(.secondary)
+                    .frame(width: 20)
             }
+            // Padding inside the label: the button covers the whole hover pill.
+            .padding(.vertical, 5).padding(.horizontal, 8)
+            .contentShape(Rectangle())
         }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 4)
-        // Fade in place, clipped, so the rows never travel outside the
-        // section — a vertical slide here would fly the results up over the
-        // favorite rows above, the same artifact the location accordion has
-        // to avoid (see `locationFavoritesBlock`).
-        .transition(.opacity)
-        .clipped()
-    }
-
-    /// Inline mosque search: the same self-contained picker Settings embeds —
-    /// it owns its query, results and download state, so nothing here has to.
-    private var mosqueSearchContent: some View {
-        MosqueTimetablePicker()
-            .environmentObject(vm)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
-            .transition(.opacity)
-            .clipped()
+        .buttonStyle(.plain)
+        .liquidHover(isLocationSettingsHovering)
+        .onHover { hovering in isLocationSettingsHovering = hovering }
     }
 
     /// One-tap return to system location (also exits timetable mode —
@@ -156,7 +104,10 @@ struct FavoritesSection: View {
     /// area is exactly the hover pill (no dead strips at the pill's edges).
     private var automaticRow: some View {
         let isActive = !vm.isUsingManualLocation && !vm.useMawaqitSchedule
-        return Button(action: { vm.switchToAutomaticLocation() }) {
+        // Folds with every other pick: the caption row above is where
+        // "Finding your location…" and any failure to find it are reported, so
+        // there is nothing left to watch down here.
+        return Button(action: { vm.switchToAutomaticLocation(); onLocationPicked() }) {
             HStack(spacing: 6) {
                 Image(systemName: "location.circle.fill")
                     .scaledFont(.caption)
@@ -189,63 +140,6 @@ struct FavoritesSection: View {
         }
     }
 
-    /// City search accordion header: same row metrics + chevron as the
-    /// favorite rows so hover pills and trailing symbols line up exactly.
-    /// Expanded it points up (the `SettingsAccordion` convention).
-    private var citySearchRow: some View {
-        Button(action: { toggleSearch(.city) }) {
-            HStack(spacing: 6) {
-                Image(systemName: "mappin.circle")
-                    .scaledFont(.caption)
-                    .foregroundColor(.secondary)
-                    .frame(width: 16)
-                Text(NSLocalizedString("Search for a city…", comment: ""))
-                    .scaledFont(.subheadline)
-                    .lineLimit(1)
-                    .truncationMode(.tail)
-                Spacer(minLength: 4)
-                Image(systemName: openSearch == .city ? "chevron.up" : vm.forwardChevron)
-                    .scaledFont(.caption, weight: .semibold)
-                    .foregroundColor(.secondary)
-                    .frame(width: 20)
-            }
-            // Padding inside the label: the button covers the whole hover pill.
-            .padding(.vertical, 5).padding(.horizontal, 8)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .liquidHover(isCityHovering)
-        .onHover { hovering in isCityHovering = hovering }
-    }
-
-    /// Mosque search accordion header, same shape as `citySearchRow` — its
-    /// expanded content is the picker Settings uses.
-    private var mosqueSearchRow: some View {
-        Button(action: { toggleSearch(.mosque) }) {
-            HStack(spacing: 6) {
-                Image(systemName: "building.columns")
-                    .scaledFont(.caption)
-                    .foregroundColor(.secondary)
-                    .frame(width: 16)
-                Text(NSLocalizedString("Search for a mosque…", comment: ""))
-                    .scaledFont(.subheadline)
-                    .lineLimit(1)
-                    .truncationMode(.tail)
-                Spacer(minLength: 4)
-                Image(systemName: openSearch == .mosque ? "chevron.up" : vm.forwardChevron)
-                    .scaledFont(.caption, weight: .semibold)
-                    .foregroundColor(.secondary)
-                    .frame(width: 20)
-            }
-            // Padding inside the label: the button covers the whole hover pill.
-            .padding(.vertical, 5).padding(.horizontal, 8)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .liquidHover(isMosqueHovering)
-        .onHover { hovering in isMosqueHovering = hovering }
-    }
-
     private func favoriteRow(_ favorite: FavoritePlace) -> some View {
         let isActive = vm.isFavoriteActive(favorite)
         let isLoading = vm.favoriteMosqueLoadingSlug == favorite.slug && favorite.kind == .mosque
@@ -254,7 +148,14 @@ struct FavoritesSection: View {
         // exactly the hover pill — no dead strips at the pill's edges and no
         // dead column around the heart. The heart overlays that slot as its
         // own button, at the same x it had as an HStack sibling.
-        return Button(action: { Task { @MainActor in vm.activateFavorite(favorite) } }) {
+        return Button(action: {
+            Task { @MainActor in
+                // Folds the list only when the switch has actually landed, so a
+                // mosque still downloading keeps its row — and its spinner —
+                // on screen (`activateFavorite` returns false for that).
+                if vm.activateFavorite(favorite) { onLocationPicked() }
+            }
+        }) {
             HStack(spacing: 6) {
                 Image(systemName: favorite.kind == .mosque ? "building.columns" : "mappin.circle")
                     .scaledFont(.caption)

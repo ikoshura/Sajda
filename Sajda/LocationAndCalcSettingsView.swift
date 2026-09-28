@@ -6,9 +6,34 @@ import NavigationStack
 struct LocationAndCalcSettingsView: View {
     static let id = "LocationAndCalcSettingsStack"
 
+    /// Whether this instance was pushed from the panel's location list rather
+    /// than from Settings — the same page, one row away, with no Settings hop.
+    ///
+    /// It only changes where Back goes. The page is pushed onto *different*
+    /// stacks by the two entries (Settings pushes it onto `SettingsView.id`;
+    /// the panel pushes it onto the root stack, `ContentView.id`, because that
+    /// is the stack the panel's own rows already push onto), and a page can
+    /// only pop the id it was pushed with. Everything inside the page is
+    /// unchanged: its own sub-pages live on `Self.id` either way.
+    ///
+    /// Named like `ManualLocationView(isModal:)`, which is the same situation —
+    /// one view, two entries, two Back targets.
+    let enteredFromPanel: Bool
+
+    /// Explicit because a `let` with an initial value is not a memberwise-init
+    /// parameter, and this flag has to be settable from the panel's row.
+    init(enteredFromPanel: Bool = false) {
+        self.enteredFromPanel = enteredFromPanel
+    }
+
     @EnvironmentObject var vm: PrayerTimeViewModel
     @EnvironmentObject var navigationModel: NavigationModel
-    
+
+    /// The stack this page itself sits on, and so the one Back dismisses.
+    private var parentStackID: String {
+        enteredFromPanel ? ContentView.id : SettingsView.id
+    }
+
     @State private var isHeaderHovering = false
     /// Calculation accordion, closed on every open of this page. `@State`, not
     /// `@AppStorage`: the panel tears this page down when it closes, so a fresh
@@ -25,7 +50,7 @@ struct LocationAndCalcSettingsView: View {
         NavigationStackView(Self.id) {
             VStack(alignment: .leading, spacing: 6) {
                 Button(action: {
-                    navigationModel.hideView(SettingsView.id, animation: vm.backwardAnimation())
+                    navigationModel.hideView(parentStackID, animation: vm.backwardAnimation())
                 }) {
                     HStack {
                         Image(systemName: vm.backChevron).scaledFont(.body, weight: .semibold)

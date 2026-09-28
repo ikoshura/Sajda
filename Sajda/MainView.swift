@@ -43,11 +43,6 @@ struct MainView: View {
     /// the one exception, and folding the list when an alert window takes
     /// focus is the requested behaviour anyway.
     @State private var isLocationExpanded = false
-    /// Bumped on every location-collapse so `FavoritesSection` can reset its
-    /// inline searches. It is never mounted-unmounted any more (the accordion
-    /// animates height instead, see `AccordionReveal`), so that reset has to be
-    /// requested from here rather than falling out of a lifecycle change.
-    @State private var locationCollapseToken = 0
 
     /// Collapses the location accordion in the same frame the push starts, for
     /// the Settings and About buttons.
@@ -79,16 +74,65 @@ struct MainView: View {
 
     /// The single way the location accordion closes, whatever the reason.
     ///
-    /// Bumping the token is what makes the *content* reset as well. The
-    /// accordion no longer unmounts its content (see `AccordionReveal`), so
-    /// `openSearch` inside `FavoritesSection` would otherwise survive the
-    /// collapse and the next open would restore the last search. Routing every
-    /// close — the row button, the window notifications, navigation — through
-    /// here is what keeps that guarantee: a second close path added later
-    /// cannot forget to request the reset.
+    /// The list has no state of its own worth resetting any more: it is
+    /// Automatic, the favourites, and the row into Location settings (#23 —
+    /// the inline searches that used to need a reset on collapse are gone, and
+    /// with them the collapse token this function used to bump). What it does
+    /// still have to get right is *when* it closes, so a second close path
+    /// added later routes through here rather than setting the flag itself.
     private func collapseLocation() {
         isLocationExpanded = false
-        locationCollapseToken &+= 1
+    }
+
+    /// Folds the list after a location was picked from it — Automatic or a
+    /// favourite — on the accordion's own curve.
+    ///
+    /// Animated, unlike `collapseLocationForNavigation`, and that difference is
+    /// the point. Nothing else is moving here: no page is pushing, so the only
+    /// motion is the panel window easing to its new height in
+    /// `setFrame(_:display:animate:)` — the same thing that runs when the
+    /// chevron is tapped. Folding without a curve left the rows snapping shut
+    /// inside an otherwise animated resize, which read as a jump; this rides
+    /// the identical `.sajdaAccordion` curve the chevron uses, so the two feel
+    /// like one mechanism.
+    ///
+    /// A mosque whose timetable is still downloading is the one pick that does
+    /// not come here — its row's spinner is the only feedback the download has.
+    /// `FavoritesSection` decides that, from what `activateFavorite(_:)`
+    /// reports.
+    private func collapseLocationAfterPick() {
+        withAnimation(.sajdaAccordion) {
+            collapseLocation()
+        }
+    }
+
+    /// Opens Calculation & Location from the location list's own row — the page
+    /// itself, one row away, with no hop through Settings.
+    ///
+    /// Pushed onto `ContentView.id`, the root stack, because that is what the
+    /// panel's other rows push onto (About, Settings, the location sheet) and
+    /// because this list is a child of the *root* view, not of Settings. An
+    /// earlier attempt pushed `SettingsView.id` from here, which is the stack
+    /// *inside* Settings: the page took the Settings page's own slot in the
+    /// navigation model, so it never appeared — and the footer's Settings button
+    /// then opened Calculation & Location instead, because that slot was still
+    /// occupied. The page's Back follows whichever stack it was pushed with
+    /// (`enteredFromPanel`).
+    ///
+    /// The list is folded first, for the same reason the Settings and About
+    /// buttons fold it (`collapseLocationForNavigation`): this view stays alive
+    /// through the push, so an open list would resize the panel *while* the
+    /// transition ran and the two motions would read as a flicker.
+    ///
+    /// The push goes through `showPageIfNotShowing` rather than `showView`
+    /// because this row is hittable for the length of the push it starts — a
+    /// second tap there would otherwise stop the process with "Replacing showing
+    /// navigation view … not allowed".
+    private func openLocationSettings() {
+        collapseLocation()
+        navigationModel.showPageIfNotShowing(ContentView.id, animation: vm.forwardAnimation()) {
+            LocationAndCalcSettingsView(enteredFromPanel: true)
+        }
     }
 
     /// Collapses the accordion and says why, in the unified log.
@@ -294,7 +338,14 @@ struct MainView: View {
             // The content's own padding and spacing are unchanged, so every row
             // still lands on the x it did on the old Location page.
             AccordionReveal(isExpanded: isLocationExpanded) {
-                FavoritesSection(collapseToken: locationCollapseToken)
+                FavoritesSection(
+                    // Every pick folds the list (issue #23) on the accordion's
+                    // own curve; the settings row folds it before pushing,
+                    // unanimated, because a push is in flight there — see
+                    // `collapseLocationForNavigation`.
+                    onLocationPicked: { collapseLocationAfterPick() },
+                    onOpenLocationSettings: { openLocationSettings() }
+                )
             }
         }
         // One 4pt for the row and one for the section: 4 + their own 8 = the

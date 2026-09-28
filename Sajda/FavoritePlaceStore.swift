@@ -139,27 +139,38 @@ extension PrayerTimeViewModel {
     /// disabled while it runs, so tapping city ↔ mosque (or two mosques) in
     /// quick succession can't interleave two mode flips and crash.
     @MainActor
-    func activateFavorite(_ favorite: FavoritePlace) {
+    /// Activates a favourite, and reports whether the switch landed *now*.
+    ///
+    /// The panel's location list folds itself on a `true` — that is
+    /// @iMacLion's "instantly switch to it, close the dropdown" (issue #23).
+    /// `false` means it should stay open: either nothing happened (a city
+    /// favourite with no coordinates), or a mosque timetable is still
+    /// downloading, and that row's spinner is the only progress feedback the
+    /// download has — folding would take it off screen along with the list.
+    @discardableResult
+    func activateFavorite(_ favorite: FavoritePlace) -> Bool {
         switch favorite.kind {
         case .city:
             // City taps always win: cancel any pending mosque download first,
             // so mosque → city feels instant and can never interleave two
             // mode flips. The stale download's guard below then drops it.
             favoriteMosqueLoadingSlug = nil
-            guard let lat = favorite.latitude, let lon = favorite.longitude else { return }
+            guard let lat = favorite.latitude, let lon = favorite.longitude else { return false }
             setManualLocation(
                 city: favorite.name,
                 coordinates: CLLocationCoordinate2D(latitude: lat, longitude: lon)
             )
+            return true
         case .mosque:
-            guard let slug = favorite.slug else { return }
-            // Same mosque already active: nothing to do.
-            if useMawaqitSchedule, mawaqitMosque?.slug == slug { return }
+            guard let slug = favorite.slug else { return false }
+            // Same mosque already active: nothing to do — but the tap was a
+            // pick, so the list still folds.
+            if useMawaqitSchedule, mawaqitMosque?.slug == slug { return true }
             // A different mosque is still downloading: ignore, don't stack.
-            guard favoriteMosqueLoadingSlug == nil else { return }
+            guard favoriteMosqueLoadingSlug == nil else { return false }
             if let cached = MawaqitService.load(slug: slug) {
                 activateMosqueSchedule(cached)
-                return
+                return true
             }
             favoriteMosqueLoadingSlug = slug
             Task { @MainActor in
@@ -175,6 +186,12 @@ extension PrayerTimeViewModel {
                     NSLog("Favorite mosque download failed: %@", error.localizedDescription)
                 }
             }
+            // Downloading, not switched: the list stays open, because this
+            // row's spinner is the only progress the download shows. The tap
+            // that lands it goes through `activateMosqueSchedule` from inside
+            // the task, which the caller is not waiting on — so the list folds
+            // on the next time the user touches the row.
+            return false
         }
     }
 

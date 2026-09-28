@@ -52,7 +52,11 @@ struct FavoritesView: View {
                 // The Location page *is* the list, so there is no accordion to
                 // fold and nothing to reset — the page leaving the hierarchy
                 // does that, as it always did.
-                FavoritesSection(collapseToken: 0)
+                // Unreachable since the location list moved onto the main panel
+                // as an accordion (see `MainView.locationFavoritesBlock`); kept
+                // compiling for reference. Its two callbacks have no owner to
+                // talk to here, so the rows switch location without folding.
+                FavoritesSection(onLocationPicked: {}, onOpenLocationSettings: {})
                     .environmentObject(vm)
                     .padding(.horizontal, 4)
 

@@ -4,6 +4,35 @@ import NavigationStack
 import MacControlCenterUI
 import SwiftUI
 
+extension NavigationModel {
+    /// Pushes a page, but only when the model is not already showing that stack.
+    ///
+    /// The package treats a second push onto a stack that is up as a programming
+    /// error and stops the process — "Replacing showing navigation view '…' not
+    /// allowed" (`NavigationStackModel.enqueueNewNode`). It also keeps the
+    /// outgoing view alive and hittable for the length of a transition, so a
+    /// second tap really can arrive while the first push is still playing: the
+    /// row that started it is still under the user's cursor, folded or not.
+    ///
+    /// Asking the model first is what turns that window into a no-op, and it is
+    /// the same check the package documents for this ("True when it's safe to
+    /// navigate to the ID"). A stale node that is *not* showing needs no guard:
+    /// the package drops those itself as it walks the chain.
+    ///
+    /// - Returns: whether the push was requested. `false` means the page was
+    ///   already up and nothing was pushed.
+    @discardableResult
+    func showPageIfNotShowing<Content: View>(
+        _ identifier: String,
+        animation: NavigationAnimation? = nil,
+        @ViewBuilder alternativeView: @escaping () -> Content
+    ) -> Bool {
+        guard !isAlternativeViewShowing(identifier) else { return false }
+        showView(identifier, animation: animation, alternativeView: alternativeView)
+        return true
+    }
+}
+
 extension Animation {
     /// The Control Center menu pace — literally `macControlCenterMenuResize`
     /// (`.smooth(duration: 0.2, extraBounce: 0.25)`). Used for every Sajda

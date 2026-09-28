@@ -441,4 +441,47 @@ final class SajdaTests: XCTestCase {
         XCTAssertTrue(vm.isPrayerDataAvailable)
     }
 
+    // MARK: - Localization
+
+    /// Every localizable key exists in every language.
+    ///
+    /// English is the reference set, and it is the only place a gap is
+    /// *invisible*: `NSLocalizedString` falls back to the key itself, so a key
+    /// missing from `en.lproj` still renders correctly in English — and in no
+    /// other language is there anything to see. "Location Row" was exactly that:
+    /// present in all eight translations, absent in English, and up until #23
+    /// nobody knew.
+    ///
+    /// The `.lproj` files are the only place the key set actually lives, and
+    /// several of them carry more than one key per line, so this reads them as
+    /// text rather than line by line.
+    func testEveryLocalizedKeyExistsInEveryLanguage() throws {
+        let stringsDirectory = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()   // SajdaTests
+            .deletingLastPathComponent()   // repository root
+            .appendingPathComponent("Sajda")
+
+        let english = try localizedKeys(in: stringsDirectory.appendingPathComponent("en.lproj/Localizable.strings"))
+        XCTAssertFalse(english.isEmpty, "could not read the English strings file")
+
+        for language in ["ar", "de", "es", "fr", "id", "ja", "ko", "zh-Hans"] {
+            let translated = try localizedKeys(in: stringsDirectory.appendingPathComponent("\(language).lproj/Localizable.strings"))
+            XCTAssertEqual(
+                english.subtracting(translated), [],
+                "\(language) is missing keys English defines"
+            )
+        }
+    }
+
+    /// The keys a `.strings` file defines, matched anywhere on a line.
+    private func localizedKeys(in file: URL) throws -> Set<String> {
+        let text = try String(contentsOf: file, encoding: .utf8)
+        let regex = try NSRegularExpression(pattern: #"\"((?:[^\"\\]|\\.)*)\"\s*=\s*\""#)
+        let range = NSRange(text.startIndex..<text.endIndex, in: text)
+        return Set(regex.matches(in: text, range: range).compactMap { match in
+            guard let keyRange = Range(match.range(at: 1), in: text) else { return nil }
+            return String(text[keyRange])
+        })
+    }
+
 }
