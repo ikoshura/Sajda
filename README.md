@@ -4,6 +4,8 @@ A prayer times app for macOS that lives in the menu bar.
 
 <img src="https://github.com/user-attachments/assets/6e8bd922-a446-4b33-a184-e5e89493a4b1" alt="Sajda App Screenshot">
 
+> The interface now uses Liquid Glass: a glass panel, a frosted interior, and native glass controls that fit in with the latest macOS.
+
 [![Latest Release](https://img.shields.io/github/v/release/ikoshura/Sajda)](https://github.com/ikoshura/Sajda/releases)
 [![macOS Sonoma 14.0+](https://img.shields.io/badge/macOS-Sonoma%2014.0%2B-blue)](https://github.com/ikoshura/Sajda/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
