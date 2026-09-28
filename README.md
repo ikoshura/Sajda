@@ -103,6 +103,12 @@ Thanks to everyone who has contributed to this project.
 
 [![Contributors](https://contrib.rocks/image?repo=ikoshura/Sajda)](https://github.com/ikoshura/Sajda/graphs/contributors)
 
+### Thanks
+
+And to the people whose contribution is insight rather than code — the ones who try every release and come back with exactly what is wrong, and what would be better:
+
+- [@iMacLion](https://github.com/iMacLion)
+
 ---
 
 ## Privacy
