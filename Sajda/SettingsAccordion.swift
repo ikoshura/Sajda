@@ -1,25 +1,28 @@
 // MARK: - SettingsAccordion.swift
 //
-// Single-open accordion header + collapsible content for the Settings root
-// page. Collapsed it is just one compact row (title + chevron); expanding
+// Single-open accordion header + collapsible content for the panel's settings
+// pages. Collapsed it is just one compact row (title + chevron); expanding
 // reveals the group's rows inline. The parent owns which section is open so
 // opening one group always closes the previous one.
 //
-// Expand/collapse drives the menu height through `Animation.sajdaAccordion`
-// (a slow 0.38 s smooth curve), so the panel and the MenuBarExtra window
-// resize in lockstep. The reveal itself is `AccordionReveal`: the content
-// stays in the tree and its height animates between its natural size and zero.
-// It used to be a `move` + `fade` transition, which either flew the rows over
-// the content above them on the way in or stranded a ghost copy of them there
-// on the way out — read the header note on that type before putting a
-// transition back. This view applies the curve to `onToggle` itself, because a
-// height change needs an animation in context and callers cannot be expected
-// to know that.
+// Expand/collapse is instant. The reveal itself is `AccordionReveal`: the
+// content stays in the tree and its frame moves between its natural size and
+// zero, and the state flips with no animation in the transaction, so a section
+// snaps open or shut and the panel window catches up on its own —
+// `FluidMenuBarExtraWindow` animates the frame in `setFrame(_:display:animate:)`.
+// The 0.38 s curve this used to put on the toggle
+// (`Animation.sajdaAccordion`) now belongs to the panel's location accordion
+// alone, not to these pages.
+//
+// The mechanism stays `AccordionReveal` rather than an `if` + `.transition`:
+// `move` flew the rows over the content above them on the way in and `opacity`
+// stranded a ghost copy of them there on the way out — read the header note on
+// that type before putting a transition back.
 
 import SwiftUI
 
-/// Accordion section used on the Settings page: a hover-highlighted header
-/// row that toggles an inline content block underneath it.
+/// Accordion section used by the panel's settings pages: a hover-highlighted
+/// header row that toggles an inline content block underneath it.
 ///
 /// - `titleKey`: Localizable.strings key for the header title.
 /// - `collapsedChevron`: chevron shown when collapsed (callers pass
@@ -48,20 +51,17 @@ struct SettingsAccordion<Content: View>: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            // The animation is applied *here*, not left to the caller's
-            // `onToggle`, because it is this view's frame that has to animate
-            // and a caller cannot know that. The old reveal was a
-            // `.transition`, which SwiftUI runs even with no animation in
-            // context, so callers got a moving reveal for free. `AccordionReveal`
-            // animates a height instead, and a frame change is a plain layout
-            // mutation — with nothing wrapping the state change it applies
-            // instantly and the accordion snaps open with no motion at all,
-            // which is exactly what happened when this was first wired up.
+            // `onToggle` runs bare, deliberately: with no animation in the
+            // transaction the height change is a plain layout mutation and
+            // applies as the frame lays out, so the section snaps open and
+            // shut (see the header note — the panel window still eases to the
+            // new size on its own). Wrapping this call in
+            // `withAnimation(.sajdaAccordion)` is the whole change if these
+            // pages should ever curve again; it briefly did.
             //
-            // Wrapping the call (rather than mutating a binding) keeps the
-            // single-open callers, which toggle their own `@State`, working
-            // unchanged.
-            Button(action: { withAnimation(.sajdaAccordion) { onToggle() } }) {
+            // The call stays a closure rather than a binding write, so the
+            // single-open callers keep toggling their own `@State` unchanged.
+            Button(action: onToggle) {
                 HStack {
                     Text(LocalizedStringKey(titleKey))
                         .scaledFont(.subheadline)

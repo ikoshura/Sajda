@@ -63,15 +63,6 @@ struct SettingsView: View {
         SettingsSection(rawValue: vm.settingsSelectedTab) ?? .display
     }
     @State private var hoveringTab: SettingsSection? = nil
-    /// Travel direction of the last tab change. Drives the slide edges; the
-    /// `leading`/`trailing` edges below are layout-direction aware, so Arabic
-    /// mirrors the whole motion for free.
-    @State private var tabTravel: TabTravel = .forward
-
-    private enum TabTravel {
-        case forward   // moving right in the tab bar (higher index)
-        case backward  // moving left in the tab bar (lower index)
-    }
 
     private var viewWidth: CGFloat {
 
@@ -103,26 +94,14 @@ struct SettingsView: View {
         )
     }
 
-    // MARK: - Tab swap animation
+    // MARK: - Tab swap
 
-    /// Animation for the tab content swap, mirroring the curves the pushed
-    /// pages use for the same `Animation Style` setting — the library's
-    /// `sajdaCrossfade` (`.easeInOut(0.25)`) and `push`/`pop` (`.easeOut`).
-    private var tabAnimation: Animation? {
-        return nil
-    }
-
-    /// Transition for the tab content swap. Fade keeps the library's
-    /// crossfade (with the tiny scale that sells the depth); slide runs along
-    /// the tab order — the incoming tab enters from the trailing edge while
-    /// the outgoing one leaves to the leading edge, mirrored when travelling
-    /// backwards to the left.
-    private var tabTransition: AnyTransition {
-        return .identity
-    }
-
-    /// Switches the active tab: records which way the tab bar travels, then
-    /// swaps the content using the user's `Animation Style`.
+    /// Switches the active tab. The swap is instant by design: no animation in
+    /// context, no transition on the content, and the tab is not part of the
+    /// menu's `panelLayoutSignature` — the picked tab's rows are built in the
+    /// same layout pass as the click, so neither the page nor the panel eases
+    /// between the two tab heights. (`Animation Style` still drives page
+    /// pushes and pops; it has nothing to do with this swap.)
     private func selectTab(_ section: SettingsSection) {
         guard section != expandedSection else { return }
 
@@ -132,24 +111,13 @@ struct SettingsView: View {
         // the next time Visual is picked.
         if vm.settingsColorPickerOpen { vm.settingsColorPickerOpen = false }
 
-        let order = SettingsSection.allCases
-        let from = order.firstIndex(of: expandedSection) ?? 0
-        let to = order.firstIndex(of: section) ?? 0
-        tabTravel = to > from ? .forward : .backward
-
-        // SwiftUI takes the *removal* transition from the body built before the
-        // swap, so the direction has to land in an earlier update — otherwise
-        // the outgoing tab slides the way of the previous change.
         // Writes to `vm.settingsSelectedTab` (a @Published @AppStorage on the
         // view model) rather than local @State: NavigationStack recreates the
         // pushed SettingsView mid-pop (precede-branch swap), and fresh @State
         // would snap back to `.display` — the Display-tab flash over
-        // Visual on the way back to Main.
-        DispatchQueue.main.async {
-            withAnimation(tabAnimation) {
-                vm.settingsSelectedTab = section.rawValue
-            }
-        }
+        // Visual on the way back to Main. That write is also the whole swap:
+        // `sectionBody(expandedSection)` rebuilds from this value.
+        vm.settingsSelectedTab = section.rawValue
     }
 
     var body: some View {
@@ -214,8 +182,8 @@ struct SettingsView: View {
                 // Tab bar: four icon tabs. Tapping one drops the other three's
                 // rows away and lets the panel resize to the picked tab's — a
                 // dropdown for the page content, so each tab gets its own
-                // height. (The swap itself is still the disabled-by-design
-                // crossfade; the resize is animated by the menu below.)
+                // height. Both halves are instant: no crossfade on the swap,
+                // and no easing between the two heights (see `selectTab`).
                 HStack(spacing: 2) {
                     ForEach(SettingsSection.allCases) { section in
                         SettingsTabButton(
@@ -243,13 +211,15 @@ struct SettingsView: View {
                 // fixed-height well here. (The menu’s own max-height scroller
                 // still takes over if a page ever outgrows the screen.)
                 Group { sectionBody(expandedSection) }
+                    // Fresh identity per tab, so each tab's rows are built from
+                    // scratch and no `@State` inside them survives a switch.
                     .id(expandedSection)
-                    .transition(tabTransition)
                     .frame(maxWidth: .infinity, alignment: .topLeading)
                     .controlSize(.small)
                     .padding(.horizontal, 13)
-                // Keeps a sliding tab inside the content area instead of
-                // sweeping across the tab bar and the rows below it.
+                // Bounds the content well: a tab whose rows are taller than the
+                // panel can't paint over the tab bar or the rows below it while
+                // the panel takes the new height.
                     .clipped()
                     .padding(.top, 2)
                 // The System tab’s "check now" side effect fires from here —

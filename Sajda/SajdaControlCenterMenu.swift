@@ -84,12 +84,16 @@ struct SajdaControlCenterMenu: View {
     /// its own matched animation — that can change the panel's size. Keying
     /// the resize animation on it keeps the curve scoped to real layout
     /// changes: a hover state or a colour *pick* never touches this key.
-    /// `settingsSelectedTab` is in there because Settings is a dropdown over
-    /// the tab bar — each tab swaps in rows of its own height, and this is what
-    /// makes the panel grow/collapse between them at the Control Center pace
-    /// instead of snapping. `settingsColorPickerOpen` is there for the same
-    /// reason: the colour surface drops down inside the page, so its rows are a
-    /// layout change the window has to ease into.
+    /// `settingsColorPickerOpen` is there because the colour surface drops
+    /// down inside the page, so its rows are a layout change the window has to
+    /// ease into.
+    ///
+    /// Deliberately absent: `settingsSelectedTab`. Settings is a dropdown over
+    /// the tab bar — each tab swaps in rows of its own height — and that swap
+    /// is meant to snap, like the settings accordions (`SettingsAccordion`).
+    /// Keying on the tab would ease the panel between the two tab heights;
+    /// leaving it out lands the picked tab's rows in the same layout pass as
+    /// the click.
     private var panelLayoutSignature: String {
         [
             "\(vm.isPrayerDataAvailable)",
@@ -106,7 +110,6 @@ struct SajdaControlCenterMenu: View {
             "\(vm.isAdhanPlaying)",
             "\(vm.panelTextSize)",
             "\(vm.accessibilityBoldText)",
-            "\(vm.settingsSelectedTab)",
             "\(vm.settingsColorPickerOpen)",
             "\(vm.alwaysShowJumuah)",
             "\(UpdateChecker.shared.updateBannerDismissed)",

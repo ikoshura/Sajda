@@ -11,16 +11,17 @@ extension Animation {
     /// move as one motion instead of two speeds racing each other.
     static let sajdaResizePace: Animation = .macControlCenterMenuResize
 
-    /// Slow, calm expand/collapse curve for the panel's accordions (Settings
-    /// sections and the Location page's inline searches), so a reveal feels
-    /// smooth rather than shocking. Deliberately slower than the snappy
-    /// `.macControlCenterMenuResize` (0.2 s) window snap — the panel window
-    /// tracks the animating content size frame-by-frame, so stretching the
-    /// SwiftUI animation stretches the whole resize with it.
+    /// Slow, calm expand/collapse curve for the panel's location accordion —
+    /// the location row on MainView and the inline searches nested in
+    /// `FavoritesSection` — so a reveal feels smooth rather than shocking.
+    /// Deliberately slower than the snappy `.macControlCenterMenuResize`
+    /// (0.2 s) window snap — the panel window tracks the animating content
+    /// size frame-by-frame, so stretching the SwiftUI animation stretches the
+    /// whole resize with it.
     ///
-    /// Lives here rather than only on `SettingsAccordion` because that type is
-    /// generic: `SettingsAccordion.animation` cannot be referenced without a
-    /// `Content` to infer, which makes it unusable from other views.
+    /// The settings accordions do not use it: `SettingsAccordion` (About >
+    /// Acknowledgements, Location & Calculation > Calculation, Adhan Sound >
+    /// Per Prayer) toggles with no animation at all, so those sections snap.
     static let sajdaAccordion: Animation = .smooth(duration: 0.38, extraBounce: 0)
 }
 

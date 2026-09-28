@@ -95,7 +95,7 @@ struct FavoritesSection: View {
 
     /// Single-open toggle, animated on the accordion curve so the panel (and
     /// the menu window behind it) resizes in lockstep with the reveal — the
-    /// same curve the Settings sections use.
+    /// same curve the location row this section hangs off uses.
     private func toggleSearch(_ target: OpenSearch) {
         withAnimation(.sajdaAccordion) {
             openSearch = (openSearch == target) ? nil : target
