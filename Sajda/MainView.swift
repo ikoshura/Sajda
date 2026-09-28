@@ -12,6 +12,137 @@ struct MainView: View {
     @State private var isMosqueRefreshHovering = false
     @State private var isQuitHovering = false
     @State private var isLocationHovering = false
+    /// Location accordion, expanded or shut.
+    ///
+    /// This state survives everything unless something collapses it, and that
+    /// is now *measured*, not assumed: with `MenuBarExtra(.window)` the panel's
+    /// content view is not rebuilt when the window closes — the list was still
+    /// expanded on the next open — and the two SwiftUI-side signals did not
+    /// reach this view on a dismissal either (`.popoverDidClose`, posted from
+    /// `SajdaControlCenterMenu`'s `isMenuPresented`, which its own `onAppear`
+    /// comment admits cannot be relied upon for a close; and `scenePhase`,
+    /// which only moves in the vendored `RootViewModifier` that this app does
+    /// not install — it uses the native `MenuBarExtra`). So the resets hang
+    /// off AppKit's window notifications at the bottom of `body`. The third
+    /// case needs no handler at all:
+    ///
+    /// *Switching to another page* — structural: `ContentView` puts `MainView`
+    ///    behind `NavigationStackView`, which drops the default view from the
+    ///    hierarchy while a page is showing (`ContentViews`'
+    ///    `if !model.isAlternativeViewShowing(identifier)`), destroying this
+    ///    `@State`. Coming back rebuilds it shut.
+    ///
+    /// Claude's suggested `NSWindow.didResignKeyNotification` is the right
+    /// primary signal: AppKit posts it whether the menu window *closes* or
+    /// merely *loses key* to another app, so one handler covers both of the
+    /// two remaining cases. Unfiltered — those notifications fire for every
+    /// window, the usual caveat — deliberately: every other window this app
+    /// owns (onboarding, prayer alerts, the colour panel, any open/save sheet)
+    /// exists only alongside a *page*, where `MainView` is out of the
+    /// hierarchy and these handlers are not subscribed. The prayer alert is
+    /// the one exception, and folding the list when an alert window takes
+    /// focus is the requested behaviour anyway.
+    @State private var isLocationExpanded = false
+    /// Bumped on every location-collapse so `FavoritesSection` can reset its
+    /// inline searches. It is never mounted-unmounted any more (the accordion
+    /// animates height instead, see `AccordionReveal`), so that reset has to be
+    /// requested from here rather than falling out of a lifecycle change.
+    @State private var locationCollapseToken = 0
+
+    /// Collapses the location accordion in the same frame the push starts, for
+    /// the Settings and About buttons.
+    ///
+    /// Plain assignment, no `withAnimation` — this is the approach that reads as
+    /// smooth, and the reason is subtle. `NavigationStackModel
+    /// .showAlternativeViewForNode` flips `isAlternativeViewShowing`
+    /// synchronously inside `showView`, and the package's `ContentViews` keeps
+    /// both views alive in one `ZStack` for the length of the transition, so
+    /// this view is still on screen while the push plays out. An *animated*
+    /// collapse therefore animated the panel's height through the transition —
+    /// the list visibly shrank while the outgoing view was still moving, and
+    /// the push crossfade/slide rode on top of it. Two overlapping height
+    /// motions read as a flicker.
+    ///
+    /// Assigning outright collapses the list within the same runloop turn the
+    /// push is requested in, so the height change and the transition are laid
+    /// out once together instead of competing over the frame. An unanimated
+    /// collapse is what the very first implementation did, and it is what
+    /// still looks right.
+    ///
+    /// Nothing is owed on the way back: while a page is showing, `ContentViews`
+    /// drops `defaultView()` from the hierarchy entirely, destroying this
+    /// `@State`, so returning rebuilds `MainView` shut either way. See
+    /// `isLocationExpanded`.
+    private func collapseLocationForNavigation() {
+        collapseLocation()
+    }
+
+    /// The single way the location accordion closes, whatever the reason.
+    ///
+    /// Bumping the token is what makes the *content* reset as well. The
+    /// accordion no longer unmounts its content (see `AccordionReveal`), so
+    /// `openSearch` inside `FavoritesSection` would otherwise survive the
+    /// collapse and the next open would restore the last search. Routing every
+    /// close — the row button, the window notifications, navigation — through
+    /// here is what keeps that guarantee: a second close path added later
+    /// cannot forget to request the reset.
+    private func collapseLocation() {
+        isLocationExpanded = false
+        locationCollapseToken &+= 1
+    }
+
+    /// Collapses the accordion and says why, in the unified log.
+    ///
+    /// The two SwiftUI-side signals that used to handle this did not fire on a
+    /// dismissal (measured: the list stayed expanded through a close and a
+    /// focus loss), and SwiftUI's menu-window class is an internal detail that
+    /// the usual filter advice depends on. So every reset reports itself: if
+    /// this ever fails again, one line says whether the notification arrived
+    /// at all, and what window it was posted for. Debug builds only.
+    ///
+    ///     log stream --predicate 'eventMessage CONTAINS "SAJDA-ACCORDION"'
+    private func resetLocationAccordion(_ reason: String, _ note: Notification? = nil) {
+        #if DEBUG
+        let detail = (note?.object as? NSWindow)
+            .map { "\(NSStringFromClass(type(of: $0))) visible=\($0.isVisible)" }
+            ?? "no window"
+        #endif
+
+        // Two situations must NOT fold the list here. Both produce the same
+        // symptom — a flicker when navigating to another page while the list
+        // is open — because both resize the panel *while* the push transition
+        // runs, and the panel's own resize curve deliberately does not key on
+        // navigation (see `panelLayoutSignature`: "two animations on the same
+        // transition would fight over the curve").
+        //
+        // 1. A page push is in flight. This view is leaving the hierarchy
+        //    anyway and the stack resets it structurally on the way back (see
+        //    `isLocationExpanded`), so folding it here only adds a layout
+        //    motion to the transition.
+        // 2. An event about a window that is *not* the one holding key — a
+        //    tooltip closing or a field editor going away while the menu
+        //    window keeps focus. That is noise, not focus loss. This is the
+        //    class-name filter the usual advice asks for, keyed on who holds
+        //    key instead of on a private class name macOS is free to rename.
+        guard !navigationModel.hasAlternativeViewShowing else {
+            #if DEBUG
+            NSLog("SAJDA-ACCORDION ignored (%@): page push in flight, %@", reason, detail)
+            #endif
+            return
+        }
+        if let window = note?.object as? NSWindow, let key = NSApp.keyWindow, key !== window {
+            #if DEBUG
+            NSLog("SAJDA-ACCORDION ignored (%@): %@, while %@ still holds key", reason, detail,
+                  NSStringFromClass(type(of: key)))
+            #endif
+            return
+        }
+
+        #if DEBUG
+        NSLog("SAJDA-ACCORDION collapse (%@): %@", reason, detail)
+        #endif
+        collapseLocation()
+    }
     /// Update availability, observed directly: the footer badge below reflects
     /// it live, and AboutView binds the same shared checker.
     @ObservedObject private var updater = UpdateChecker.shared
@@ -45,11 +176,17 @@ struct MainView: View {
         if case .updateAvailable(let version, _) = updater.state { return version }
         return nil
     }
-    /// Location row. A push to the Favorites page (same NavigationStack
-    /// mechanism as Settings/About): tapping opens FavoritesView, and the
-    /// accordion state lives on that page's @State — so it is born shut on
-    /// every open and every return, with no reset logic anywhere. Outer 4pt
-    /// + inner 8pt = 12pt, the same gutter PrayerListView's rows use.
+    /// Location row, and the inline accordion under it.
+    ///
+    /// Tapping the row expands the whole location list where the row sits —
+    /// `FavoritesSection`, the same content the Location page used to show:
+    /// the Automatic row, the saved cities and mosques, and both search rows
+    /// opening in place underneath. Nothing pushes a page any more, which also
+    /// takes away the pop-then-push flicker the searches used to have.
+    ///
+    /// Outer 4pt + inner 8pt = 12pt, the same gutter PrayerListView's rows use
+    /// — and the same 4pt the Location page applied to `FavoritesSection`, so
+    /// every row inside the accordion lands on the same x it did there.
     ///
     /// No refresh button here: an overlaid control needs a `Color.clear`
     /// spacer to reserve its slot, and that spacer is greedy — it stretches
@@ -57,41 +194,74 @@ struct MainView: View {
     /// timetable is done from the Refresh button in Settings > Calculation &
     /// Location instead.
     private var locationFavoritesBlock: some View {
-        Button(action: {
-            navigationModel.showView(ContentView.id, animation: vm.forwardAnimation()) { FavoritesView() }
-        }) {
-            HStack(spacing: 4) {
-                Text(vm.panelLocationCaption)
-                    // `.callout` sits just under the "Sajda" title above, so the
-                    // location reads as a caption for the times below rather
-                    // than as another label competing with the title.
-                    .scaledFont(.callout, weight: .regular)
-                    .lineLimit(1)
-                    .truncationMode(.tail)
-                Spacer(minLength: 4)
-                Image(systemName: vm.forwardChevron)
-                    .scaledFont(.callout, weight: .semibold)
-                    .foregroundColor(.secondary)
+        VStack(alignment: .leading, spacing: 0) {
+            Button(action: {
+                if isLocationExpanded {
+                    // Same curve as the Settings and search accordions: the
+                    // panel and the menu window behind it track the animating
+                    // content size and resize in lockstep. The close goes
+                    // through `collapseLocation` so the content resets with it.
+                    withAnimation(.sajdaAccordion) {
+                        collapseLocation()
+                    }
+                } else {
+                    withAnimation(.sajdaAccordion) {
+                        isLocationExpanded = true
+                    }
+                }
+            }) {
+                HStack(spacing: 4) {
+                    Text(vm.panelLocationCaption)
+                        // `.callout` sits just under the "Sajda" title above, so the
+                        // location reads as a caption for the times below rather
+                        // than as another label competing with the title.
+                        .scaledFont(.callout, weight: .regular)
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+                    Spacer(minLength: 4)
+                    // Expanded points up, the convention every accordion in the
+                    // panel follows; collapsed mirrors for RTL via the
+                    // chevron the view model hands out.
+                    Image(systemName: isLocationExpanded ? "chevron.up" : vm.forwardChevron)
+                        .scaledFont(.callout, weight: .semibold)
+                        .foregroundColor(.secondary)
+                }
+                // The text carries its own size and weight above, so the row only
+                // sets the colour: a font modifier on the HStack would resolve the
+                // font itself and flatten the chevron's semibold back to regular.
+                // `.secondary` is the same grey the Settings tab labels
+                // ("Visual", "System", …) use. The text's regular weight is pinned
+                // so the location never picks up the bold the prayer rows carry;
+                // it still follows "Bold Text".
+                .foregroundColor(.secondary)
+                .padding(.vertical, 5).padding(.horizontal, 8)
+                .contentShape(Rectangle())
+                .liquidHover(isLocationHovering)
             }
-            // The text carries its own size and weight above, so the row only
-            // sets the colour: a font modifier on the HStack would resolve the
-            // font itself and flatten the chevron's semibold back to regular.
-            // `.secondary` is the same grey the Settings tab labels
-            // ("Visual", "System", …) use. The text's regular weight is pinned
-            // so the location never picks up the bold the prayer rows carry;
-            // it still follows "Bold Text".
-            .foregroundColor(.secondary)
-            .padding(.vertical, 5).padding(.horizontal, 8)
-            .contentShape(Rectangle())
-            .liquidHover(isLocationHovering)
+            .buttonStyle(.plain)
+            .onHover { hovering in isLocationHovering = hovering }
+            .help(Text(NSLocalizedString("Location", comment: "")))
+            .accessibilityLabel(Text(NSLocalizedString("Location", comment: "")))
+            .accessibilityHint(Text(NSLocalizedString("Opens the location list", comment: "")))
+            .accessibilityAddTraits(.isButton)
+
+            // Always mounted, opened and closed by animating the height — the
+            // shared accordion mechanism, documented in `AccordionReveal`. This
+            // block was where that mechanism was worked out: an `if` plus a
+            // transition strands a ghost copy of the rows over the prayer list
+            // while the panel resizes, whichever transition is used.
+            //
+            // The content's own padding and spacing are unchanged, so every row
+            // still lands on the x it did on the old Location page.
+            AccordionReveal(isExpanded: isLocationExpanded) {
+                FavoritesSection(collapseToken: locationCollapseToken)
+            }
         }
-        .buttonStyle(.plain)
+        // One 4pt for the row and one for the section: 4 + their own 8 = the
+        // panel's 12pt gutter, exactly the geometry the Location page had.
+        // It lives on this VStack rather than on the Button so the expanded
+        // content inherits it too.
         .padding(.horizontal, 4)
-        .onHover { hovering in isLocationHovering = hovering }
-        .help(Text(NSLocalizedString("Location", comment: "")))
-        .accessibilityLabel(Text(NSLocalizedString("Location", comment: "")))
-        .accessibilityHint(Text(NSLocalizedString("Opens the location list", comment: "")))
-        .accessibilityAddTraits(.isButton)
     }
 
     private var viewWidth: CGFloat { return vm.panelWidth(base: vm.useCompactLayout ? 220 : 260) }
@@ -214,7 +384,13 @@ struct MainView: View {
                         // bergeser 13pt dari footer — hampir dua kali jarak di
                         // atas garis pemisah. Padding negatif ini disengaja dan
                         // hanya berlaku untuk posisi `.bottom`.
-                        .padding(.bottom, -5)
+                        //
+                        // Hanya selama akordeonnya tertutup: tarikan itu untuk
+                        // merapatkan *baris* ke footer, dan begitu daftarnya
+                        // terbuka yang berada di atas footer adalah daftarnya,
+                        // bukan barisnya — tetap dipakai, konten yang terbuka
+                        // ditarik 5pt menembus footer.
+                        .padding(.bottom, isLocationExpanded ? 0 : -5)
                 }
             }
 
@@ -313,6 +489,7 @@ struct MainView: View {
                     }
 
                     Button(action: {
+                        collapseLocationForNavigation()
                         navigationModel.showView(ContentView.id, animation: vm.forwardAnimation()) { AboutView() }
                     }) {
                         Image(systemName: "info.circle")
@@ -333,6 +510,7 @@ struct MainView: View {
                         // resize the panel as Settings is being pushed — see
                         // `resetSettingsTabToDisplay`.
                         vm.resetSettingsTabToDisplay()
+                        collapseLocationForNavigation()
                         navigationModel.showView(ContentView.id, animation: vm.forwardAnimation()) { SettingsView() }
                     }) {
                         Image(systemName: "gearshape")
@@ -356,6 +534,44 @@ struct MainView: View {
         .padding(.top, 2)
         .padding(.bottom, 2)
         .frame(width: viewWidth)
+        // The resets that fire (see `isLocationExpanded` for why the
+        // SwiftUI-side signals do not): AppKit's own window notifications,
+        // which are posted whether the menu window closes or merely loses key.
+        // Unfiltered on purpose — they fire for every window — because every
+        // other window this app owns appears only alongside a page, where
+        // `MainView` is out of the hierarchy and these handlers are gone.
+        //
+        // Plain assignment rather than an animated collapse: the panel is
+        // closing or unfocusing, so animating would resize a window that is
+        // going away or nobody is watching (the same reasoning behind
+        // `resetSettingsTabToDisplay`, and behind `ContentView` calling
+        // `hideView(…, animation: nil)`).
+        .onReceive(NotificationCenter.default.publisher(for: NSWindow.didResignKeyNotification)) { note in
+            // Both ways the panel can lose focus post this alike: closing the
+            // key menu window, and handing key to another app while it stays
+            // open.
+            resetLocationAccordion("didResignKey", note)
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSWindow.willCloseNotification)) { note in
+            // Belt for dismissal specifically: if a close ever arrives without
+            // the window having been key (ordering differs across releases),
+            // this still folds the list. Every window counts except tooltips —
+            // `.help()` shows those in their own window, and folding the list
+            // because the user moved the mouse off a button would be a bug of
+            // its own. (Tooltips almost certainly order out rather than close,
+            // so this is defence in depth; the class check is a no-op if they
+            // ever rename.)
+            guard let window = note.object as? NSWindow,
+                  !NSStringFromClass(type(of: window)).localizedCaseInsensitiveContains("tooltip") else { return }
+            resetLocationAccordion("willClose", note)
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .popoverDidClose)) { note in
+            // Third belt: the app-level close notification, in case
+            // `isMenuPresented` starts flipping on dismissal. In the build this
+            // was written against it did not reach here, which is why it is no
+            // longer the primary signal.
+            resetLocationAccordion("popoverDidClose", note)
+        }
 
     }
 }

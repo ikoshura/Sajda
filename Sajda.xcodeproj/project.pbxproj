@@ -75,6 +75,7 @@
 		CCED21882E65FE650066D0EB /* AnimationType.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCED21872E65FE650066D0EB /* AnimationType.swift */; };
 		CCED21912E6600000066D0EB /* PanelTextSize.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCED21902E6600000066D0EB /* PanelTextSize.swift */; };
 		CCED21932E6600000066D0EB /* AccessibilitySettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCED21922E6600000066D0EB /* AccessibilitySettingsView.swift */; };
+		CCED219A2E66000000670001 /* AccordionReveal.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCED219A2E6600000067F001 /* AccordionReveal.swift */; };
 		CCED21952E6600000066D0EB /* SettingsAccordion.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCED21942E6600000066D0EB /* SettingsAccordion.swift */; };
 		CCED21962E6600000066F001 /* FavoritePlace.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCED21962E6600000066FE01 /* FavoritePlace.swift */; };
 		CCED21972E6600000066F002 /* FavoritePlaceStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCED21972E6600000066FE02 /* FavoritePlaceStore.swift */; };
@@ -176,6 +177,7 @@
 		CCED21872E65FE650066D0EB /* AnimationType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnimationType.swift; sourceTree = "<group>"; };
 		CCED21902E6600000066D0EB /* PanelTextSize.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PanelTextSize.swift; sourceTree = "<group>"; };
 		CCED21922E6600000066D0EB /* AccessibilitySettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessibilitySettingsView.swift; sourceTree = "<group>"; };
+		CCED219A2E6600000067F001 /* AccordionReveal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccordionReveal.swift; sourceTree = "<group>"; };
 		CCED21942E6600000066D0EB /* SettingsAccordion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsAccordion.swift; sourceTree = "<group>"; };
 		CCED21962E6600000066FE01 /* FavoritePlace.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoritePlace.swift; sourceTree = "<group>"; };
 		CCED21972E6600000066FE02 /* FavoritePlaceStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoritePlaceStore.swift; sourceTree = "<group>"; };
@@ -307,6 +309,7 @@
 				CCED21872E65FE650066D0EB /* AnimationType.swift */,
 				CCED21902E6600000066D0EB /* PanelTextSize.swift */,
 				CCED21922E6600000066D0EB /* AccessibilitySettingsView.swift */,
+				CCED219A2E6600000067F001 /* AccordionReveal.swift */,
 				CCED21942E6600000066D0EB /* SettingsAccordion.swift */,
 				CCED21962E6600000066FE01 /* FavoritePlace.swift */,
 				CCED21972E6600000066FE02 /* FavoritePlaceStore.swift */,
@@ -528,6 +531,7 @@
 				CCED21882E65FE650066D0EB /* AnimationType.swift in Sources */,
 				CCED21912E6600000066D0EB /* PanelTextSize.swift in Sources */,
 				CCED21932E6600000066D0EB /* AccessibilitySettingsView.swift in Sources */,
+				CCED219A2E66000000670001 /* AccordionReveal.swift in Sources */,
 				CCED21952E6600000066D0EB /* SettingsAccordion.swift in Sources */,
 				CCED21962E6600000066F001 /* FavoritePlace.swift in Sources */,
 				CCED21972E6600000066F002 /* FavoritePlaceStore.swift in Sources */,

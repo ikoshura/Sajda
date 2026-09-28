@@ -18,6 +18,23 @@ import SwiftUI
 struct FavoritesSection: View {
     @EnvironmentObject var vm: PrayerTimeViewModel
 
+    /// Bumped by the owner whenever this section should forget its own state.
+    ///
+    /// This section used to live inside an `if` that unmounted it on collapse,
+    /// which reset `openSearch` for free. It no longer does: `MainView` keeps
+    /// it permanently in the tree and collapses it by animating its height,
+    /// because an unmount/mount transition stranded a ghost copy of the rows
+    /// over the prayer list while the panel resized. So the reset the unmount
+    /// used to provide is driven from outside through this counter —
+    /// otherwise reopening the accordion would restore whatever search the user
+    /// had open last time.
+    ///
+    /// A counter rather than a plain `Bool` on purpose: the owner folds the
+    /// searches at the *start* of a collapse, and a second collapse with no
+    /// reopen in between must fold them again, which a `Bool` edge (only
+    /// meaningful on change) would swallow.
+    let collapseToken: Int
+
     /// Which inline search is open; `nil` = both shut. Single-open like the
     /// Settings accordions, so opening one closes the other.
     private enum OpenSearch: Equatable {
@@ -56,6 +73,22 @@ struct FavoritesSection: View {
         }
         .padding(.vertical, 2)
         .clipped()
+        .onChange(of: collapseToken) { _, _ in
+            // Mirrors the unmount this view no longer gets: fold the inline
+            // searches and forget the pending query, so a reopen always
+            // starts from a plain collapsed list. Animated on the same curve
+            // as the height collapse that runs alongside it, otherwise the
+            // searches would snap shut while the section is still sliding
+            // closed. `fixedSize` inside `AccordionReveal` means the section
+            // still reports its full natural height while this plays, so the
+            // panel finishes the collapse with this one still in the tree.
+            withAnimation(.sajdaAccordion) {
+                openSearch = nil
+            }
+            if !vm.locationSearchQuery.isEmpty {
+                vm.locationSearchQuery = ""
+            }
+        }
     }
 
     // MARK: - Inline searches
@@ -98,9 +131,11 @@ struct FavoritesSection: View {
         }
         .padding(.horizontal, 8)
         .padding(.vertical, 4)
-        // Height slide + fade, clipped, so rows never fly outside the section
-        // while the panel grows — the reveal the Settings accordions use.
-        .transition(.opacity.combined(with: .move(edge: .top)))
+        // Fade in place, clipped, so the rows never travel outside the
+        // section — a vertical slide here would fly the results up over the
+        // favorite rows above, the same artifact the location accordion has
+        // to avoid (see `locationFavoritesBlock`).
+        .transition(.opacity)
         .clipped()
     }
 
@@ -111,7 +146,7 @@ struct FavoritesSection: View {
             .environmentObject(vm)
             .padding(.horizontal, 8)
             .padding(.vertical, 4)
-            .transition(.opacity.combined(with: .move(edge: .top)))
+            .transition(.opacity)
             .clipped()
     }
 

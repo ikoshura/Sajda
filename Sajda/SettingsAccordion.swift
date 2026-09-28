@@ -7,10 +7,14 @@
 //
 // Expand/collapse drives the menu height through `Animation.sajdaAccordion`
 // (a slow 0.38 s smooth curve), so the panel and the MenuBarExtra window
-// resize in lockstep. Content reveals with a height slide + fade and is
-// clipped, so rows never visibly fly or flash outside the bounds while the
-// window slides to its new size. The same curve drives the inline searches on
-// the Location page.
+// resize in lockstep. The reveal itself is `AccordionReveal`: the content
+// stays in the tree and its height animates between its natural size and zero.
+// It used to be a `move` + `fade` transition, which either flew the rows over
+// the content above them on the way in or stranded a ghost copy of them there
+// on the way out — read the header note on that type before putting a
+// transition back. This view applies the curve to `onToggle` itself, because a
+// height change needs an animation in context and callers cannot be expected
+// to know that.
 
 import SwiftUI
 
@@ -44,7 +48,20 @@ struct SettingsAccordion<Content: View>: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Button(action: onToggle) {
+            // The animation is applied *here*, not left to the caller's
+            // `onToggle`, because it is this view's frame that has to animate
+            // and a caller cannot know that. The old reveal was a
+            // `.transition`, which SwiftUI runs even with no animation in
+            // context, so callers got a moving reveal for free. `AccordionReveal`
+            // animates a height instead, and a frame change is a plain layout
+            // mutation — with nothing wrapping the state change it applies
+            // instantly and the accordion snaps open with no motion at all,
+            // which is exactly what happened when this was first wired up.
+            //
+            // Wrapping the call (rather than mutating a binding) keeps the
+            // single-open callers, which toggle their own `@State`, working
+            // unchanged.
+            Button(action: { withAnimation(.sajdaAccordion) { onToggle() } }) {
                 HStack {
                     Text(LocalizedStringKey(titleKey))
                         .scaledFont(.subheadline)
@@ -62,7 +79,17 @@ struct SettingsAccordion<Content: View>: View {
             .padding(.horizontal, horizontalInset - 8)
             .onHover { hovering in isHovering = hovering }
 
-            if isExpanded {
+            // Always in the tree, revealed by height: see `AccordionReveal` for
+            // why an `if` + transition strands a ghost copy of the rows over
+            // the content above them while the panel resizes. The old
+            // `.opacity` + `.move` combo had both halves of that problem — the
+            // slide painted over the row above on the way in, the fade left the
+            // ghost on the way out.
+            //
+            // The 12pt spacing and the padding stay on the content itself, so
+            // the geometry the callers tuned is unchanged; only the reveal
+            // mechanism moved.
+            AccordionReveal(isExpanded: isExpanded) {
                 VStack(alignment: .leading, spacing: 12) {
                     content
                 }
@@ -72,12 +99,6 @@ struct SettingsAccordion<Content: View>: View {
                 .padding(.horizontal, 8)
                 .padding(.vertical, 6)
                 .padding(.horizontal, horizontalInset - 8)
-                // Slow height reveal + fade together: the window frame
-                // animation tracks the animating content size, so this one
-                // curve drives the smooth panel resize. Clipped so rows never
-                // flash outside the bounds mid-animation.
-                .transition(.opacity.combined(with: .move(edge: .top)))
-                .clipped()
             }
         }
     }

@@ -49,7 +49,10 @@ struct FavoritesView: View {
                     .truncationMode(.tail)
                     .padding(.horizontal, 12)
 
-                FavoritesSection()
+                // The Location page *is* the list, so there is no accordion to
+                // fold and nothing to reset — the page leaving the hierarchy
+                // does that, as it always did.
+                FavoritesSection(collapseToken: 0)
                     .environmentObject(vm)
                     .padding(.horizontal, 4)
 
