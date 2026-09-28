@@ -77,7 +77,7 @@
 "Middle of the Night" = "Middle of the Night";
 "Seventh of the Night" = "Seventh of the Night";
 "Twilight Angle" = "Twilight Angle";
-"Recommended for your location (%.1f°): %@" = "Recommended for your location (%.1f°): %@";
+"Recommended for your location (%@°): %@" = "Recommended for your location (%@°): %@";
 "Override: %@. Recommended for your location is %@." = "Override: %@. Recommended for your location is %@.";
 "Uses the rule recommended for your location's latitude." = "Uses the rule recommended for your location's latitude.";
 "Fajr and Isha are limited to the middle of the night." = "Fajr and Isha are limited to the middle of the night.";

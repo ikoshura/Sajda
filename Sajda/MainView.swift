@@ -517,6 +517,7 @@ private struct PrayerRow: View {
     @Environment(\.panelFontScale) private var fontScale
     let prayerName: String
     let timeColumnWidth: CGFloat
+    @Environment(\.locale) private var locale
 
     /// Row content height: the body line at the current text scale. The toggle
     /// is the tallest element by design, so this is what sets the highlight
@@ -657,7 +658,9 @@ private struct PrayerRow: View {
     @ViewBuilder
     private func iqamaCell(isNextPrayer: Bool, textColor: Color) -> some View {
         if let minutes = vm.displayedIqamaDelay(for: prayerName) {
-            Text(String(format: "+%d", minutes))
+            // Locale's own digits ("+8" / "+٨"): `String(format:)` without a
+            // locale always prints ASCII.
+            Text(verbatim: "+" + LocalizedNumber.string(minutes, locale: locale))
                 // `.callout`, matching the sunnah estimate mark beside the time.
                 // Both annotate a clock rather than being one, and they read as
                 // a matched pair at the same size; at `.caption` the gap was a
@@ -672,7 +675,9 @@ private struct PrayerRow: View {
                 .monospacedDigit()
                 .lineLimit(1)
                 .frame(width: PrayerListView.iqamaColumnWidth(fontScale: fontScale), alignment: .trailing)
-                .help(String(format: NSLocalizedString("iqama_delay_minutes", comment: ""), minutes))
+                // Same locale-aware digits as the badge itself (`String(format:)`
+                // without a locale would fall back to ASCII inside the sentence).
+                .help(String(format: NSLocalizedString("iqama_delay_minutes", comment: ""), locale: locale, minutes))
         } else if hasIqamaColumn {
             Color.clear.frame(width: PrayerListView.iqamaColumnWidth(fontScale: fontScale), height: 1)
         }

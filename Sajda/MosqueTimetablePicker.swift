@@ -16,6 +16,7 @@ struct MosqueTimetablePicker: View {
     @State private var isDownloadingMosque = false
     @State private var mosqueDownloadFailed = false
     @State private var mosqueSearchTask: Task<Void, Never>?
+    @Environment(\.locale) private var locale
     @State private var hoveringResultSlug: String?
     @State private var hoveringHeartSlug: String?
     /// Zero-based index of the visible slice of `mosqueResults`. Paging
@@ -193,8 +194,11 @@ struct MosqueTimetablePicker: View {
     /// item range reads as a result total the user has to mentally divide, and
     /// the count line underneath already carries the total.
     private var pageIndicatorText: String {
+        // Locale's own digits ("1" / "١"): `String(format:)` without a locale
+        // always prints ASCII.
         String(
             format: NSLocalizedString("Page %d of %d", comment: ""),
+            locale: locale,
             currentPage + 1, pageCount
         )
     }

@@ -78,7 +78,7 @@
 "Middle of the Night" = "Mitad de la noche";
 "Seventh of the Night" = "Séptima parte de la noche";
 "Twilight Angle" = "Ángulo del crepúsculo";
-"Recommended for your location (%.1f°): %@" = "Recomendado para tu ubicación (%.1f°): %@";
+"Recommended for your location (%@°): %@" = "Recomendado para tu ubicación (%@°): %@";
 "Override: %@. Recommended for your location is %@." = "Anulado: %@. Lo recomendado para tu ubicación es %@.";
 "Uses the rule recommended for your location's latitude." = "Usa la regla recomendada para la latitud de tu ubicación.";
 "Fajr and Isha are limited to the middle of the night." = "Fajr e Isha se limitan a la mitad de la noche.";

@@ -78,7 +78,7 @@
 "Middle of the Night" = "夜の中央";
 "Seventh of the Night" = "夜の7分の1";
 "Twilight Angle" = "薄明の角度";
-"Recommended for your location (%.1f°): %@" = "あなたの位置への推奨（%.1f°）：%@";
+"Recommended for your location (%@°): %@" = "あなたの位置への推奨（%@°）：%@";
 "Override: %@. Recommended for your location is %@." = "上書き：%@。あなたの位置への推奨は %@ です。";
 "Uses the rule recommended for your location's latitude." = "現在地の緯度に推奨されるルールを使用します。";
 "Fajr and Isha are limited to the middle of the night." = "ファジールとイシャーは夜の中央に制限されます。";

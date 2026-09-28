@@ -4,8 +4,8 @@
 "prayer_in_countdown" = "%@ بعد %@"; "prayer_at_time" = "%@ في %@"; "Location Required" = "الموقع مطلوب"; "Open System Settings" = "فتح إعدادات النظام"; "Allow Location Access" = "السماح بالوصول للموقع"; "Or, set location manually" = "أو, حدد الموقع يدويًا";
 "To provide accurate prayer times, Sajda Pro needs to know your location." = "لتوفير أوقات صلاة دقيقة، يحتاج سجدة برو إلى معرفة موقعك."; "Location access is already enabled." = "تم تفعيل الوصول إلى الموقع."; "Or, Set Location Manually" = "أو، حدد الموقع يدويًا"; "Please grant location access in System Settings." = "يرجى منح صلاحية الوصول للموقع من إعدادات النظام."; "You are using a manual location: **%@**" = "أنت تستخدم موقعًا يدويًا: **%@**"; "Switch to Automatic Location" = "التبديل إلى الموقع التلقائي"; "Change Manual Location" = "تغيير الموقع اليدوي"; "Show this window on launch" = "إظهار هذه النافذة عند التشغيل"; "Welcome to Sajda Pro" = "أهلاً بك في سجدة برو";
 "To get started, please provide your location for accurate prayer times." = "للبدء، يرجى تقديم موقعك للحصول على أوقات صلاة دقيقة."; "Using manual location: **%@**" = "تستخدم موقعًا يدويًا: **%@**"; "Location access is enabled." = "تم تفعيل الوصول إلى الموقع."; "Please grant access in System Settings." = "يرجى منح الوصول في إعدادات النظام.";
-"About Sajda Pro" = "عن سجدة برو"; "Version 3.3.1" = "الإصدار 3.3.1"; "by Abrar Zha" = "بواسطة Abrar Zha"; "Show Welcome Guide on Launch" = "إظهار دليل الترحيب عند التشغيل"; "Show Welcome Window" = "إظهار نافذة الترحيب";
-"General" = "عام"; "Language" = "اللغة"; "Display" = "العرض"; "Menu Bar Style" = "نمط شريط القائمة"; "Compact View" = "عرض مصغّر"; "24-Hour Time" = "تنسيق 24 ساعة"; "Minimal Menu Bar" = "شريط قوائم مصغّر"; "Accent Color" = "لون مميز"; "Hijri Date" = "التاريخ الهجري"; "Accent Panel" = "لوحة باللون المميّز"; "Dim Mute Button" = "كتم زر الأذان"; "Red Alert" = "التنبيه الأحمر"; "Red Alert Off" = "إيقاف"; "Red Alert 5 Minutes" = "٥ دقائق"; "Red Alert 10 Minutes" = "١٠ دقائق"; "Red Alert 15 Minutes" = "١٥ دقائق"; "Iqama Delay" = "تأخير الإقامة"; "Show Iqama Delay" = "إظهار تأخير الإقامة"; "Show Sunnah Prayers" = "إظهار صلوات السنن"; "Glass Highlight" = "تمييز زجاجي"; "Show Seconds" = "إظهار الثواني"; "Show Countdown Header" = "إظهار ترويسة العد التنازلي";
+"About Sajda Pro" = "عن سجدة برو"; "Version 3.3.1" = "الإصدار ٣.٣.١"; "by Abrar Zha" = "بواسطة Abrar Zha"; "Show Welcome Guide on Launch" = "إظهار دليل الترحيب عند التشغيل"; "Show Welcome Window" = "إظهار نافذة الترحيب";
+"General" = "عام"; "Language" = "اللغة"; "Display" = "العرض"; "Menu Bar Style" = "نمط شريط القائمة"; "Compact View" = "عرض مصغّر"; "24-Hour Time" = "تنسيق ٢٤ ساعة"; "Minimal Menu Bar" = "شريط قوائم مصغّر"; "Accent Color" = "لون مميز"; "Hijri Date" = "التاريخ الهجري"; "Accent Panel" = "لوحة باللون المميّز"; "Dim Mute Button" = "كتم زر الأذان"; "Red Alert" = "التنبيه الأحمر"; "Red Alert Off" = "إيقاف"; "Red Alert 5 Minutes" = "٥ دقائق"; "Red Alert 10 Minutes" = "١٠ دقائق"; "Red Alert 15 Minutes" = "١٥ دقائق"; "Iqama Delay" = "تأخير الإقامة"; "Show Iqama Delay" = "إظهار تأخير الإقامة"; "Show Sunnah Prayers" = "إظهار صلوات السنن"; "Glass Highlight" = "تمييز زجاجي"; "Show Seconds" = "إظهار الثواني"; "Show Countdown Header" = "إظهار ترويسة العد التنازلي";
 "Calculation" = "الحساب"; "Method" = "طريقة الحساب"; "Time Correction" = "تعديل التوقيت"; "Adjust" = "تعديل"; "Hanafi Madhhab (for Asr)" = "المذهب الحنفي (للعصر)"; "Location" = "الموقع"; "Manual:" = "يدوي:"; "Automatic:" = "تلقائي:"; "Use Automatic" = "استخدام التلقائي";
 "Adjust prayer times to match your local mosque. Hover over the number to reset." = "عدّل أوقات الصلاة لتطابق مسجدك المحلي. مرر الفأرة فوق الرقم لإعادة التعيين."; "Reset All to Default" = "إعادة تعيين الكل";
 "Set Location" = "تحديد الموقع"; "Search for a city or paste coordinates..." = "ابحث عن مدينة أو الصق الإحداثيات..."; "Set Location Manually" = "تحديد الموقع يدويًا"; "Start typing a city or paste coordinates." = "ابدأ بكتابة اسم مدينة أو الصق الإحداثيات."; "No results found." = "لم يتم العثور على نتائج.";
@@ -77,7 +77,7 @@
 "Middle of the Night" = "منتصف الليل";
 "Seventh of the Night" = "سبع الليل";
 "Twilight Angle" = "زاوية الشفق";
-"Recommended for your location (%.1f°): %@" = "موصى به لموقعك (%.1f°): %@";
+"Recommended for your location (%@°): %@" = "موصى به لموقعك (%@°): %@";
 "Override: %@. Recommended for your location is %@." = "تخصيص: %@. الموصى به لموقعك هو %@.";
 "Uses the rule recommended for your location's latitude." = "يستخدم القاعدة الموصى بها لخط عرض موقعك.";
 "Fajr and Isha are limited to the middle of the night." = "يُحدَّد الفجر والعشاء إلى منتصف الليل.";
@@ -172,7 +172,7 @@
 "Turn On" = "تشغيل";
 "Recommended: turn on Compact View to fit this text size." = "مُوصى به: شغّل العرض المضغوط لتناسب هذه الكتابة.";
 "Page %d of %d" = "صفحة %d من %d";
-"Top 10 matches — refine to narrow down." = "أفضل 10 نتائج — حسّن البحث لتضييق النتائج.";
+"Top 10 matches — refine to narrow down." = "أفضل ١٠ نتائج — حسّن البحث لتضييق النتائج.";
 "%d matches — refine your search to narrow it down." = "%d نتيجة — حسّن البحث لتضييق النتائج.";
 "Next results" = "النتائج التالية";
 "Previous results" = "النتائج السابقة";

@@ -78,7 +78,7 @@
 "Middle of the Night" = "夜晚中点";
 "Seventh of the Night" = "夜晚七分之一";
 "Twilight Angle" = "晨昏蒙影角度";
-"Recommended for your location (%.1f°): %@" = "为您的位置推荐（%.1f°）：%@";
+"Recommended for your location (%@°): %@" = "为您的位置推荐（%@°）：%@";
 "Override: %@. Recommended for your location is %@." = "已覆盖：%@。为您的位置推荐：%@。";
 "Uses the rule recommended for your location's latitude." = "使用为您的所在纬度推荐的规则。";
 "Fajr and Isha are limited to the middle of the night." = "晨礼与宵礼限定在夜晚中点。";

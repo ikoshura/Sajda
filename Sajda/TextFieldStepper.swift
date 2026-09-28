@@ -13,6 +13,11 @@ struct TextFieldStepper: View {
 
     @State private var textValue: String = ""
     @FocusState private var isFocused: Bool
+
+    /// Digits follow whichever language is active (Arabic → ٠١٢٣٤٥٦٧٨٩), so a
+    /// stepper value matches the text around it instead of being the one
+    /// ASCII number on the row.
+    @Environment(\.locale) private var locale
     
     @State private var isMinusHovering = false
     @State private var isPlusHovering = false
@@ -78,11 +83,15 @@ struct TextFieldStepper: View {
     }
 
     private func formatValue(_ val: Double) -> String {
-        return String(format: "%+.0f", val)
+        // `String(format:locale:)` swaps the numbering system; the plain form
+        // always prints ASCII digits.
+        LocalizedNumber.signedString(val, locale: locale)
     }
 
     private func updateValue(from text: String) {
-        if let newDouble = Double(text) {
+        // The field shows the locale's own digits, so parse those back too —
+        // `Double("٨")` is nil.
+        if let newDouble = LocalizedNumber.value(from: text) {
             value = min(max(newDouble, range.lowerBound), range.upperBound)
         }
         textValue = formatValue(value)

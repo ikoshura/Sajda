@@ -1092,7 +1092,11 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
     var highLatitudeRuleCaption: String? {
         guard let effective = effectiveHighLatitudeRule, let lat = currentCoordinates?.latitude else { return nil }
         if highLatitudeRuleSetting == .recommended {
-            return String(format: NSLocalizedString("Recommended for your location (%.1f°): %@", comment: "High-latitude rule caption — recommended"), lat, effective.displayName)
+            // "latText" arrives already formatted in the locale's own digits —
+            // `String(format:)` without a locale always prints ASCII (`%.1f`
+            // on the raw Double would read "30.5" inside an Arabic sentence).
+            let latText = LocalizedNumber.fixedString(lat, locale: displayLocale, fractionDigits: 1)
+            return String(format: NSLocalizedString("Recommended for your location (%@°): %@", comment: "High-latitude rule caption — recommended"), locale: displayLocale, latText, effective.displayName)
         } else {
             return String(format: NSLocalizedString("Override: %@. Recommended for your location is %@.", comment: "High-latitude rule caption — override"), highLatitudeRuleSetting.displayName, effective.displayName)
         }
@@ -1171,7 +1175,7 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
         let comp = { (v: Int) in digits.string(from: NSNumber(value: v)) ?? String(format: "%02d", v) }
         detailedCountdown = diff > 0
             ? "\(comp(diff / 3600)):\(comp((diff % 3600) / 60)):\(comp(diff % 60))"
-            : "00:00:00"
+            : "\(comp(0)):\(comp(0)):\(comp(0))"
 
         if diff > 0 {
             let h = diff / 3600
@@ -1497,7 +1501,10 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
         let minutes = (diff % 3600) / 60
         let seconds = diff % 60
         return hours > 0
-            ? "\(hours):\(comp(minutes)):\(comp(seconds))"
+            // Hours need the same locale digits as the padded components —
+            // a raw interpolation would leave ASCII hours beside localized
+            // minutes ("2:٣٠:٤٥").
+            ? "\(LocalizedNumber.string(hours, locale: displayLocale)):\(comp(minutes)):\(comp(seconds))"
             : "\(comp(minutes)):\(comp(seconds))"
     }
 

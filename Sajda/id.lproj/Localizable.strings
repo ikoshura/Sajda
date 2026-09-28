@@ -77,7 +77,7 @@
 "Middle of the Night" = "Tengah Malam";
 "Seventh of the Night" = "Sepertujuh Malam";
 "Twilight Angle" = "Sudut Senja";
-"Recommended for your location (%.1f°): %@" = "Disarankan untuk lokasi Anda (%.1f°): %@";
+"Recommended for your location (%@°): %@" = "Disarankan untuk lokasi Anda (%@°): %@";
 "Override: %@. Recommended for your location is %@." = "Kustom: %@. Disarankan untuk lokasi Anda adalah %@.";
 "Uses the rule recommended for your location's latitude." = "Menggunakan aturan yang disarankan untuk lintang lokasi Anda.";
 "Fajr and Isha are limited to the middle of the night." = "Subuh dan Isya dibatasi hingga tengah malam.";

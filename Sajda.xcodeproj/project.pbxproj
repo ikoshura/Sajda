@@ -24,6 +24,7 @@
 		CCF100032E6600000066D003 /* MacControlCenterUI in Frameworks */ = {isa = PBXBuildFile; productRef = CCF100022E6600000066D002 /* MacControlCenterUI */; };
 		CC4659612E661CC400159A83 /* TextFieldStepper.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC4659602E661CC400159A83 /* TextFieldStepper.swift */; };
 		CC4659652E6629C000159A83 /* SajdaStepper.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC4659642E6629C000159A83 /* SajdaStepper.swift */; };
+		CCE201012E6629C100159A83 /* LocalizedNumber.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCE201002E6629C100159A83 /* LocalizedNumber.swift */; };
 		CC786E4E2E634B65007299F3 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC786E4D2E634B65007299F3 /* OnboardingView.swift */; };
 		CC786E522E6353F1007299F3 /* ManualLocationSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC786E512E6353F1007299F3 /* ManualLocationSheetView.swift */; };
 		CC786E542E6359E1007299F3 /* PrayerTimerMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC786E532E6359E1007299F3 /* PrayerTimerMonitor.swift */; };
@@ -109,6 +110,7 @@
 		CC07FC612E63FF5100924451 /* SystemAndNotificationsSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemAndNotificationsSettingsView.swift; sourceTree = "<group>"; };
 		CC4659602E661CC400159A83 /* TextFieldStepper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextFieldStepper.swift; sourceTree = "<group>"; };
 		CC4659642E6629C000159A83 /* SajdaStepper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SajdaStepper.swift; sourceTree = "<group>"; };
+		CCE201002E6629C100159A83 /* LocalizedNumber.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalizedNumber.swift; sourceTree = "<group>"; };
 		CC786E4D2E634B65007299F3 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		CC786E512E6353F1007299F3 /* ManualLocationSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManualLocationSheetView.swift; sourceTree = "<group>"; };
 		CC786E532E6359E1007299F3 /* PrayerTimerMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrayerTimerMonitor.swift; sourceTree = "<group>"; };
@@ -312,6 +314,7 @@
 				CCED21992E6600000066FE04 /* FavoritesView.swift */,
 				CC4659602E661CC400159A83 /* TextFieldStepper.swift */,
 				CC4659642E6629C000159A83 /* SajdaStepper.swift */,
+				CCE201002E6629C100159A83 /* LocalizedNumber.swift */,
 				A1B220C2AC258F390A192FF3 /* AdhanAudioPlayer.swift */,
 			);
 			path = Sajda;
@@ -545,6 +548,7 @@
 				CCAA00072FABBC0200CCDDEE /* MosqueTimetablePicker.swift in Sources */,
 				CCE1BA3A2E61852B003AF03C /* EventMonitor.swift in Sources */,
 				CC4659652E6629C000159A83 /* SajdaStepper.swift in Sources */,
+				CCE201012E6629C100159A83 /* LocalizedNumber.swift in Sources */,
 				CCE1BA3D2E61852B003AF03C /* FluidMenuBarExtra.swift in Sources */,
 				CC969CA92E6098C600C8630A /* SettingsView.swift in Sources */,
 				CCE1BA3F2E61852B003AF03C /* FluidMenuBarExtraWindow.swift in Sources */,
