@@ -1,73 +1,65 @@
 # Sajda
 
-Prayer times for macOS, done quietly. Sajda lives in your menu bar, shows what matters at a glance, and stays out of your way.
+A prayer times app for macOS that lives in the menu bar.
 
 <img src="https://github.com/user-attachments/assets/6e8bd922-a446-4b33-a184-e5e89493a4b1" alt="Sajda App Screenshot">
-
-> Now with a Liquid Glass interface. A refractive glass panel, frosted interior, and native glass controls that feel at home on the latest macOS.
 
 [![Latest Release](https://img.shields.io/github/v/release/ikoshura/Sajda)](https://github.com/ikoshura/Sajda/releases)
 [![macOS Sonoma 14.0+](https://img.shields.io/badge/macOS-Sonoma%2014.0%2B-blue)](https://github.com/ikoshura/Sajda/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
----
+## Features
 
-## Why Sajda
-
-- **Glanceable.** Icon, countdown, or exact time in the menu bar. Pick the style you like.
-- **Urgent when it matters.** Set your own alert threshold for the icon and text to turn red before prayer.
-- **Accurate.** Automatic location or any city worldwide, with trusted calculation methods. Follow your own mosque's timetable instead when you prefer.
-- **Private.** No accounts, no analytics, no tracking. Everything happens on your Mac.
-- **Your language.** English, Indonesian, Arabic, Spanish, French, German, Japanese, Korean, and Simplified Chinese.
-
----
+- Shows the next prayer in the menu bar as an icon, a countdown, or the exact time.
+- Turns red a set amount of time before prayer. You choose how early.
+- Detects your location automatically, or lets you pick any city.
+- Supports several calculation methods, and mosque timetables through Mawaqit.
+- Works offline for prayer time calculation. No accounts or tracking.
+- Available in English, Indonesian, Arabic, Spanish, French, German, Japanese, Korean, and Simplified Chinese.
 
 ## Installation
 
-### Homebrew (recommended)
+Requires macOS Sonoma 14.0 or later (Apple Silicon or Intel).
+
+### Homebrew
+
 ```bash
 brew install --cask ikoshura/sajda/sajda
 ```
 
 ### DMG
+
 Download the latest `.dmg` from the [Releases page](https://github.com/ikoshura/Sajda/releases), open it, and drag Sajda to your Applications folder.
 
-### First launch on macOS (important)
+### First launch
 
-Sajda releases are ad-hoc signed and not notarized. The Apple Developer Program costs $99/year, which is not affordable for this project right now. Because of that, macOS Gatekeeper may say **"Sajda.app is damaged and can't be opened"** on first launch. The app is not damaged; macOS shows this misleading message for unsigned apps downloaded from the internet.
+Sajda is ad-hoc signed but not notarized, because the Apple Developer Program costs $99/year and I can't cover it right now. Because of this, macOS may say "Sajda.app is damaged and can't be opened". The app is fine. macOS shows this message for unnotarized apps downloaded from the internet.
 
-To open Sajda, run this once in Terminal after copying the app to Applications:
+To fix it, run this once after copying the app to Applications:
+
 ```bash
 /usr/bin/xattr -cr /Applications/Sajda.app
 ```
-Then launch Sajda normally. You only need to do this once per install.
+
+Then open Sajda as usual.
 
 <details>
-<summary>Still blocked? More options</summary>
+<summary>Still blocked?</summary>
 
 **System Settings**
-1. Try to open Sajda. When the warning appears, click OK.
-2. Open **System Settings → Privacy & Security**.
-3. Find the Sajda entry and click **Open Anyway**.
+1. Try to open Sajda and click OK on the warning.
+2. Go to **System Settings → Privacy & Security**.
+3. Find Sajda and click **Open Anyway**.
 
-**Terminal (alternative)**
+**Terminal**
 ```bash
 xattr -r -d com.apple.quarantine /Applications/Sajda.app
 ```
 </details>
 
----
+## Build from source
 
-## System Requirements
-
-- macOS Sonoma 14.0 or later
-- Apple Silicon or Intel
-
----
-
-## Build from Source
-
-Requirements: macOS Sonoma 14.0+, Xcode with macOS SDK.
+Requires macOS Sonoma 14.0+ and Xcode with the macOS SDK.
 
 ```bash
 xcodebuild \
@@ -81,19 +73,13 @@ xcodebuild \
 open build/DerivedData/Build/Products/Debug/Sajda.app
 ```
 
-For production signing and notarization, see [docs/RELEASE.md](docs/RELEASE.md).
-
----
+For signing and notarization, see [docs/RELEASE.md](docs/RELEASE.md).
 
 ## Contributing
 
-Pull requests are welcome. For larger changes, open an issue first to discuss what you'd like to change.
-
----
+Pull requests are welcome. For bigger changes, please open an issue first.
 
 ## Contributors
-
-Thanks to everyone who has contributed to this project.
 
 - [@ikoshura](https://github.com/ikoshura)
 - [@omar-hanafy](https://github.com/omar-hanafy)
@@ -103,37 +89,26 @@ Thanks to everyone who has contributed to this project.
 
 [![Contributors](https://contrib.rocks/image?repo=ikoshura/Sajda)](https://github.com/ikoshura/Sajda/graphs/contributors)
 
-### Thanks
-
-And to the people whose contribution is insight rather than code — the ones who try every release and come back with exactly what is wrong, and what would be better:
-
-- [@iMacLion](https://github.com/iMacLion)
-
----
+Thanks also to [@iMacLion](https://github.com/iMacLion) for testing releases and giving detailed feedback.
 
 ## Privacy
 
-Sajda respects your privacy:
-
-- **No accounts, no analytics, no tracking.** The app has no servers and collects nothing.
-- **Location** is requested only to calculate prayer times and is processed on your device. Prayer time calculation happens entirely offline (Adhan library).
-- **City search** sends only the text you type to [OpenStreetMap's Nominatim](https://wiki.openstreetmap.org/wiki/Nominatim) service (requests identify as `Sajda/1.0`).
-- **Timezone detection** uses Apple's standard reverse geocoding.
-- All settings stay in local storage on your Mac.
-
----
+- No accounts, analytics, or tracking. The app has no servers and collects nothing.
+- Location is used only to calculate prayer times, and stays on your device.
+- Prayer times are calculated offline with the Adhan library.
+- City search sends only the text you type to [OpenStreetMap Nominatim](https://wiki.openstreetmap.org/wiki/Nominatim). Requests identify as `Sajda/1.0`.
+- Timezone detection uses Apple's standard reverse geocoding.
+- Settings are stored locally on your Mac.
 
 ## Acknowledgements
 
-- [Adhan](https://github.com/batoulapps/Adhan) - prayer time calculation library
-- [ColorSelector](https://github.com/jaywcjlove/ColorSelector) - colour picker for the highlight colour
-- [FluidMenuBarExtra](https://github.com/lfroms/fluid-menu-bar-extra) - dynamically resizing menu bar window
-- [MacControlCenterUI](https://github.com/orchetect/MacControlCenterUI) - menu builder and controls that mimic macOS Control Center
-- [Mawaqit](https://mawaqit.net) - mosque prayer and iqama timetables behind the mosque mode
-- [NavigationStack](https://github.com/indieSoftware/NavigationStack) - view navigation system
-
----
+- [Adhan](https://github.com/batoulapps/Adhan): prayer time calculation
+- [ColorSelector](https://github.com/jaywcjlove/ColorSelector): highlight colour picker
+- [FluidMenuBarExtra](https://github.com/lfroms/fluid-menu-bar-extra): resizing menu bar window
+- [MacControlCenterUI](https://github.com/orchetect/MacControlCenterUI): Control Center style menu and controls
+- [Mawaqit](https://mawaqit.net): mosque prayer and iqama timetables
+- [NavigationStack](https://github.com/indieSoftware/NavigationStack): view navigation
 
 ## License
 
-MIT. See [LICENSE](LICENSE) for details.
+MIT. See [LICENSE](LICENSE).
