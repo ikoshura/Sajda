@@ -199,10 +199,10 @@ final class SajdaTests: XCTestCase {
     // MARK: - Settings tab (the dropdown)
 
     /// The tab bar only ever builds the picked tab's rows and the panel resizes
-    /// to them, so the tab write has to repaint the page and re-key the menu's
-    /// resize animation. `settingsSelectedTab` is @AppStorage on the view model,
-    /// which does not publish on its own — this is the test that keeps its
-    /// `didSet` republish in place.
+    /// to them, so the tab write has to repaint the page.
+    /// `settingsSelectedTab` is @AppStorage on the view model, which does not
+    /// publish on its own — this is the test that keeps its `didSet` republish
+    /// in place.
     func testSettingsSelectedTabPublishesEveryWrite() {
         let vm = PrayerTimeViewModel()
         var changes = 0
@@ -222,9 +222,8 @@ final class SajdaTests: XCTestCase {
 
     /// Reopening Settings resets the tab to Display so the panel is already the
     /// right height on its first frame. This is the test that keeps the reset
-    /// inside a `disablesAnimations` transaction: `settingsSelectedTab` is part
-    /// of `panelLayoutSignature`, the `value:` of the menu's resize animation,
-    /// so an animated reset during an open made the panel visibly flicker.
+    /// intact around its `disablesAnimations` transaction — the guard that a
+    /// reset landing while the panel opens can never animate a resize mid-open.
     /// A transaction is only current for the duration of its own write, so the
     /// observable contract is that the reset lands and completes rather than
     /// half-applying; the `disablesAnimations` flag itself is asserted by
@@ -348,6 +347,98 @@ final class SajdaTests: XCTestCase {
 
         XCTAssertEqual(leadingGutter, trailingGutter, accuracy: 1,
                        "ink gutters differ by \(abs(leadingGutter - trailingGutter)) pt")
+    }
+
+    /// The clock column reserves the sunnah estimate mark's slot only while
+    /// sunnah rows can appear at all.
+    ///
+    /// The mark is a `.plusminus` hung off Tahajud's and Dhuha's clocks, and
+    /// those rows only exist with "Show Sunnah Prayers" on. Reserved with the
+    /// setting off, the slot is pure distance between the mute ring and its time
+    /// on every row — around 14pt of it, which is most of the gap. Whichever way
+    /// the setting is, the reservation is whole-column: the digits and the rings
+    /// stay in one line because every row is handed the same width.
+    func testTimeColumnReservesTheSunnahMarkSlotOnlyForSunnahRows() {
+        let fontScale: CGFloat = 1
+        let digits = PrayerListView.timeColumnWidth(fontScale: fontScale)
+        let mark = PrayerListView.sunnahMarkWidth(fontScale: fontScale)
+
+        XCTAssertEqual(
+            PrayerListView.timeColumnWidth(fontScale: fontScale, reservingSunnahMark: true),
+            digits + mark
+        )
+        XCTAssertEqual(
+            PrayerListView.timeColumnWidth(fontScale: fontScale, reservingSunnahMark: false),
+            digits
+        )
+        // The gap this closes is the point of the gate, so it has to stay worth
+        // closing: a symbol-only reservation that measured as a sliver would mean
+        // the ring's distance comes from somewhere else.
+        XCTAssertGreaterThan(mark, 12, "reserved mark slot is only \(mark)pt")
+    }
+
+    // MARK: - Location row spacing
+
+    /// In the `.bottom` position the location row sits between two dividers, and
+    /// the space above it has to read the same as the space below it.
+    ///
+    /// The two sides are assembled from different pieces — the upper divider's
+    /// own gap above the row, against the page stack's spacing *plus* the footer
+    /// divider's padding below it — so the two have to be checked against each
+    /// other rather than by eye. They were not, once: a -5 pull left the row 3pt
+    /// closer to the footer's line than to the one above it. This keeps the pull
+    /// derived from those pieces, and pins the values they resolve to.
+    ///
+    /// These are the *layout* clearances, and `build/locrow-verify.swift` renders
+    /// the block headlessly and measures them in the pixels (the row's box reads
+    /// 6.00 / 6.00 pt and the -5 it replaced 6.00 / 3.00 pt). Text ink is not what
+    /// is balanced here: a line of digits and capitals sits about 2pt high in its
+    /// own line box whatever the layout does — the same in every row of the panel
+    /// — and it moves with the caption's glyphs.
+    func testLocationRowBottomPositionClearsBothDividersEqually() {
+        let above = MainView.locationRowBottomTopGap
+        // What stacks up under the row before the pull is applied.
+        let stackedBelow = MainView.pageStackSpacing + MainView.footerDividerPadding
+        let below = stackedBelow - MainView.locationRowBottomPull
+
+        XCTAssertEqual(above, below, accuracy: 0.001,
+                       "row clears \(above)pt above and \(below)pt below")
+        XCTAssertEqual(MainView.locationRowBottomTopGap, 6)
+        XCTAssertEqual(MainView.locationRowBottomPull, 2)
+
+        // The pull comes out of the row's own 5pt padding, so it has to stay
+        // smaller than it — past that the row's box would be dragged through the
+        // footer divider. The row's padding is symmetric, which is what carries
+        // the balance above from the box onto the text inside it.
+        XCTAssertLessThan(MainView.locationRowBottomPull, 5)
+    }
+
+    // MARK: - Location source switch
+
+    /// A recalculation may replace the panel's times, but it may never empty
+    /// them first.
+    ///
+    /// `isPrayerDataAvailable` is `!todayTimes.isEmpty`, so an empty `todayTimes`
+    /// takes the prayer rows, the countdown header and the location row out of
+    /// the panel in one pass. That is what switching *into* automatic location
+    /// used to do — clear the list, then apply the recalculation a runloop turn
+    /// later — and it is why mosque → automatic and manual → automatic flickered
+    /// (the panel collapsed to its header and grew back) while the paths into
+    /// manual and mosque, which never cleared, stayed smooth. The switch no
+    /// longer clears; this pins the recalculation itself, which is where such a
+    /// clear would be reached for next.
+    func testRecalculationNeverEmptiesTheShownTimes() {
+        let vm = PrayerTimeViewModel()
+        let upcoming = Date().addingTimeInterval(3600)
+        vm.todayTimes = ["Fajr": upcoming]
+
+        vm.updatePrayerTimes()
+
+        XCTAssertFalse(
+            vm.todayTimes.isEmpty,
+            "recalculation cleared the panel's times instead of replacing them in place"
+        )
+        XCTAssertTrue(vm.isPrayerDataAvailable)
     }
 
 }

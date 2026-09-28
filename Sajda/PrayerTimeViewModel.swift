@@ -62,8 +62,10 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
     /// the pushed SettingsView with fresh @State — a fresh `.display` is what
     /// used to flash over Appearance during the fade back to Main.
     /// Republishes on every write: Settings' tab bar is a dropdown, so this is
-    /// what repaints the page *and* re-keys the menu's resize animation for the
-    /// panel to grow/collapse to the picked tab's height.
+    /// what repaints the page with the picked tab's rows. It is *not* part of
+    /// `SajdaControlCenterMenu.panelLayoutSignature` — the swap snaps (see the
+    /// note there), so the panel takes the new height in the same layout pass
+    /// as the click instead of easing between two tab heights.
     @AppStorage("settingsSelectedTab") var settingsSelectedTab: String = "display" { didSet { objectWillChange.send() } }
     /// When on, reopening Settings keeps the last-used tab; when off, Settings
     /// always opens on Display.
@@ -72,14 +74,12 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
     /// Resets the Settings tab to Display when it is *not* locked, without
     /// animating the change.
     ///
-    /// The tab is part of `panelLayoutSignature`, which is the `value:` of the
-    /// menu's `.animation(.macControlCenterMenuResize, …)`. A plain write while
-    /// the panel is opening therefore animates a resize mid-open, and the
-    /// panel visibly flickers. Suppressing animations in the transaction means
-    /// the panel is already the right height on its first frame — the resize
-    /// that DOES need animating (tapping between tabs in an open panel) is a
-    /// normal write from `SettingsView.selectTab` and still animates. Locked
-    /// sessions keep their last-used tab, so this is a no-op for them.
+    /// The tab no longer keys `panelLayoutSignature`, so nothing animated
+    /// drives this write any more; the `disablesAnimations` transaction stays
+    /// as the guarantee that a reset landing while the panel is opening can
+    /// never ease a resize mid-open — the flicker this used to guard against —
+    /// whatever transaction a caller happens to be in. Locked sessions keep
+    /// their last-used tab, so this is a no-op for them.
     func resetSettingsTabToDisplay() {
         guard !settingsTabLocked else { return }
         var transaction = Transaction()
@@ -516,16 +516,33 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
 
         manualLocationFallbackForAutomaticSwitch = loadManualLocation()
         isUsingManualLocation = false
+        // Coordinates go before the flag that recalculates from them:
+        // `useMawaqitSchedule`'s didSet runs `updatePrayerTimes()`, and with the
+        // old source's coordinates still set that queued a write of the very
+        // times being left behind — which landed *after* this switch and
+        // repainted the panel with them. Cleared first, that recalculation
+        // returns at the coordinates guard instead.
+        currentCoordinates = nil
         // Leaving mosque-timetable mode: automatic location is the new source.
         useMawaqitSchedule = false
 
-        currentCoordinates = nil
-        todayTimes = [:]
-        tomorrowFajrTime = nil
         lastCalculationDate = nil
         locationInfoText = ""
         locationTimeZone = .current
         locationStatusText = NSLocalizedString("Finding your location...", comment: "")
+
+        // `todayTimes` and `tomorrowFajrTime` are deliberately *not* cleared
+        // here, and that is the whole fix for the flicker. They used to be, and
+        // `isPrayerDataAvailable` is `!todayTimes.isEmpty` — so the clear took
+        // the prayer rows, the countdown header and the location row out of the
+        // panel for the frame (or the whole location request) before the
+        // replacement landed: the panel collapsed to its header and grew back.
+        // That is why *into* automatic flickered while mosque → manual and
+        // manual → mosque, which never cleared, stayed smooth. The previous
+        // source's times now stand until the replacement is applied in place —
+        // the same preservation `failAutomaticLocation` already does when a
+        // location request fails — and if this request *does* fail, the manual
+        // fallback saved above restores the times that go with it.
 
         if let cache = automaticLocationCache {
             UserDefaults.standard.removeObject(forKey: "manualLocationData")
