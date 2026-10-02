@@ -1183,8 +1183,11 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
 
         let diff = Int(nextDate.timeIntervalSince(Date()))
         // Red alert: the imminent styling starts `redAlertMinutes` minutes
-        // before the prayer; 0 never triggers it.
+        // before the prayer; 0 never triggers it. The UserDefaults mirror
+        // lets the window-root Accent Panel tint follow the alert colour too
+        // (it owns no view model, so it can't read the @Published flag).
         isPrayerImminent = (redAlertMinutes > 0 && diff <= redAlertMinutes * 60 && diff > 0)
+        UserDefaults.standard.set(isPrayerImminent, forKey: "prayerImminentForTint")
 
         // hh:mm:ss for the panel's countdown header (same locale digits as
         // the menu-bar countdown).
@@ -1349,6 +1352,35 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
         return ["FF3B30", "FF2D55"].contains(clean.uppercased())
     }
 
+    /// Hex the Accent Panel theme derives its tint + colour scheme from.
+    ///
+    /// Normally the user's own pick — but while the red-alert (imminent)
+    /// highlight is showing, the panel follows the *alert* colour instead, so
+    /// the whole panel reads as one urgent surface rather than "red row on a
+    /// blue/green panel". Mirrors `nextPrayerHighlight(imminent:)` exactly,
+    /// including the amber fallback for the two red-ish picks that would
+    /// otherwise swallow the alert. Returns nil when neither accent mode nor
+    /// the Accent Panel theme paints a coloured surface (plain mode keeps the
+    /// alert on the row alone).
+    ///
+    /// Static + hex-driven so `AccentPanelTintOverlay` shares the exact same
+    /// math without needing a view model instance.
+    static func effectiveAccentHex(
+        highlightHex: String,
+        imminent: Bool,
+        useAccentColor: Bool,
+        accentPanelTheme: Bool
+    ) -> String? {
+        guard useAccentColor || accentPanelTheme else { return nil }
+        if imminent {
+            if highlightCollidesWithRedAlert(fromHighlightHex: highlightHex) {
+                return "FFCC00"   // amber alert fallback (see nextPrayerHighlight)
+            }
+            return "FF4246"       // imminent red alert fill
+        }
+        return highlightHex
+    }
+
     /// Single source for the next-prayer highlight on the panel row and the
     /// countdown header, so the accent toggle, custom color, and imminent red
     /// can never disagree between the two surfaces.
@@ -1470,16 +1502,27 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
     // Instance mirrors for views that already hold the view model, so both
     // call styles stay in lockstep with the window-root tint overlay.
 
+    /// The pick the Accent Panel derivations (tint, scheme, text tone) use
+    /// right now: the alert colour while imminent, the user's pick otherwise.
+    var effectiveAccentPanelHex: String {
+        Self.effectiveAccentHex(
+            highlightHex: customHighlightColorHex,
+            imminent: isPrayerImminent,
+            useAccentColor: useAccentColor,
+            accentPanelTheme: accentPanelTheme
+        ) ?? customHighlightColorHex
+    }
+
     var accentPanelPrefersLightText: Bool {
-        Self.accentPanelPrefersLightText(fromHighlightHex: customHighlightColorHex)
+        Self.accentPanelPrefersLightText(fromHighlightHex: effectiveAccentPanelHex)
     }
 
     var accentPanelColorScheme: ColorScheme {
-        Self.accentPanelColorScheme(fromHighlightHex: customHighlightColorHex)
+        Self.accentPanelColorScheme(fromHighlightHex: effectiveAccentPanelHex)
     }
 
     var accentPanelTint: Color {
-        Self.accentPanelTint(fromHighlightHex: customHighlightColorHex)
+        Self.accentPanelTint(fromHighlightHex: effectiveAccentPanelHex)
     }
 
     /// Today's Hijri date for the panel header — Umm al-Qura reckoning with

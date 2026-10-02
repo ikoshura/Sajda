@@ -23,11 +23,22 @@ import SwiftUI
 struct AccentPanelTintOverlay: View {
     @AppStorage("accentPanelTheme") private var accentPanelTheme = false
     @AppStorage("customHighlightColorHex") private var customHighlightColorHex = ""
+    @AppStorage("useAccentColor") private var useAccentColor = true
+    /// Mirrors `PrayerTimeViewModel.isPrayerImminent` via UserDefaults so the
+    /// window-root overlay (which owns no view model) can follow the red
+    /// alert. Written from `updatePrayerTimes()` next to the @Published flag.
+    @AppStorage("prayerImminentForTint") private var prayerImminentForTint = false
 
     var body: some View {
         if accentPanelTheme {
-            let base = PrayerTimeViewModel.accentPanelTint(fromHighlightHex: customHighlightColorHex)
-            let opacity = PrayerTimeViewModel.accentPanelOpacity(fromHighlightHex: customHighlightColorHex)
+            let hex = PrayerTimeViewModel.effectiveAccentHex(
+                highlightHex: customHighlightColorHex,
+                imminent: prayerImminentForTint,
+                useAccentColor: useAccentColor,
+                accentPanelTheme: accentPanelTheme
+            ) ?? customHighlightColorHex
+            let base = PrayerTimeViewModel.accentPanelTint(fromHighlightHex: hex)
+            let opacity = PrayerTimeViewModel.accentPanelOpacity(fromHighlightHex: hex)
             base.opacity(opacity)
         }
     }
