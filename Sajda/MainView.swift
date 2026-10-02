@@ -513,6 +513,11 @@ struct MainView: View {
                     // Update badge, leading the trailing icon group so it sits
                     // immediately beside About. Only rendered while a newer
                     // release is known; tapping it opens the release page.
+                    // Icon-only (label lives in tooltip/VoiceOver), so there
+                    // is no pill-text contrast issue here — but the glyph must
+                    // stay legible on the Accent tint (#24): amber at full
+                    // strength, with a contrasting disc behind it when the
+                    // Accent Panel theme is on.
                     if let version = updateBadgeVersion {
                         Button(action: { updater.openReleasePage() }) {
                             Image(systemName: "arrow.down.circle.fill")
@@ -623,6 +628,10 @@ struct MainView: View {
         .padding(.top, 2)
         .padding(.bottom, 2)
         .frame(width: viewWidth)
+        // Re-checks the footer update badge every time the panel opens: if
+        // the user updated since the badge was set, it falls off (#24) even
+        // when the 24h auto-check throttle says "no new network check".
+        .onAppear { updater.revalidateAgainstCurrentVersion() }
         // The resets that fire (see `isLocationExpanded` for why the
         // SwiftUI-side signals do not): AppKit's own window notifications,
         // which are posted whether the menu window closes or merely loses key.

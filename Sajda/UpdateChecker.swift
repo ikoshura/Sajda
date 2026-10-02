@@ -50,6 +50,9 @@ final class UpdateChecker: ObservableObject {
     /// the user has opted in via Settings. Call on launch.
     func checkIfDue() {
         guard autoCheckEnabled else { return }
+        // A badge left over from before the user updated must fall off on
+        // launch — even when the 24h throttle says "no new network check".
+        revalidateAgainstCurrentVersion()
         if case .updateAvailable = state { return }
         let last = UserDefaults.standard.object(forKey: Self.lastCheckKey) as? Date
         if let last, Date().timeIntervalSince(last) < Self.checkInterval { return }
@@ -109,15 +112,48 @@ final class UpdateChecker: ObservableObject {
     }
 
     /// Numeric dot-separated comparison ("3.10.0" > "3.9.0").
+    ///
+    /// Hardened for real-world version strings: trims whitespace, drops build
+    /// metadata ("+123") and pre-release suffixes ("-beta.1") before comparing,
+    /// and ignores non-numeric segments — so "4.4.13 (511)" or "v4.4.13"
+    /// never reads as newer than the installed "4.4.13". This is what clears
+    /// a stale footer/About badge right after the user updates (#24: the
+    /// "persistent icon" report).
     static func isNewer(_ latest: String, than current: String) -> Bool {
-        let l = latest.split(separator: ".").map { Int($0) ?? 0 }
-        let c = current.split(separator: ".").map { Int($0) ?? 0 }
+        let l = normalizedComponents(latest)
+        let c = normalizedComponents(current)
         for i in 0..<max(l.count, c.count) {
             let lv = i < l.count ? l[i] : 0
             let cv = i < c.count ? c[i] : 0
             if lv != cv { return lv > cv }
         }
         return false
+    }
+
+    /// "  v4.4.13-beta.1+5 " -> [4, 4, 13]. Non-numeric segments count as 0
+    /// so an unexpected tag can never outrank the installed build.
+    private static func normalizedComponents(_ version: String) -> [Int] {
+        var v = version.trimmingCharacters(in: .whitespacesAndNewlines)
+        if v.hasPrefix("v") || v.hasPrefix("V") { v.removeFirst() }
+        // Build metadata never affects precedence.
+        if let plus = v.firstIndex(of: "+") { v = String(v[..<plus]) }
+        // Pre-release suffix: compare the numeric core only, so "4.4.13-beta"
+        // equals "4.4.13" rather than looking newer.
+        if let dash = v.firstIndex(of: "-") { v = String(v[..<dash]) }
+        // Some tags append "(build)" after a space: keep the leading core.
+        if let space = v.firstIndex(of: " ") { v = String(v[..<space]) }
+        return v.split(separator: ".").map { Int($0.trimmingCharacters(in: .whitespaces)) ?? 0 }
+    }
+
+    /// Clears a stale `.updateAvailable` that no longer outranks the running
+    /// app — e.g. the user just updated but this process hasn't re-checked
+    /// yet. Safe to call on launch and on view appear; a no-op otherwise.
+    func revalidateAgainstCurrentVersion() {
+        if case .updateAvailable(let version, _) = state,
+           !Self.isNewer(version, than: Self.currentVersion) {
+            state = .idle
+            updateBannerDismissed = false
+        }
     }
 }
 

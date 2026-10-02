@@ -79,6 +79,7 @@ struct AboutView: View {
                             .multilineTextAlignment(.center).padding(.horizontal)
                     }
                     updateSection
+                    supportSection
                     acknowledgementsSection
                     // --- PERUBAHAN DI SINI ---
                     // Mengganti tombol kustom dengan tombol native macOS.
@@ -115,6 +116,7 @@ struct AboutView: View {
             .padding(.bottom, 2)
             .frame(width: viewWidth)
             .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+            .onAppear { updater.revalidateAgainstCurrentVersion() }
         }
     }
 
@@ -233,10 +235,12 @@ struct AboutView: View {
                     .padding(.vertical, 5).padding(.horizontal, 8)
                 }
                 .buttonStyle(.plain)
-                // The pill follows the selected highlight colour — same text
-                // and background balance as the Done button — instead of a
-                // tinted system-accent look.
-                .foregroundColor(.white)
+                // Text AND icon tone follow the pick's legibility, not a fixed
+                // white: a pale highlight (pastel yellow, light mint, …) with
+                // white text was unreadable until clicked (#24). The fill
+                // keeps the user's colour; the content flips to black on pale
+                // picks via the same WCAG test the highlight rows use.
+                .foregroundColor(PrayerTimeViewModel.onFillColorForHighlight(customHighlightColorHex))
                 .background(RoundedRectangle(cornerRadius: 6).fill(aboutAccentColor))
                 .help(NSLocalizedString("Open the release page to download", comment: ""))
             case .checking:
@@ -279,6 +283,50 @@ struct AboutView: View {
             }
         }
         .padding(.horizontal, 12)
+    }
+
+    /// One-tap way to back the project: Ko-fi (matches FUNDING.yml) plus the
+    /// GitHub Sponsors profile for anyone who prefers it. Kept as two
+    /// caption rows — same visual weight as the acknowledgements below —
+    /// so the page stays compact and donation never reads as a banner.
+    /// Requested in #24 ("no Sponsor button or donation link").
+    private var supportSection: some View {
+        VStack(spacing: 4) {
+            supportRow(
+                icon: "heart.circle",
+                titleKey: "Support Sajda",
+                url: URL(string: "https://ko-fi.com/ikoshura"),
+                helpKey: "Support Sajda on Ko-fi"
+            )
+            supportRow(
+                icon: "gift.circle",
+                titleKey: "Sponsor on GitHub",
+                url: URL(string: "https://github.com/sponsors/ikoshura"),
+                helpKey: "Sponsor ikoshura on GitHub"
+            )
+        }
+        .padding(.horizontal, 12)
+    }
+
+    @State private var hoveringSupportID: String? = nil
+
+    private func supportRow(icon: String, titleKey: String, url: URL?, helpKey: String) -> some View {
+        Button(action: { if let url { NSWorkspace.shared.open(url) } }) {
+            HStack(spacing: 6) {
+                Image(systemName: icon)
+                Text(NSLocalizedString(titleKey, comment: "")).scaledFont(.subheadline)
+                Spacer()
+                Image(systemName: vm.forwardChevron)
+                    .scaledFont(.caption, weight: .semibold)
+            }
+            .padding(.vertical, 5).padding(.horizontal, 8)
+            .contentShape(Rectangle())
+            .liquidHover(hoveringSupportID == titleKey, cornerRadius: 6)
+        }
+        .buttonStyle(.plain)
+        .foregroundColor(aboutAccentColor)
+        .onHover { hovering in hoveringSupportID = hovering ? titleKey : nil }
+        .help(Text(NSLocalizedString(helpKey, comment: "")))
     }
 
     /// The small caption-sized "Check for Updates" / "Try Again" links.

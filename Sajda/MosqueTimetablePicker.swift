@@ -236,7 +236,12 @@ struct MosqueTimetablePicker: View {
         } label: {
             Image(systemName: forward ? "chevron.right" : "chevron.left")
                 .scaledFont(.caption, weight: .semibold)
-                .foregroundColor(isAtEdge ? Color("SecondaryTextColor").opacity(0.5) : vm.selectedHighlightColor)
+                // Active chevron uses the contrast-safe accent: a pale custom
+                // pick vanishes as a thin glyph on the panel while staying
+                // clickable (#24). Disabled ends stay dimmed secondary, with
+                // a minimum alpha so the "left arrow on page 1" affordance
+                // never fully disappears either.
+                .foregroundColor(isAtEdge ? Color("SecondaryTextColor").opacity(0.6) : vm.legibleInteractiveAccent)
                 // Full-height hit area: the glyph is a fraction of the row, so
                 // without this only the little chevron itself is clickable.
                 .frame(width: 22, height: 18)

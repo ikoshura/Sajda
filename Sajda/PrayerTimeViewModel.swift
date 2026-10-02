@@ -112,7 +112,10 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
     /// sits on the highlight fill, where only the row's own text colour is
     /// reliably readable.
     var muteIconColor: Color {
-        (useAccentColor && !dimMuteButton) ? selectedHighlightColor : .secondary
+        guard useAccentColor, !dimMuteButton else { return .secondary }
+        // Contrast-safe pick: a pale highlight still fills rows fine (paired
+        // with on-fill text) but vanishes as a thin ring on the panel (#24).
+        return legibleInteractiveAccent
     }
     /// Whether the mute ring gets the dimmed treatment (ring 0.55 / dot 0.85) at
     /// all. Only when the ring is already the calm system secondary — accent
@@ -1317,6 +1320,26 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
         Self.controlTint(fromHighlightHex: customHighlightColorHex) ?? .accentColor
     }
 
+    /// Contrast-safe variant of `selectedHighlightColor` for *small glyphs*
+    /// (mute rings, pager chevrons, checkmarks) drawn on the panel surface.
+    ///
+    /// #24: a pale custom pick (pastel yellow, light mint, …) is a fine
+    /// *fill* — the next-prayer row pairs it with
+    /// `onFillColorForHighlight` text — but as a thin 12–13pt glyph on the
+    /// plain (or Accent-tinted) panel it falls below readable contrast and
+    /// the icon "disappears" while staying clickable. In that case this
+    /// falls back to the system accent, which is always drawn to stay legible
+    /// on both panel appearances. Saturated picks pass through untouched.
+    var legibleInteractiveAccent: Color {
+        guard Self.controlTint(fromHighlightHex: customHighlightColorHex) != nil else {
+            return .accentColor
+        }
+        let c = Self.accentPanelBaseComponents(fromHighlightHex: customHighlightColorHex)
+        // WCAG relative luminance of the pick; pale picks (> ~0.55) read as
+        // "almost white" at glyph sizes and need the fallback.
+        return Self.relativeLuminance(c.r, c.g, c.b) > 0.55 ? .accentColor : selectedHighlightColor
+    }
+
     /// True while the picked highlight is one of the two red-ish presets
     /// (#FF3B30 red, #FF2D55 pink) — the only picks that would swallow the
     /// panel's red alert instead of standing apart from it.
@@ -1392,7 +1415,7 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
     }
 
     /// WCAG relative luminance: 0 = black, 1 = white.
-    private static func relativeLuminance(_ r: Double, _ g: Double, _ b: Double) -> Double {
+    static func relativeLuminance(_ r: Double, _ g: Double, _ b: Double) -> Double {
         func linearize(_ c: Double) -> Double {
             c <= 0.04045 ? c / 12.92 : pow((c + 0.055) / 1.055, 2.4)
         }
