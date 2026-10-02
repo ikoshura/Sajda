@@ -51,7 +51,7 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
     private var displayLocale: Locale {
         languageManager.language == "ar" ? Locale(identifier: "ar_EG") : Locale(identifier: languageManager.language)
     }
-    private let logger = Logger(subsystem: "com.madda.Sajda", category: "Location")
+    private let logger = Logger(subsystem: "com.ikoshura.Sajda", category: "Location")
     private var automaticLocationCache: (name: String, coordinates: CLLocationCoordinate2D)?
     private var tomorrowFajrTime: Date?
 

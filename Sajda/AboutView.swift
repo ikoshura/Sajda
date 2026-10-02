@@ -73,7 +73,7 @@ struct AboutView: View {
                         VStack(spacing: 2) {
                             Text("Sajda Pro").scaledFont(.title2, weight: .semibold)
                             Text(verbatim: appVersionText).scaledFont(.caption).foregroundColor(Color("SecondaryTextColor"))
-                            Text("by Abrar Zha").scaledFont(.caption).foregroundColor(Color("SecondaryTextColor"))
+                            Text("by ikoshura").scaledFont(.caption).foregroundColor(Color("SecondaryTextColor"))
                         }
                         Text("A simple and beautiful prayer times app for your menu bar.").scaledFont(.subheadline)
                             .multilineTextAlignment(.center).padding(.horizontal)
