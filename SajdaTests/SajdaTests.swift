@@ -355,26 +355,163 @@ final class SajdaTests: XCTestCase {
     /// The mark is a `.plusminus` hung off Tahajud's and Dhuha's clocks, and
     /// those rows only exist with "Show Sunnah Prayers" on. Reserved with the
     /// setting off, the slot is pure distance between the mute ring and its time
-    /// on every row — around 14pt of it, which is most of the gap. Whichever way
-    /// the setting is, the reservation is whole-column: the digits and the rings
-    /// stay in one line because every row is handed the same width.
+    /// on every row. Whichever way the setting is, the reservation is
+    /// whole-column: the digits and the rings stay in one line because every row
+    /// is handed the same width.
+    ///
+    /// Measured against a 24-hour formatter, the widest case that used to be
+    /// hardcoded. The 12-hour case is covered by the two tests below — it is the
+    /// one that used to overflow, and it must not be able to lean on this
+    /// reservation to stay inside the column.
     func testTimeColumnReservesTheSunnahMarkSlotOnlyForSunnahRows() {
         let fontScale: CGFloat = 1
-        let digits = PrayerListView.timeColumnWidth(fontScale: fontScale)
+        let formatter = Self.formatter(dateFormat: "HH:mm", locale: "en_US")
+        let digits = PrayerListView.timeColumnWidth(fontScale: fontScale, formatter: formatter)
         let mark = PrayerListView.sunnahMarkWidth(fontScale: fontScale)
 
         XCTAssertEqual(
-            PrayerListView.timeColumnWidth(fontScale: fontScale, reservingSunnahMark: true),
+            PrayerListView.timeColumnWidth(fontScale: fontScale, reservingSunnahMark: true, formatter: formatter),
             digits + mark
         )
         XCTAssertEqual(
-            PrayerListView.timeColumnWidth(fontScale: fontScale, reservingSunnahMark: false),
+            PrayerListView.timeColumnWidth(fontScale: fontScale, reservingSunnahMark: false, formatter: formatter),
             digits
         )
         // The gap this closes is the point of the gate, so it has to stay worth
         // closing: a symbol-only reservation that measured as a sliver would mean
         // the ring's distance comes from somewhere else.
         XCTAssertGreaterThan(mark, 12, "reserved mark slot is only \(mark)pt")
+    }
+
+    /// Every clock the formatter can emit has to fit its column, on the 12-hour
+    /// path.
+    ///
+    /// This is the regression test for the mute ring sitting on top of the time.
+    /// The column used to be measured from the literal "88:88", which is the
+    /// widest case for a 24-hour clock only — and 12-hour is the *default*
+    /// (`use24HourFormat` defaults to off), where the formatter appends a
+    /// meridiem and renders "12:16 PM". That is ~14pt wider than the column, and
+    /// since the digits are `.fixedSize` in a trailing-aligned frame they spilled
+    /// leftwards into the 25pt mute toggle's cell.
+    ///
+    /// Asserted with sunnah rows *off*, because with them on the mark's reserved
+    /// slot was absorbing the overflow by coincidence and hiding the bug.
+    func testTimeColumnFitsTwelveHourClocksWithoutTheSunnahSlot() {
+        let formatter = Self.formatter(dateFormat: nil, locale: "en_US") // timeStyle .short → "12:16 PM"
+        let column = PrayerListView.timeColumnWidth(
+            fontScale: 1, reservingSunnahMark: false, formatter: formatter
+        )
+        let font = NSFont.systemFont(ofSize: PanelTextSize.baseBodyPointSize, weight: .bold)
+
+        for clock in Self.clocks(minute: 16, formatter: formatter) {
+            let width = (clock as NSString).size(withAttributes: [.font: font]).width
+            XCTAssertLessThanOrEqual(
+                width, column,
+                "\"\(clock)\" is \(width - column)pt wider than the \(column)pt column — it overflows into the mute toggle"
+            )
+        }
+    }
+
+    /// The same guarantee on the 24-hour path, so the fix is not just "make the
+    /// column big enough for English 12-hour" and quietly leave Arabic-Indic
+    /// digits or a wider meridiem outside it.
+    func testTimeColumnFitsTwentyFourHourClocks() {
+        let formatter = Self.formatter(dateFormat: "HH:mm", locale: "en_US")
+        let column = PrayerListView.timeColumnWidth(
+            fontScale: 1, reservingSunnahMark: false, formatter: formatter
+        )
+        let font = NSFont.systemFont(ofSize: PanelTextSize.baseBodyPointSize, weight: .bold)
+
+        for clock in Self.clocks(minute: 59, formatter: formatter) {
+            let width = (clock as NSString).size(withAttributes: [.font: font]).width
+            XCTAssertLessThanOrEqual(width, column, "\"\(clock)\" does not fit the \(column)pt column")
+        }
+    }
+
+    /// "Minimal Menu Bar" is a status-item preference, and it must not reach the
+    /// panel's clocks.
+    ///
+    /// It used to. The meridiem was dropped by a branch inside `dateFormatter` —
+    /// the single formatter behind the schedule rows, the countdown header, the
+    /// Jumu'ah session line and the time-correction sheet — so turning the setting
+    /// on turned "5:03 AM" into "5:03" across the whole panel. That is not what
+    /// the setting says it does, and it drops the one thing that tells the
+    /// morning prayer from the evening one.
+    ///
+    /// The two formatters are now separate, so the setting can only reach the
+    /// status item: `menuBarDateFormatter` shortens, `dateFormatter` does not.
+    func testMinimalMenuBarLeavesThePanelClocksAlone() {
+        // Pinned, so the assertion cannot pass for the wrong reason: in a
+        // 24-hour locale both formatters render "17:16" and the difference the
+        // test is about would simply not exist.
+        UserDefaults.standard.set("en", forKey: "selectedLanguage")
+        let vm = PrayerTimeViewModel()
+        defer {
+            vm.useMinimalMenuBarText = false
+            vm.use24HourFormat = false
+            UserDefaults.standard.removeObject(forKey: "selectedLanguage")
+        }
+
+        vm.use24HourFormat = false
+        vm.useMinimalMenuBarText = false
+
+        // Afternoon, so a meridiem is actually there to lose.
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = vm.displayTimeZone
+        var components = DateComponents()
+        components.year = 2024
+        components.month = 6
+        components.day = 15
+        components.hour = 17
+        components.minute = 16
+        let afternoon = calendar.date(from: components)!
+
+        let panelBefore = vm.dateFormatter.string(from: afternoon)
+        let menuBarBefore = vm.menuBarDateFormatter.string(from: afternoon)
+
+        vm.useMinimalMenuBarText = true
+
+        let panelAfter = vm.dateFormatter.string(from: afternoon)
+        let menuBarAfter = vm.menuBarDateFormatter.string(from: afternoon)
+
+        XCTAssertEqual(panelBefore, panelAfter,
+                       "Minimal Menu Bar changed the panel clock: \(panelBefore) -> \(panelAfter)")
+        // And the setting still does the one thing it is for.
+        XCTAssertNotEqual(menuBarBefore, menuBarAfter,
+                          "Minimal Menu Bar no longer shortens the menu bar")
+        XCTAssertLessThan(menuBarAfter.count, menuBarBefore.count,
+                          "Minimal Menu Bar did not make the menu bar title shorter")
+    }
+
+    /// A formatter shaped like `PrayerTimeViewModel.dateFormatter`: either a fixed
+    /// `dateFormat`, or the locale's short time style with its meridiem.
+    private static func formatter(dateFormat: String?, locale: String) -> DateFormatter {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: locale)
+        formatter.timeZone = TimeZone(identifier: "UTC")
+        if let dateFormat {
+            formatter.dateFormat = dateFormat
+        } else {
+            formatter.timeStyle = .short
+        }
+        return formatter
+    }
+
+    /// Every hour shape the formatter can emit, at one two-digit minute: one-digit
+    /// hours either side of the 1/2-digit boundary, both meridiem labels, and the
+    /// 24-hour extremes.
+    private static func clocks(minute: Int, formatter: DateFormatter) -> [String] {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = formatter.timeZone ?? TimeZone.current
+        return [0, 1, 9, 10, 11, 12, 23].map { h in
+            var components = DateComponents()
+            components.year = 2024
+            components.month = 1
+            components.day = 1
+            components.hour = h
+            components.minute = minute
+            return formatter.string(from: calendar.date(from: components) ?? Date())
+        }
     }
 
     // MARK: - Location row spacing

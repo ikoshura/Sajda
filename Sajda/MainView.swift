@@ -687,16 +687,24 @@ struct PrayerListView: View {
     }
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
+            // One width for the whole column — the mark's slot included while
+            // sunnah rows can appear — handed to every row from here, so no
+            // clock and no mute ring can step out of line with the others.
+            //
+            // Measured once per render rather than inside the `ForEach`: it costs
+            // a handful of `DateFormatter` calls plus text measurement, and the
+            // answer is the same for every row on screen. `vm.dateFormatter` also
+            // builds a fresh formatter per access, so this is one construction
+            // instead of one per prayer.
+            let timeColumnWidth = Self.timeColumnWidth(
+                fontScale: fontScale,
+                reservingSunnahMark: vm.showSunnahPrayers,
+                formatter: vm.dateFormatter
+            )
             ForEach(prayerOrder, id: \.self) { prayerName in
-                // One width for the whole column — the mark's slot included while
-                // sunnah rows can appear — handed to every row from here, so no
-                // clock and no mute ring can step out of line with the others.
                 PrayerRow(
                     prayerName: prayerName,
-                    timeColumnWidth: Self.timeColumnWidth(
-                        fontScale: fontScale,
-                        reservingSunnahMark: vm.showSunnahPrayers
-                    )
+                    timeColumnWidth: timeColumnWidth
                 )
             }
             // Jumu'ah is not one of the five daily prayers — it replaces Dhuhr
@@ -756,20 +764,101 @@ struct PrayerListView: View {
     /// the prayer name on the opposite end. See `rowTrailingInset`.
     static let columnSlack: CGFloat = 4
 
+    /// The widest clock string the panel's formatter can actually emit, for the
+    /// current locale and 12/24-hour setting.
+    ///
+    /// This used to be the literal `"88:88"`, which is only the widest case for a
+    /// *24-hour* clock — and 24-hour is not the default. `use24HourFormat`
+    /// defaults to off, so the formatter takes the `timeStyle = .short` path and
+    /// renders "12:16 PM": three characters wider than "88:88", about 14pt of it
+    /// in the row font. Every row was then drawn ~14pt wider than its column, and
+    /// because the digits are `.fixedSize` inside a `.trailing`-aligned frame they
+    /// overflow to the *left* of it — straight through the 25pt mute toggle's
+    /// cell, so the ring sat on top of the clock.
+    ///
+    /// It read as "fine" for anyone with Show Sunnah Prayers on, because
+    /// `sunnahMarkWidth` adds ~14pt to the very same column and so absorbed the
+    /// overflow by coincidence. Turn that setting off and the collision appears;
+    /// that is the whole of the bug, not a second one in the sunnah path.
+    ///
+    /// Sampling the format, not guessing at it, because the widest output is
+    /// locale-dependent and not ours to predict: the meridiem is "AM"/"PM" in
+    /// English and something else entirely elsewhere, and the figures are
+    /// proportional, so "10:48 AM" is wider than the "12:16 PM" that first
+    /// comes to mind — by a couple of points, which is exactly the margin this
+    /// function exists to keep.
+    ///
+    /// Two passes rather than a list of guesses. A time is an hour field, a
+    /// separator, a minute field and (on a 12-hour clock) a meridiem, and within
+    /// one format template those parts are laid out independently — so the widest
+    /// string is the widest hour and the widest minute, combined. The first pass
+    /// finds the former (and, with it, whichever meridiem label is longer, since
+    /// scanning all 24 hours covers both); the second scans the minutes within
+    /// that hour. That is exact for a fixed template, and 84 samples rather than
+    /// 1440 — measured at 0.65 ms, cheap enough to redo on every render.
+    static func widestTimeSample(formatter: DateFormatter) -> String {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = formatter.timeZone ?? TimeZone.current
+        // Measured in the bold row font, the widest case: the next-prayer row
+        // draws its clock bold, and the column has to hold that one too.
+        let font = NSFont.systemFont(ofSize: PanelTextSize.baseBodyPointSize, weight: .bold)
+
+        func sample(_ hour: Int, _ minute: Int) -> String? {
+            var components = DateComponents()
+            components.year = 2024
+            components.month = 1
+            components.day = 1
+            components.hour = hour
+            components.minute = minute
+            return calendar.date(from: components).map(formatter.string(from:))
+        }
+        func width(_ string: String) -> CGFloat {
+            (string as NSString).size(withAttributes: [.font: font]).width
+        }
+
+        var widestHour = 0
+        var widestHourWidth: CGFloat = 0
+        for hour in 0..<24 {
+            guard let candidate = sample(hour, 40) else { continue }
+            let candidateWidth = width(candidate)
+            if candidateWidth > widestHourWidth {
+                widestHourWidth = candidateWidth
+                widestHour = hour
+            }
+        }
+
+        var widest = sample(widestHour, 40) ?? "88:88"
+        var widestWidth: CGFloat = 0
+        for minute in 0..<60 {
+            guard let candidate = sample(widestHour, minute) else { continue }
+            let candidateWidth = width(candidate)
+            if candidateWidth > widestWidth {
+                widestWidth = candidateWidth
+                widest = candidate
+            }
+        }
+        // Unreachable for any real formatter; keeps the function total.
+        return widest.isEmpty ? "88:88" : widest
+    }
+
     /// Fixed width for the time column: the widest string the panel's date
-    /// formatter can emit ("88:88"), measured in the row font — so every
-    /// row's time starts at the same x no matter its value, weight, or the
-    /// prayer name's length.
+    /// formatter can emit, measured in the row font — so every row's time
+    /// starts at the same x no matter its value, weight, or the prayer name's
+    /// length.
     ///
     /// Measured with the *scaled* body font (and with the bold weight, the
     /// widest case, since the next-prayer row draws its time bold). Measuring
     /// with the unscaled system font is what let the time wrap onto two lines
     /// ("12:1 / 7") at Extra Large and XXL, which then blew the row height out
     /// and pushed the time into the panel edge.
-    static func timeColumnWidth(fontScale: CGFloat, bold: Bool) -> CGFloat {
+    ///
+    /// The sample is the *formatted* worst case, not a hand-written "88:88" —
+    /// see `widestTimeSample` for why the hardcoded string was too narrow.
+    static func timeColumnWidth(fontScale: CGFloat, bold: Bool, formatter: DateFormatter) -> CGFloat {
         let size = PanelTextSize.baseBodyPointSize * fontScale
         let font = NSFont.systemFont(ofSize: size, weight: bold ? .bold : .regular)
-        return ("88:88" as NSString).size(withAttributes: [.font: font]).width + columnSlack
+        let sample = widestTimeSample(formatter: formatter)
+        return (sample as NSString).size(withAttributes: [.font: font]).width + columnSlack
     }
 
     /// Trailing gutter for a schedule row: the same 12 pt the prayer name gets
@@ -864,19 +953,24 @@ struct PrayerListView: View {
     /// Convenience for the common case: measure with the bold weight so every
     /// row reserves the same, widest slot and the column can never jitter as
     /// the highlight moves between prayers.
-    static func timeColumnWidth(fontScale: CGFloat) -> CGFloat {
-        timeColumnWidth(fontScale: fontScale, bold: true)
+    static func timeColumnWidth(fontScale: CGFloat, formatter: DateFormatter) -> CGFloat {
+        timeColumnWidth(fontScale: fontScale, bold: true, formatter: formatter)
     }
 
     /// The width a row hands its clock column: the digits' column, plus the
     /// estimate mark's slot while sunnah rows can appear at all.
     ///
-    /// This is the gate for `sunnahMarkWidth`, and it is worth ~14pt of the
-    /// distance between the mute ring and the time. The mark is hung off
-    /// Tahajud's and Dhuha's clocks, and those rows only exist while "Show
-    /// Sunnah Prayers" is on — so with the setting off nothing can ever draw it,
-    /// and reserving its slot anyway parks the ring 14pt further from the clock
-    /// on *every* row for nothing.
+    /// This is the gate for `sunnahMarkWidth`. The mark is hung off Tahajud's
+    /// and Dhuha's clocks, and those rows only exist while "Show Sunnah Prayers"
+    /// is on — so with the setting off nothing can ever draw it, and reserving its
+    /// slot anyway parks the ring further from the clock on *every* row for
+    /// nothing.
+    ///
+    /// That slop used to be doing a second job by accident: the mark's ~14pt was
+    /// the same width the 12-hour clock was overflowing by, so with sunnah rows
+    /// showing, the mute ring and the clock did not collide. The clock is now
+    /// measured wide enough on its own (`widestTimeSample`), and this gate is
+    /// only ever about the mark again.
     ///
     /// Gated on the setting rather than on the rows that draw the mark, exactly
     /// like the iqama column above: a width that differed per row would step
@@ -885,8 +979,8 @@ struct PrayerListView: View {
     /// arrive. The clock never moves either way — both frames are
     /// trailing-aligned, so all this decides is how wide the air *in front of*
     /// the digits is.
-    static func timeColumnWidth(fontScale: CGFloat, reservingSunnahMark: Bool) -> CGFloat {
-        let digits = timeColumnWidth(fontScale: fontScale)
+    static func timeColumnWidth(fontScale: CGFloat, reservingSunnahMark: Bool, formatter: DateFormatter) -> CGFloat {
+        let digits = timeColumnWidth(fontScale: fontScale, formatter: formatter)
         return reservingSunnahMark ? digits + sunnahMarkWidth(fontScale: fontScale) : digits
     }
 }

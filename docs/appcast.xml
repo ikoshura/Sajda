@@ -4,8 +4,8 @@
         <title>Sajda</title>
         <item>
             <title>4.4.15</title>
-            <pubDate>Sat, 03 Oct 2026 09:30:07 +0700</pubDate>
-            <sparkle:version>37</sparkle:version>
+            <pubDate>Sat, 03 Oct 2026 09:53:48 +0700</pubDate>
+            <sparkle:version>38</sparkle:version>
             <sparkle:shortVersionString>4.4.15</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
             <description sparkle:format="markdown"><![CDATA[# Sajda 4.4.15
@@ -15,6 +15,12 @@ Sajda is now signed with a Developer ID certificate and notarized by Apple, so i
 
 ### Updates install themselves
 Adds Sparkle: new versions are downloaded, verified against a signature, installed and relaunched from inside the app. Turn it on in Settings if you haven't already.
+
+### Fix: mute button sitting on top of the time
+On the 12-hour clock — the default — each prayer time was drawn wider than the column reserved for it, so the digits spilled left into the mute button's slot and the two overlapped. It hid whenever **Show Sunnah Prayers** was on, because that setting reserves an extra slot which happened to be just wide enough to cover the overflow.
+
+### Fix: "Minimal Menu Bar" also changed the panel
+That setting shortened the menu bar and, at the same time, dropped AM/PM from every clock in the panel. It now affects the menu bar only.
 
 ### Fix: invisible icons with certain colours (issue #24)
 With some theme colours the mute rings and the mosque-search page arrows blended into the panel while staying clickable. Small glyphs now fall back to the system accent when a chosen colour is too pale to read.
@@ -31,7 +37,7 @@ With Accent Panel on, the whole panel turns red while the imminent-prayer alert 
 ### Support links
 About now has Support Sajda and Sponsor on GitHub rows.
 ]]></description>
-            <enclosure url="https://github.com/ikoshura/Sajda/releases/download/v4.4.15/Sajda-4.4.15.dmg" length="15802151" type="application/octet-stream" sparkle:edSignature="3Kct/IeoPTaIF4xSZMs6YATabDoepCt5gAaxZuIfjfTjm0Vdg9ZkH+XuM6Y/k9Dyl8nFQag7KIuCQFHwBn19Dw=="/>
+            <enclosure url="https://github.com/ikoshura/Sajda/releases/download/v4.4.15/Sajda-4.4.15.dmg" length="15805362" type="application/octet-stream" sparkle:edSignature="Hy8X5N2MkBN86ozxGxmh3Y2qTC7HOIHZS1Ue8anW8IF89LyOIdSH2nthYpbyClKHq0j/N22qwOxrEDKf9SuvAg=="/>
         </item>
     </channel>
 </rss>

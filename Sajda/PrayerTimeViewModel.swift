@@ -1607,10 +1607,13 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
             }
         case .exactTime, .iconExactTime:
             guard let nextDate = nextPrayerOccurrenceDate else { textToShow = "Sajda Pro"; break }
+            // `menuBarDateFormatter`, not `dateFormatter`: "Minimal Menu Bar" is a
+            // status-item preference, and the two formatters are the only thing
+            // keeping it from reaching the panel's clocks as well.
             if useMinimalMenuBarText {
-                textToShow = String(format: NSLocalizedString("prayer_minimal_exact", comment: ""), localizedPrayerName, dateFormatter.string(from: nextDate))
+                textToShow = String(format: NSLocalizedString("prayer_minimal_exact", comment: ""), localizedPrayerName, menuBarDateFormatter.string(from: nextDate))
             } else {
-                textToShow = String(format: NSLocalizedString("prayer_at_time", comment: ""), localizedPrayerName, dateFormatter.string(from: nextDate))
+                textToShow = String(format: NSLocalizedString("prayer_at_time", comment: ""), localizedPrayerName, menuBarDateFormatter.string(from: nextDate))
             }
         }
         // Aksesibilitas: seluruh teks menu bar di-uppercase bila diminta.
@@ -1651,13 +1654,34 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
         useMawaqitSchedule ? .current : locationTimeZone
     }
 
+    /// Formatter for every clock the *panel* draws: the schedule rows, the
+    /// countdown header, the Jumu'ah session line and the time-correction sheet.
+    ///
+    /// Deliberately blind to "Minimal Menu Bar". That setting is about how much
+    /// room the status item takes, and it used to be applied right here — which
+    /// meant turning it on silently dropped the meridiem from every clock in the
+    /// panel as well, because all of those surfaces read this one property. The
+    /// menu bar reads `menuBarDateFormatter` instead, so the two can differ.
     var dateFormatter: DateFormatter {
+        clockFormatter(minimal: false)
+    }
+
+    /// Formatter for the status item's title, and only that.
+    ///
+    /// "Minimal Menu Bar" shortens the menu bar — "Fajr 5:03" rather than
+    /// "Fajr at 5:03 AM" — so it drops the meridiem here. 24-hour still wins,
+    /// since there is no meridiem to drop in the first place.
+    var menuBarDateFormatter: DateFormatter {
+        clockFormatter(minimal: useMinimalMenuBarText)
+    }
+
+    private func clockFormatter(minimal: Bool) -> DateFormatter {
         let formatter = DateFormatter()
         formatter.timeZone = self.displayTimeZone
         formatter.locale = displayLocale
         if use24HourFormat {
             formatter.dateFormat = "HH:mm"
-        } else if useMinimalMenuBarText {
+        } else if minimal {
             formatter.dateFormat = "h:mm"
         } else {
             formatter.timeStyle = .short
