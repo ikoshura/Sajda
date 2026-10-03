@@ -4,8 +4,8 @@
         <title>Sajda</title>
         <item>
             <title>4.4.15</title>
-            <pubDate>Sat, 03 Oct 2026 09:53:48 +0700</pubDate>
-            <sparkle:version>38</sparkle:version>
+            <pubDate>Sat, 03 Oct 2026 15:39:29 +0700</pubDate>
+            <sparkle:version>39</sparkle:version>
             <sparkle:shortVersionString>4.4.15</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
             <description sparkle:format="markdown"><![CDATA[# Sajda 4.4.15
@@ -15,6 +15,9 @@ Sajda is now signed with a Developer ID certificate and notarized by Apple, so i
 
 ### Updates install themselves
 Adds Sparkle: new versions are downloaded, verified against a signature, installed and relaunched from inside the app. Turn it on in Settings if you haven't already.
+
+### Fix: red alert left some controls in the old accent colour
+When a prayer became imminent the panel turned red — but the mute buttons and the location row's tick kept your accent colour, so a teal or green pick left teal controls sitting on a red panel. They now follow the alert like everything else does.
 
 ### Fix: mute button sitting on top of the time
 On the 12-hour clock — the default — each prayer time was drawn wider than the column reserved for it, so the digits spilled left into the mute button's slot and the two overlapped. It hid whenever **Show Sunnah Prayers** was on, because that setting reserves an extra slot which happened to be just wide enough to cover the overflow.
@@ -37,7 +40,7 @@ With Accent Panel on, the whole panel turns red while the imminent-prayer alert 
 ### Support links
 About now has Support Sajda and Sponsor on GitHub rows.
 ]]></description>
-            <enclosure url="https://github.com/ikoshura/Sajda/releases/download/v4.4.15/Sajda-4.4.15.dmg" length="15805362" type="application/octet-stream" sparkle:edSignature="Hy8X5N2MkBN86ozxGxmh3Y2qTC7HOIHZS1Ue8anW8IF89LyOIdSH2nthYpbyClKHq0j/N22qwOxrEDKf9SuvAg=="/>
+            <enclosure url="https://github.com/ikoshura/Sajda/releases/download/v4.4.15/Sajda-4.4.15.dmg" length="15805335" type="application/octet-stream" sparkle:edSignature="ONrbkXoBZ7YoY2F2oDQEYcLWU9WL8oY66oUTYUd4v4iSeP72FLz7TJUygOrr5m2hiH4noG+lLTQVcchu7uz+Cw=="/>
         </item>
     </channel>
 </rss>
