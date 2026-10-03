@@ -10,5 +10,21 @@
 	<true/>
 	<key>RunAtLogin</key>
 	<true/>
+	<!-- Sparkle 2 in-app updates. The feed is a static appcast served by
+	     GitHub Pages from docs/; each entry carries an EdDSA signature made
+	     with the private key that stays in the login keychain (never in the
+	     repo). The Installer launcher service is required because Sajda is
+	     sandboxed and updates have to be installed outside the sandbox. -->
+	<key>SUFeedURL</key>
+	<string>https://ikoshura.github.io/Sajda/appcast.xml</string>
+	<key>SUPublicEDKey</key>
+	<string>+jvAD296kzdwj7OZyXHd9M12SYmnOaBcrrXQB+Hg3ec=</string>
+	<key>SUEnableInstallerLauncherService</key>
+	<true/>
+	<!-- Sajda already ships its own "Check for updates automatically" switch,
+	     so Sparkle is told not to run its own first-launch permission prompt.
+	     `automaticallyChecksForUpdates` is kept in sync from that setting. -->
+	<key>SUEnableAutomaticChecks</key>
+	<false/>
 </dict>
 </plist>

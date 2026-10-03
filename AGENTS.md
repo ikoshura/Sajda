@@ -87,18 +87,16 @@ xcodebuild \
 open build/DerivedData/Build/Products/Debug/Sajda.app
 ```
 
-### Release (archive)
+### Release
+
+The supported path is the script, which signs with Developer ID, notarizes and
+staples the app and DMG, and regenerates the Sparkle appcast in `docs/`:
 
 ```bash
-xcodebuild \
-  -project Sajda.xcodeproj \
-  -scheme Sajda \
-  -configuration Release \
-  -archivePath build/Sajda.xcarchive \
-  clean archive
+scripts/release.sh 4.4.15
 ```
 
-Full notarization and DMG steps are in `docs/RELEASE.md`.
+Details, manual steps and prerequisites are in `docs/RELEASE.md`.
 
 ### Tests
 
@@ -154,6 +152,7 @@ xcodebuild \
 
 - **Adhan** — Go-based prayer time calculation library, consumed as Swift package
 - **FluidMenuBarExtra** — Custom menu bar window that dynamically resizes (vendored in `Sajda/FluidMenuBar/`)
+- **Sparkle 2** — In-app updates. The feed URL, EdDSA public key and the sandbox's Installer-launcher opt-in live in `Sajda/Info.plist` (`SUFeedURL`, `SUPublicEDKey`, `SUEnableInstallerLauncherService`); the Sandbox needs the `-spks`/`-spki` mach-lookup exceptions in `Sajda.entitlements`. `UpdateChecker` is only a SwiftUI-facing wrapper around `SPUUpdater`.
 - **iCloudStorage** — NavigationStack dependency for iCloud sync (NavigationStack itself is the primary nav dependency)
 
 ## Files to Avoid Modifying Lightly

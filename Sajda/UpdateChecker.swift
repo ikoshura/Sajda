@@ -1,15 +1,25 @@
 // MARK: - Sajda/UpdateChecker.swift
 //
-// Lightweight in-app update check via the GitHub Releases API.
-// No Sparkle dependency, works with unsigned builds: when a newer
-// release exists we surface a banner and open the release page.
+// In-app updates through Sparkle 2.
+//
+// Sparkle owns the whole cycle — feed fetch, EdDSA signature check, download,
+// install, relaunch — so this class is only the thin SwiftUI-facing shell
+// around it. Its job is to (a) start the updater, (b) mirror the existing
+// "check automatically" preference onto Sparkle, and (c) translate Sparkle's
+// delegate callbacks into the `State` the panel's footer badge and the About
+// page already render.
+//
+// Configuration lives in `Sajda/Info.plist` (SUFeedURL + SUPublicEDKey, and
+// SUEnableInstallerLauncherService for the sandbox), so nothing about the feed
+// or the signing key is hard-coded here.
 
 import Foundation
 import Combine
 import AppKit
+import Sparkle
 
 @MainActor
-final class UpdateChecker: ObservableObject {
+final class UpdateChecker: NSObject, ObservableObject, SPUUpdaterDelegate {
     static let shared = UpdateChecker()
 
     enum State: Equatable {
@@ -36,79 +46,92 @@ final class UpdateChecker: ObservableObject {
         UserDefaults.standard.bool(forKey: Self.autoCheckKey)
     }
 
-    private static let latestReleaseURL = URL(string: "https://api.github.com/repos/ikoshura/Sajda/releases/latest")!
-    private static let releasesPageURL = URL(string: "https://github.com/ikoshura/Sajda/releases")!
-    private static let lastCheckKey = "lastUpdateCheckDate"
-    private static let checkInterval: TimeInterval = 24 * 60 * 60
+    /// Still the human-facing releases page: the About copy links here when a
+    /// user would rather read the notes than let Sparkle install the update.
+    static let releasesPageURL = URL(string: "https://github.com/ikoshura/Sajda/releases")!
+
+    /// True only for the span of a user-initiated check, so "no update found"
+    /// can be reported as *up to date* from the About page while a background
+    /// check stays silent instead of painting a result the user never asked for.
+    private var isManualCheckInFlight = false
+
+    /// Sparkle's entry point. Created on first use (i.e. on the main thread,
+    /// from `checkIfDue()` at launch) and retained for the app's lifetime —
+    /// Sparkle requires its controller to outlive every check it starts.
+    private lazy var controller = SPUStandardUpdaterController(
+        startingUpdater: true,
+        updaterDelegate: self,
+        userDriverDelegate: nil
+    )
+
+    private var updater: SPUUpdater { controller.updater }
+
+    // MARK: - Public surface used by the panel
 
     var updateAvailable: Bool {
         if case .updateAvailable = state { return true }
         return false
     }
 
-    /// Silent background check, throttled to once per 24h. Only runs when
-    /// the user has opted in via Settings. Call on launch.
+    /// Keeps Sparkle's own background schedule in step with the app's opt-in
+    /// switch, then asks for a check right now.
+    ///
+    /// The old UserDefaults 24h throttle is gone on purpose: Sparkle throttles
+    /// itself (`SULastCheckTime`) and survives relaunches, which is the
+    /// behaviour the hand-rolled version was approximating. Called on launch
+    /// and whenever the Settings/Onboarding switch flips.
     func checkIfDue() {
-        guard autoCheckEnabled else { return }
-        // A badge left over from before the user updated must fall off on
-        // launch — even when the 24h throttle says "no new network check".
-        revalidateAgainstCurrentVersion()
-        if case .updateAvailable = state { return }
-        let last = UserDefaults.standard.object(forKey: Self.lastCheckKey) as? Date
-        if let last, Date().timeIntervalSince(last) < Self.checkInterval { return }
-        Task { await check(showUpToDate: false) }
+        let enabled = autoCheckEnabled
+        updater.automaticallyChecksForUpdates = enabled
+        guard enabled else { return }
+        updater.checkForUpdatesInBackground()
     }
 
-    /// Manual check from About. Always hits the network and reports the result.
+    /// Manual check from About or the panel's footer badge. Unlike the
+    /// background path this always surfaces UI — Sparkle's window either
+    /// offers the update or reports that the app is current.
     func checkManually() {
-        Task { await check(showUpToDate: true) }
-    }
-
-    func openReleasePage() {
-        if let releaseURL {
-            NSWorkspace.shared.open(releaseURL)
-        } else {
-            NSWorkspace.shared.open(Self.releasesPageURL)
-        }
-    }
-
-    private func check(showUpToDate: Bool) async {
-        if case .checking = state { return }
+        isManualCheckInFlight = true
         state = .checking
-        do {
-            var request = URLRequest(url: Self.latestReleaseURL, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 15)
-            request.setValue("Sajda", forHTTPHeaderField: "User-Agent")
-            request.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
-            let (data, response) = try await URLSession.shared.data(for: request)
-            // Cache the check time only on a real answer from the API: a
-            // rate-limit (403/429) or any non-2xx must not start the 24h
-            // silence, or auto-check looks dead after one throttled call.
-            if let http = response as? HTTPURLResponse, !(200..<300).contains(http.statusCode) {
-                state = .failed; return
-            }
-            UserDefaults.standard.set(Date(), forKey: Self.lastCheckKey)
-            guard
-                let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
-                let tag = json["tag_name"] as? String
-            else { state = .failed; return }
-            let latest = tag.hasPrefix("v") ? String(tag.dropFirst()) : tag
-            latestVersion = latest
-            let htmlURL = (json["html_url"] as? String).flatMap(URL.init(string:)) ?? Self.releasesPageURL
-            releaseURL = htmlURL
-            if Self.isNewer(latest, than: Self.currentVersion) {
-                state = .updateAvailable(version: latest, url: htmlURL)
-            } else if showUpToDate {
-                state = .upToDate
-            } else {
-                state = .idle
-            }
-        } catch {
-            state = .failed
+        updater.checkForUpdates()
+    }
+
+    /// Opens the releases page in the browser, for the read-the-notes path.
+    func openReleasePage() {
+        NSWorkspace.shared.open(releaseURL ?? Self.releasesPageURL)
+    }
+
+    // MARK: - SPUUpdaterDelegate
+
+    /// A signed, newer item came back from the feed.
+    nonisolated func updater(_ updater: SPUUpdater, didFindValidUpdate item: SUAppcastItem) {
+        let version = item.displayVersionString
+        let notesURL = item.releaseNotesURL
+        Task { @MainActor in
+            self.latestVersion = version
+            let url = notesURL ?? Self.releasesPageURL
+            self.releaseURL = url
+            self.state = .updateAvailable(version: version, url: url)
+            self.isManualCheckInFlight = false
         }
     }
 
-    private static var currentVersion: String {
-        Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0"
+    /// No newer item in the feed — or the check itself failed. Either way the
+    /// result is only *reported* when the user asked for the check.
+    nonisolated func updaterDidNotFindUpdate(_ updater: SPUUpdater, error: Error) {
+        Task { @MainActor in
+            self.state = self.isManualCheckInFlight ? .upToDate : .idle
+            self.isManualCheckInFlight = false
+        }
+    }
+
+    /// The update cycle aborted — bad signature, unreadable feed, install
+    /// failure.
+    nonisolated func updater(_ updater: SPUUpdater, didAbortWithError error: Error) {
+        Task { @MainActor in
+            self.state = .failed
+            self.isManualCheckInFlight = false
+        }
     }
 
     /// Numeric dot-separated comparison ("3.10.0" > "3.9.0").
@@ -145,12 +168,14 @@ final class UpdateChecker: ObservableObject {
         return v.split(separator: ".").map { Int($0.trimmingCharacters(in: .whitespaces)) ?? 0 }
     }
 
-    /// Clears a stale `.updateAvailable` that no longer outranks the running
-    /// app — e.g. the user just updated but this process hasn't re-checked
-    /// yet. Safe to call on launch and on view appear; a no-op otherwise.
+    /// Clears an `updateAvailable` badge that the running bundle already
+    /// satisfies — the case where Sparkle found an update earlier in this
+    /// launch and the user then updated by some other route (a manual DMG, for
+    /// instance). Cheap, so it is safe to call from `onAppear`.
     func revalidateAgainstCurrentVersion() {
-        if case .updateAvailable(let version, _) = state,
-           !Self.isNewer(version, than: Self.currentVersion) {
+        guard case .updateAvailable(let version, _) = state else { return }
+        guard let current = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String else { return }
+        if !Self.isNewer(version, than: current) {
             state = .idle
             updateBannerDismissed = false
         }

@@ -382,6 +382,7 @@
 				CC07FC652E64122F00924451 /* NavigationStack */,
 				CCAA00022FAABB0100CCDDEE /* ColorSelector */,
 				CCF100022E6600000066D002 /* MacControlCenterUI */,
+				CCBB00212FAABB0100CCDDF0 /* Sparkle */,
 			);
 			productName = Sajda;
 			productReference = CC969C742E60857A00C8630A /* Sajda.app */;
@@ -468,6 +469,7 @@
 				CC07FC642E64122F00924451 /* XCRemoteSwiftPackageReference "NavigationStack" */,
 				CCAA00012FAABB0100CCDDEE /* XCRemoteSwiftPackageReference "ColorSelector" */,
 				CCF100012E6600000066D001 /* XCLocalSwiftPackageReference "../MacControlCenterUI" */,
+				CCBB00112FAABB0100CCDDF0 /* XCRemoteSwiftPackageReference "Sparkle" */,
 			);
 			productRefGroup = CC969C752E60857A00C8630A /* Products */;
 			projectDirPath = "";
@@ -759,12 +761,13 @@
 				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 36;
+				CURRENT_PROJECT_VERSION = 37;
 				DEVELOPMENT_ASSET_PATHS = "\"Sajda/Preview Content\"";
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = "";
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Sajda/Info.plist;
 				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSLocationUsageDescription = "Sajda needs your location to accurately calculate prayer times.";
@@ -773,7 +776,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 4.4.14;
+				MARKETING_VERSION = 4.4.15;
 				PRODUCT_BUNDLE_IDENTIFIER = com.ikoshura.Sajda;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "";
@@ -788,16 +791,18 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Sajda/Sajda.entitlements;
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
 				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 36;
+				CURRENT_PROJECT_VERSION = 37;
 				DEVELOPMENT_ASSET_PATHS = "\"Sajda/Preview Content\"";
-				"DEVELOPMENT_TEAM[sdk=macosx*]" = "";
+				"DEVELOPMENT_TEAM[sdk=macosx*]" = JSYLVAZ935;
+				DEVELOPMENT_TEAM = JSYLVAZ935;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Sajda/Info.plist;
 				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSLocationUsageDescription = "Sajda needs your location to accurately calculate prayer times.";
@@ -806,7 +811,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 4.4.14;
+				MARKETING_VERSION = 4.4.15;
 				PRODUCT_BUNDLE_IDENTIFIER = com.ikoshura.Sajda;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "";
@@ -956,6 +961,14 @@
 				minimumVersion = 2.3.1;
 			};
 		};
+		CCBB00112FAABB0100CCDDF0 /* XCRemoteSwiftPackageReference "Sparkle" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sparkle-project/Sparkle.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.0.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -978,6 +991,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = CCF100012E6600000066D001 /* XCLocalSwiftPackageReference "../MacControlCenterUI" */;
 			productName = MacControlCenterUI;
+		};
+		CCBB00212FAABB0100CCDDF0 /* Sparkle */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CCBB00112FAABB0100CCDDF0 /* XCRemoteSwiftPackageReference "Sparkle" */;
+			productName = Sparkle;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

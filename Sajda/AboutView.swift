@@ -173,6 +173,11 @@ struct AboutView: View {
                 url: URL(string: "https://github.com/indieSoftware/NavigationStack")!,
                 blurb: "View navigation system"
             ),
+            Acknowledgement(
+                id: "Sparkle",
+                url: URL(string: "https://sparkle-project.org")!,
+                blurb: "In-app updates, signed and verified"
+            ),
         ]
     }
 
@@ -223,7 +228,9 @@ struct AboutView: View {
         VStack(spacing: 8) {
             switch updater.state {
             case .updateAvailable(let version, _):
-                Button(action: { updater.openReleasePage() }) {
+                // Hands over to Sparkle, which downloads, verifies the EdDSA
+                // signature and installs the new build.
+                Button(action: { updater.checkManually() }) {
                     HStack(spacing: 6) {
                         Image(systemName: "arrow.down.circle.fill")
                         Text(String(format: NSLocalizedString("Update available: %@", comment: ""), version))
@@ -242,7 +249,7 @@ struct AboutView: View {
                 // picks via the same WCAG test the highlight rows use.
                 .foregroundColor(PrayerTimeViewModel.onFillColorForHighlight(customHighlightColorHex))
                 .background(RoundedRectangle(cornerRadius: 6).fill(aboutAccentColor))
-                .help(NSLocalizedString("Open the release page to download", comment: ""))
+                .help(NSLocalizedString("Download and install the update", comment: ""))
             case .checking:
                 HStack(spacing: 6) {
                     ProgressView().controlSize(.small)

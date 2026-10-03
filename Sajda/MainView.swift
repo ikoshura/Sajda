@@ -511,15 +511,14 @@ struct MainView: View {
                     Spacer(minLength: 0)
 
                     // Update badge, leading the trailing icon group so it sits
-                    // immediately beside About. Only rendered while a newer
-                    // release is known; tapping it opens the release page.
-                    // Icon-only (label lives in tooltip/VoiceOver), so there
-                    // is no pill-text contrast issue here — but the glyph must
-                    // stay legible on the Accent tint (#24): amber at full
-                    // strength, with a contrasting disc behind it when the
-                    // Accent Panel theme is on.
+                    // immediately beside About. Only rendered while Sparkle has
+                    // found a newer signed release; tapping it hands over to
+                    // Sparkle's own window, which downloads, verifies and
+                    // installs. Icon-only (label lives in tooltip/VoiceOver), so
+                    // there is no pill-text contrast issue here — the glyph
+                    // stays the amber accent at full strength (#24).
                     if let version = updateBadgeVersion {
-                        Button(action: { updater.openReleasePage() }) {
+                        Button(action: { updater.checkManually() }) {
                             Image(systemName: "arrow.down.circle.fill")
                                 .scaledFont(.body)
                                 .foregroundColor(Self.updateBadgeTint)
@@ -529,7 +528,7 @@ struct MainView: View {
                         .buttonStyle(.plain)
                         .onHover { hovering in isUpdateHovering = hovering }
                         .focusable(false)
-                        .help(Text(String(format: NSLocalizedString("Update available: %@", comment: ""), version)))
+                        .help(Text(String(format: NSLocalizedString("Update available: %@", comment: ""), version) + " — " + NSLocalizedString("Click to install", comment: "")))
                         .accessibilityLabel(Text(String(format: NSLocalizedString("Update available: %@", comment: ""), version)))
                     }
 

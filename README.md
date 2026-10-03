@@ -35,29 +35,7 @@ Download the latest `.dmg` from the [Releases page](https://github.com/ikoshura/
 
 ### First launch
 
-Sajda is ad-hoc signed but not notarized, because the Apple Developer Program costs $99/year and I can't cover it right now. Because of this, macOS may say "Sajda.app is damaged and can't be opened". The app is fine. macOS shows this message for unnotarized apps downloaded from the internet.
-
-To fix it, run this once after copying the app to Applications:
-
-```bash
-/usr/bin/xattr -cr /Applications/Sajda.app
-```
-
-Then open Sajda as usual.
-
-<details>
-<summary>Still blocked?</summary>
-
-**System Settings**
-1. Try to open Sajda and click OK on the warning.
-2. Go to **System Settings → Privacy & Security**.
-3. Find Sajda and click **Open Anyway**.
-
-**Terminal**
-```bash
-xattr -r -d com.apple.quarantine /Applications/Sajda.app
-```
-</details>
+Sajda is signed with a Developer ID certificate and notarized by Apple, so it opens normally — no Gatekeeper workaround, no quarantine removal. Quit Sajda and reopen it, and updates install themselves in the background (verified with an EdDSA signature before anything is replaced, via [Sparkle](https://sparkle-project.org)).
 
 ## Build from source
 
@@ -110,6 +88,7 @@ Thanks also to [@iMacLion](https://github.com/iMacLion) for testing releases and
 - [MacControlCenterUI](https://github.com/orchetect/MacControlCenterUI): Control Center style menu and controls
 - [Mawaqit](https://mawaqit.net): mosque prayer and iqama timetables
 - [NavigationStack](https://github.com/indieSoftware/NavigationStack): view navigation
+- [Sparkle](https://sparkle-project.org): signed, notarized in-app updates
 
 ## License
 

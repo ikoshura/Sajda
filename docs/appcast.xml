@@ -1,0 +1,37 @@
+<?xml version="1.0" standalone="yes"?>
+<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
+    <channel>
+        <title>Sajda</title>
+        <item>
+            <title>4.4.15</title>
+            <pubDate>Sat, 03 Oct 2026 09:30:07 +0700</pubDate>
+            <sparkle:version>37</sparkle:version>
+            <sparkle:shortVersionString>4.4.15</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description sparkle:format="markdown"><![CDATA[# Sajda 4.4.15
+
+### Properly signed and notarized
+Sajda is now signed with a Developer ID certificate and notarized by Apple, so it opens normally — no workaround needed.
+
+### Updates install themselves
+Adds Sparkle: new versions are downloaded, verified against a signature, installed and relaunched from inside the app. Turn it on in Settings if you haven't already.
+
+### Fix: invisible icons with certain colours (issue #24)
+With some theme colours the mute rings and the mosque-search page arrows blended into the panel while staying clickable. Small glyphs now fall back to the system accent when a chosen colour is too pale to read.
+
+### Fix: update notice contrast (issue #24)
+The "Update available" text on the About page was unreadable with pale highlight colours. Its text and icon now adapt to the colour automatically.
+
+### Fix: stale update badge (issue #24)
+The update badge could stick around after you had already updated. It now re-checks itself whenever the panel opens.
+
+### Accent Panel follows the red alert
+With Accent Panel on, the whole panel turns red while the imminent-prayer alert is showing, then returns to your colour.
+
+### Support links
+About now has Support Sajda and Sponsor on GitHub rows.
+]]></description>
+            <enclosure url="https://github.com/ikoshura/Sajda/releases/download/v4.4.15/Sajda-4.4.15.dmg" length="15802151" type="application/octet-stream" sparkle:edSignature="3Kct/IeoPTaIF4xSZMs6YATabDoepCt5gAaxZuIfjfTjm0Vdg9ZkH+XuM6Y/k9Dyl8nFQag7KIuCQFHwBn19Dw=="/>
+        </item>
+    </channel>
+</rss>

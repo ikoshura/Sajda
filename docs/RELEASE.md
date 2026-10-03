@@ -1,6 +1,29 @@
 # Sajda Release Guide
 
-This guide separates local source builds from production distribution. The GitHub issue reports show that quarantine removal or ad-hoc signing can sometimes get an app open on one machine, but public releases should be Developer ID signed and notarized.
+Sajda ships as a **Developer ID signed, Apple-notarized DMG**, and the same build feeds Sparkle's appcast so existing installs update themselves.
+
+The whole pipeline is automated in [`scripts/release.sh`](../scripts/release.sh). The sections below document what that script does, for when it needs to change or be run step by step by hand.
+
+## Automated Release
+
+```sh
+scripts/release.sh 4.4.15
+```
+
+It archives, exports with Developer ID signing, notarizes and staples both the app and the DMG, regenerates `docs/appcast.xml` (which GitHub Pages serves at `https://ikoshura.github.io/Sajda/appcast.xml`), and verifies the result with Gatekeeper. It then prints the git/`gh` commands to publish.
+
+One-time prerequisites:
+
+```sh
+# Developer ID Application certificate in the login keychain (Xcode > Settings > Accounts)
+xcrun notarytool store-credentials notarytool-sajda \
+  --apple-id <your-apple-id> --team-id JSYLVAZ935
+
+# Sparkle's EdDSA key pair — the private half lives in the keychain, the public
+# half is already in Sajda/Info.plist as SUPublicEDKey. Only run this once:
+# (tools are under DerivedData/.../artifacts/sparkle/Sparkle/bin)
+./generate_keys
+```
 
 ## Local Source Build
 
@@ -125,50 +148,90 @@ xcrun stapler staple build/Sajda.dmg
 spctl -a -vv --type open build/Sajda.dmg
 ```
 
-## Ad-hoc Release (no Developer ID)
+## Sparkle Appcast
 
-When a Developer ID certificate is not available, the release can still be built
-**ad-hoc signed** — which is what allows the app to launch on Apple Silicon at all.
-Sajda 4.0.0 shipped this way. Treat it as a documented fallback, not the preferred
-path: the release body must carry the Gatekeeper instructions below.
+`scripts/release.sh` regenerates the feed from the new DMG:
 
 ```sh
-# Archive without signing, and check the metadata that goes into the bundle
-xcodebuild -project Sajda.xcodeproj -scheme Sajda -configuration Release \
-  -archivePath build/Sajda.xcarchive clean archive \
-  CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO
-plutil -p build/Sajda.xcarchive/Products/Applications/Sajda.app/Contents/Info.plist \
-  | grep -E 'CFBundleShortVersionString|CFBundleVersion|LSMinimumSystemVersion'
-
-# Ad-hoc sign the archived app (no nested code, so no --deep and no entitlements work)
-rm -rf build/export-adhoc && mkdir -p build/export-adhoc
-cp -R build/Sajda.xcarchive/Products/Applications/Sajda.app build/export-adhoc/
-codesign --force --sign - build/export-adhoc/Sajda.app
-codesign -dv build/export-adhoc/Sajda.app 2>&1 | grep -E 'Signature|Identifier='
-
-# Package the DMG: app + /Applications symlink, then verify the image
-rm -rf build/dmg-stage && mkdir build/dmg-stage
-ln -s /Applications build/dmg-stage/Applications
-cp -R build/export-adhoc/Sajda.app build/dmg-stage/
-hdiutil create -volname Sajda -srcfolder build/dmg-stage -ov -format UDZO build/Sajda-X.Y.Z.dmg
-hdiutil verify build/Sajda-X.Y.Z.dmg
-shasum -a 256 build/Sajda-X.Y.Z.dmg
+"$SPARKLE_BIN/generate_appcast" \
+  --download-url-prefix "https://github.com/ikoshura/Sajda/releases/download/v4.4.15/" \
+  --embed-release-notes \
+  --maximum-versions 3 \
+  build/appcast-src
+cp build/appcast-src/appcast.xml docs/appcast.xml
 ```
 
-Every ad-hoc release body must say, in plain words:
+Notes:
 
-- The build is ad-hoc signed and not notarized, so macOS warns on first launch.
-- First launch: right-click the app → **Open** → **Open**.
-- If that dialog has no *Open* button: `xattr -dr com.apple.quarantine /Applications/Sajda.app`.
-- The warning goes away once a notarized build is published.
+- `docs/appcast.xml` is committed and served by GitHub Pages — that URL is what
+  `SUFeedURL` in `Sajda/Info.plist` points at. **The appcast must be published
+  before or with the DMG**, or clients will 404 the update.
+- `generate_appcast` signs every item with the EdDSA key in the keychain. The
+  matching public key is `SUPublicEDKey` in `Sajda/Info.plist`; Sparkle refuses
+  an item that does not verify against it.
+- Release notes come from `build/release-notes/Sajda-<version>.md`, which the
+  script embeds into the item (so the update dialog can show what changed).
+- The `Sparkle` acknowledgement in the About page and the README must stay in
+  step with the version actually bundled.
+
+## Timestamp Service Flakiness
+
+`codesign --timestamp` talks to `http://timestamp.apple.com/ts01`. On some
+networks that host only behaves over IPv4 — but `codesign` resolves it over
+IPv6, and the IPv6 path resets the connection roughly half the time. The
+symptom is always the same and always looks like a signing bug:
+
+```
+codesign: <path>: The timestamp service is not available.
+error: exportArchive codesign command failed (...)
+** EXPORT FAILED **
+```
+
+It is not a signing bug. It only means a TCP handshake to Apple's timestamp
+server got reset, and it is worth knowing that during `exportArchive` Xcode has
+to timestamp every Sparkle helper (`Autoupdate`, `Updater.app`, `Installer.xpc`,
+`Downloader.xpc`, …) in one pass — so one reset anywhere fails the whole export,
+even though the archive itself signed fine moments earlier.
+
+Two ways out:
+
+1. **Retry** — `scripts/release.sh` wraps archive, export and both notarization
+   steps in `retry` for exactly this reason, so a normal run rides it out.
+2. **Fix it at the source** — pin the host to IPv4 so `codesign` never touches
+   the broken path. One-off, needs an admin shell:
+
+   ```sh
+   echo "17.157.80.35 timestamp.apple.com" | sudo tee -a /etc/hosts
+   ```
+
+   Check it took effect with `dscacheutil -q host -a name timestamp.apple.com`
+   (should print only the IPv4 address), and see `nslookup timestamp.apple.com`
+   again if Apple ever rotates the address.
+
+A quick way to see whether you are being hit by this:
+
+```sh
+# IPv4 vs IPv6 reliability for one timestamp request
+openssl ts -query -data /etc/hosts -sha256 -cert -out /tmp/q.tsq
+for flag in -4 -6; do
+  curl $flag -sS -o /dev/null -w "$flag %{http_code}\n" \
+    -H "Content-Type: application/timestamp-query" \
+    --data-binary @/tmp/q.tsq --max-time 10 http://timestamp.apple.com/ts01
+done
+```
+
+If `-4` returns `200` and `-6` errors, use fix 2.
 
 ## Notes
 
-- Prefer Developer ID signing and notarization. If the certificate is unavailable, an
-  ad-hoc build may be published as a documented fallback (see "Ad-hoc Release" above) —
-  never as the preferred path, and always with the Gatekeeper instructions above.
-
-- Do not publish ad-hoc signed builds as production releases.
-- Do not ask normal users to run `xattr` or self-sign the app as the primary install path.
+- Every release must be Developer ID signed and notarized: the app is sandboxed
+  and Sparkle installs updates through its Installer XPC service, which requires
+  a real signature and a team identifier.
+- Keep `SUPublicEDKey` in `Sajda/Info.plist` in agreement with the EdDSA key in
+  the login keychain. Losing the private key means existing installs can never
+  be updated again.
+- Keep the `com.apple.security.temporary-exception.mach-lookup.global-name`
+  entries in `Sajda.entitlements` (`$(PRODUCT_BUNDLE_IDENTIFIER)-spks`/`-spki`);
+  without them a sandboxed app downloads updates it can never install.
 - Keep `NSLocationUsageDescription` in the shipped app `Info.plist`; macOS requires a location purpose string.
 - Keep package dependencies pinned so release rebuilds are reproducible.
