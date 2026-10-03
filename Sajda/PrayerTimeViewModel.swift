@@ -1314,13 +1314,87 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
         return color(fromHex: String(clean.prefix(6)))
     }
 
+    /// The hex every coloured surface should be drawing *right now*: the red alert
+    /// while a prayer is imminent, nil when no coloured surface is painted at all.
+    ///
+    /// One rule for the whole app, and the reason this property exists at all.
+    /// The red alert already had a single source — `effectiveAccentHex` — but only
+    /// the Accent Panel theme and the next-prayer row actually consulted it. Every
+    /// other coloured surface re-derived its colour from `customHighlightColorHex`
+    /// on its own and so silently kept the user's pick while the panel turned red:
+    /// the mute rings, the location row's tick, the Settings tab pill, the search
+    /// field's focus ring, and the switches, which hold their own `@AppStorage`
+    /// and never see a view model at all. Read this instead of the raw pick and a
+    /// surface cannot disagree with the panel it sits on.
+    ///
+    /// Nil is the meaningful negative: `effectiveAccentHex` returns nil when
+    /// neither accent mode nor the Accent Panel theme paints anything, which is
+    /// exactly when there is no alert-coloured panel to match and the pick should
+    /// stand on its own.
+    static var alertHighlightHex: String? {
+        guard UserDefaults.standard.bool(forKey: imminentDefaultsKey) else { return nil }
+        return Self.effectiveAccentHex(
+            highlightHex: UserDefaults.standard.string(forKey: "customHighlightColorHex") ?? "",
+            imminent: true,
+            useAccentColor: UserDefaults.standard.object(forKey: "useAccentColor") as? Bool ?? true,
+            accentPanelTheme: UserDefaults.standard.bool(forKey: "accentPanelTheme")
+        )
+    }
+
+    /// `alertHighlightHex` as a colour, for the surfaces that own no view model —
+    /// `StyledToggle`, `TimePreviewPopover`, the About page.
+    ///
+    /// Reads the same UserDefaults keys the view model mirrors, including
+    /// `prayerImminentForTint`, which exists precisely so view-model-less code
+    /// can follow the alert. Falls back to the picked colour so a switch keeps
+    /// its tint when nothing is painted.
+    static var currentControlTint: Color {
+        if let alertHex = alertHighlightHex,
+           let alert = Self.controlTint(fromHighlightHex: alertHex) {
+            return alert
+        }
+        let picked = UserDefaults.standard.string(forKey: "customHighlightColorHex") ?? ""
+        return Self.controlTint(fromHighlightHex: picked) ?? .accentColor
+    }
+
+    /// Key `updateCountdown()` mirrors `isPrayerImminent` under, so code with no
+    /// view model can still follow the red alert.
+    static let imminentDefaultsKey = "prayerImminentForTint"
+
+    /// The hex `selectedHighlightColor` resolves to right now: the alert's while
+    /// imminent, the user's pick otherwise. The one place that decision is made,
+    /// so the colour and the contrast check that judges it cannot drift apart.
+    ///
+    /// Internal rather than private: a surface that draws a *fill* from
+    /// `selectedHighlightColor` must pick its on-fill text tone against this same
+    /// hex, or the tone would be chosen for the calm pick while the fill is the
+    /// alert's — `SettingsTabButton` is that surface.
+    var effectiveHighlightHex: String {
+        if isPrayerImminent,
+           let alertHex = Self.effectiveAccentHex(
+               highlightHex: customHighlightColorHex,
+               imminent: true,
+               useAccentColor: useAccentColor,
+               accentPanelTheme: accentPanelTheme
+           ) {
+            return alertHex
+        }
+        return customHighlightColorHex
+    }
+
     /// Selected highlight colour used as the panel's interactive accent: the
     /// picked custom colour (RGB only, so the picker's alpha never washes
     /// text out), or the system accent when no colour is selected. Single
     /// source for the surfaces that colour text or icons with it — the
     /// correction preview, time popovers, About page.
+    ///
+    /// While a prayer is imminent this *is* the alert colour — see
+    /// `alertHighlightHex`. Everything downstream (mute rings, Settings tab
+    /// pill, `.tint()`, the search field's focus ring) reads this property, so
+    /// the alert reaches all of them from here rather than each surface
+    /// remembering to ask.
     var selectedHighlightColor: Color {
-        Self.controlTint(fromHighlightHex: customHighlightColorHex) ?? .accentColor
+        Self.controlTint(fromHighlightHex: effectiveHighlightHex) ?? .accentColor
     }
 
     /// Contrast-safe variant of `selectedHighlightColor` for *small glyphs*
@@ -1333,11 +1407,33 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
     /// the icon "disappears" while staying clickable. In that case this
     /// falls back to the system accent, which is always drawn to stay legible
     /// on both panel appearances. Saturated picks pass through untouched.
+    ///
+    /// While the red alert is up it follows the alert colour instead of the
+    /// user's pick — `selectedHighlightColor` already resolves to that, since
+    /// both are "the colour the panel is painting right now". Every other
+    /// surface already did: the Accent Panel tint via `effectiveAccentPanelHex`,
+    /// the next-prayer row and countdown fill via `nextPrayerHighlight(imminent:)`.
+    /// The glyphs were the one thing left out, so with a teal or green pick on
+    /// screen the mute rings and the location row's checkmark stayed in the old
+    /// colour on an otherwise red panel.
+    ///
+    /// The pale-pick fallback below is deliberately *not* applied to the alert
+    /// colour. It exists to protect a **user's** choice from vanishing at glyph
+    /// size, and its remedy is the system accent — which would put a blue ring on
+    /// a red panel, the very mismatch this property is here to remove. The amber
+    /// fallback (`highlightCollidesWithRedAlert`) is pale by the same measure and
+    /// would be swapped out for blue too. So when the hex in play is the alert's
+    /// rather than the user's, it is drawn as-is: it is the colour the panel
+    /// chose for that state, not a pick that needs protecting.
     var legibleInteractiveAccent: Color {
-        guard Self.controlTint(fromHighlightHex: customHighlightColorHex) != nil else {
+        let hex = effectiveHighlightHex
+        if hex != customHighlightColorHex {
+            return selectedHighlightColor
+        }
+        guard Self.controlTint(fromHighlightHex: hex) != nil else {
             return .accentColor
         }
-        let c = Self.accentPanelBaseComponents(fromHighlightHex: customHighlightColorHex)
+        let c = Self.accentPanelBaseComponents(fromHighlightHex: hex)
         // WCAG relative luminance of the pick; pale picks (> ~0.55) read as
         // "almost white" at glyph sizes and need the fallback.
         return Self.relativeLuminance(c.r, c.g, c.b) > 0.55 ? .accentColor : selectedHighlightColor

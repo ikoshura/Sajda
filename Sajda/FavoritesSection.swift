@@ -109,9 +109,15 @@ struct FavoritesSection: View {
         // there is nothing left to watch down here.
         return Button(action: { vm.switchToAutomaticLocation(); onLocationPicked() }) {
             HStack(spacing: 6) {
+                // `legibleInteractiveAccent`, not `selectedHighlightColor`: these
+                // are small glyphs on the panel surface, which is exactly what
+                // that property exists for. It gives them the #24 pale-pick
+                // fallback, and — the reason it matters here — it follows the red
+                // alert, so an active location does not keep its own colour on a
+                // panel that has turned red around it.
                 Image(systemName: "location.circle.fill")
                     .scaledFont(.caption)
-                    .foregroundColor(isActive ? vm.selectedHighlightColor : .secondary)
+                    .foregroundColor(isActive ? vm.legibleInteractiveAccent : .secondary)
                     .frame(width: 16)
                 Text(NSLocalizedString("Use Automatic Location", comment: ""))
                     .scaledFont(.subheadline, weight: isActive ? .semibold : .regular)
@@ -124,7 +130,7 @@ struct FavoritesSection: View {
                 if isActive {
                     Image(systemName: "checkmark")
                         .scaledFont(.caption, weight: .semibold)
-                        .foregroundColor(vm.selectedHighlightColor)
+                        .foregroundColor(vm.legibleInteractiveAccent)
                         .frame(width: 20)
                 } else {
                     Color.clear.frame(width: 20)
@@ -159,7 +165,7 @@ struct FavoritesSection: View {
             HStack(spacing: 6) {
                 Image(systemName: favorite.kind == .mosque ? "building.columns" : "mappin.circle")
                     .scaledFont(.caption)
-                    .foregroundColor(isActive ? vm.selectedHighlightColor : .secondary)
+                    .foregroundColor(isActive ? vm.legibleInteractiveAccent : .secondary)
                     .frame(width: 16)
                 VStack(alignment: .leading, spacing: 1) {
                     Text(favorite.name)
@@ -185,7 +191,7 @@ struct FavoritesSection: View {
                     } else if isActive {
                         Image(systemName: "checkmark")
                             .scaledFont(.caption, weight: .semibold)
-                            .foregroundColor(vm.selectedHighlightColor)
+                            .foregroundColor(vm.legibleInteractiveAccent)
                             .frame(width: 20)
                     } else {
                         // Invisible twin of the 20pt trailing slot: keeps the

@@ -12,8 +12,11 @@ struct TimePreviewPopover: View {
     /// without needing the view model in the environment.
     @AppStorage("customHighlightColorHex") private var customHighlightColorHex = ""
 
+    // `currentControlTint` rather than the raw pick, for the same reason as the
+    // switch: with no view model here, the red alert reaches this surface through
+    // the mirrored `prayerImminentForTint`, so the arrow tracks the panel.
     private var adjustedColor: Color {
-        PrayerTimeViewModel.controlTint(fromHighlightHex: customHighlightColorHex) ?? .accentColor
+        PrayerTimeViewModel.currentControlTint
     }
 
     var body: some View {

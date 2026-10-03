@@ -191,7 +191,11 @@ struct SettingsView: View {
                             isSelected: expandedSection == section,
                             isHovering: hoveringTab == section,
                             accent: vm.selectedHighlightColor,
-                            highlightHex: vm.customHighlightColorHex,
+                            // The same hex `accent` resolves to, so the label tone is
+                            // picked against the fill that is actually drawn —
+                            // including the red alert's, which `accent` becomes while a
+                            // prayer is imminent.
+                            highlightHex: vm.effectiveHighlightHex,
                             useGlass: vm.useGlassPrayerHighlight,
                             onTap: {
                                 selectTab(section)
@@ -707,6 +711,10 @@ private struct SettingsTabButton: View {
     let accent: Color
     /// Raw picked colour, so the icon/label tone can be chosen against the fill
     /// rather than guessed. Empty when the system accent is in use.
+    ///
+    /// Callers pass `vm.effectiveHighlightHex`, not the raw pick: `accent` above
+    /// follows the red alert while a prayer is imminent, and a tone judged
+    /// against the calm pick would be chosen for the wrong fill.
     let highlightHex: String
     /// Mirrors the "Glass Highlight" switch; layered over the accent fill when on.
     let useGlass: Bool

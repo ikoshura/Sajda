@@ -483,6 +483,119 @@ final class SajdaTests: XCTestCase {
                           "Minimal Menu Bar did not make the menu bar title shorter")
     }
 
+    /// The red alert carries into the interactive glyphs.
+    ///
+    /// The mute rings and the location row's checkmark are drawn on the panel
+    /// with the user's accent, and that accent is what the rest of the panel
+    /// replaces while a prayer is imminent — Accent Panel tint, the next-prayer
+    /// row, the countdown fill. The glyphs were the one surface left out, so a
+    /// teal pick put teal rings and a teal checkmark on an otherwise red panel,
+    /// which is the most jarring place for a colour to be out of step.
+    ///
+    /// Asserted against a saturated pick so it passes the #24 pale-colour
+    /// fallback untouched — this test is about the alert, not about luminance.
+    func testRedAlertCarriesIntoTheInteractiveGlyphAccent() {
+        let vm = PrayerTimeViewModel()
+        defer {
+            vm.isPrayerImminent = false
+            vm.useAccentColor = true
+            vm.accentPanelTheme = false
+            vm.customHighlightColorHex = ""
+        }
+        vm.useAccentColor = true
+        vm.accentPanelTheme = false
+        vm.customHighlightColorHex = "2AA198"
+
+        vm.isPrayerImminent = false
+        XCTAssertEqual(
+            vm.legibleInteractiveAccent,
+            PrayerTimeViewModel.controlTint(fromHighlightHex: "2AA198"),
+            "calm glyphs should be the user's own pick"
+        )
+        XCTAssertEqual(
+            vm.selectedHighlightColor,
+            PrayerTimeViewModel.controlTint(fromHighlightHex: "2AA198"),
+            "calm accents should be the user's own pick"
+        )
+
+        vm.isPrayerImminent = true
+        XCTAssertEqual(
+            vm.legibleInteractiveAccent,
+            PrayerTimeViewModel.controlTint(fromHighlightHex: "FF4246"),
+            "alert glyphs should be the alert colour, like every other surface"
+        )
+        // The source fix: this property is what the Settings tab pill, `.tint()`
+        // and the search field's focus ring all read, so it has to carry the
+        // alert too — fixing only the glyphs leaves those three behind.
+        XCTAssertEqual(
+            vm.selectedHighlightColor,
+            PrayerTimeViewModel.controlTint(fromHighlightHex: "FF4246"),
+            "alert accents (tab pill, tint, search ring) should be the alert colour"
+        )
+    }
+
+    /// The switches, the time-preview arrow and the About page hold their own
+    /// `@AppStorage` and never see a view model, so they resolve through
+    /// `currentControlTint` and the mirrored `prayerImminentForTint` instead.
+    /// Without that they kept the user's pick — which is what left the Settings
+    /// switches teal on a red panel.
+    func testCurrentControlTintFollowsTheAlertWithoutAViewModel() {
+        let defaults = UserDefaults.standard
+        let keys = ["prayerImminentForTint", "customHighlightColorHex", "useAccentColor", "accentPanelTheme"]
+        let saved = keys.map { defaults.object(forKey: $0) }
+        defer {
+            for (index, key) in keys.enumerated() {
+                if let previous = saved[index] {
+                    defaults.set(previous, forKey: key)
+                } else {
+                    defaults.removeObject(forKey: key)
+                }
+            }
+        }
+
+        defaults.set("2AA198", forKey: "customHighlightColorHex")
+        defaults.set(true, forKey: "useAccentColor")
+        defaults.set(false, forKey: "accentPanelTheme")
+
+        defaults.set(false, forKey: PrayerTimeViewModel.imminentDefaultsKey)
+        XCTAssertEqual(
+            PrayerTimeViewModel.currentControlTint,
+            PrayerTimeViewModel.controlTint(fromHighlightHex: "2AA198"),
+            "a calm switch should use the picked colour"
+        )
+
+        defaults.set(true, forKey: PrayerTimeViewModel.imminentDefaultsKey)
+        XCTAssertEqual(
+            PrayerTimeViewModel.currentControlTint,
+            PrayerTimeViewModel.controlTint(fromHighlightHex: "FF4246"),
+            "a switch should follow the red alert"
+        )
+    }
+
+    /// …including the amber fallback when the user's pick is itself red-ish, so
+    /// the glyphs stay legible instead of vanishing into the alert.
+    func testInteractiveGlyphAccentUsesTheAmberFallbackForRedPicks() {
+        let vm = PrayerTimeViewModel()
+        defer {
+            vm.isPrayerImminent = false
+            vm.useAccentColor = true
+            vm.accentPanelTheme = false
+            vm.customHighlightColorHex = ""
+        }
+        vm.useAccentColor = true
+        vm.accentPanelTheme = false
+        vm.isPrayerImminent = true
+
+        for red in ["FF3B30", "FF2D55"] {
+            vm.customHighlightColorHex = red
+            XCTAssertEqual(
+                vm.legibleInteractiveAccent,
+                PrayerTimeViewModel.controlTint(fromHighlightHex: "FFCC00"),
+                "\(red) must fall back to amber, not sit inside the red alert"
+            )
+        }
+    }
+
     /// A formatter shaped like `PrayerTimeViewModel.dateFormatter`: either a fixed
     /// `dateFormat`, or the locale's short time style with its meridiem.
     private static func formatter(dateFormat: String?, locale: String) -> DateFormatter {

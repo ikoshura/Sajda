@@ -28,8 +28,12 @@ struct AboutView: View {
     /// Selected highlight colour (system accent when none is picked): the
     /// About icon's monochrome tint, the Done button's fill, and the update
     /// pill below all use it, so the whole page follows one colour.
+    ///
+    /// `currentControlTint`, so the page also follows the red alert while a
+    /// prayer is imminent — it owns no view model here either, and reads the
+    /// same `prayerImminentForTint` mirror as the switches.
     private var aboutAccentColor: Color {
-        PrayerTimeViewModel.controlTint(fromHighlightHex: customHighlightColorHex) ?? .accentColor
+        PrayerTimeViewModel.currentControlTint
     }
 
     var body: some View {
@@ -91,7 +95,7 @@ struct AboutView: View {
                         Toggle("Show Welcome Guide on Launch", isOn: $showOnboardingAtLaunch)
                             .toggleStyle(.checkbox)
                             .controlSize(.small)
-                            .tint(PrayerTimeViewModel.controlTint(fromHighlightHex: customHighlightColorHex))
+                            .tint(PrayerTimeViewModel.currentControlTint)
 
                         Button(action: handleBackButton) {
                             Text("Done")
@@ -247,7 +251,11 @@ struct AboutView: View {
                 // white text was unreadable until clicked (#24). The fill
                 // keeps the user's colour; the content flips to black on pale
                 // picks via the same WCAG test the highlight rows use.
-                .foregroundColor(PrayerTimeViewModel.onFillColorForHighlight(customHighlightColorHex))
+                //
+                // Judged against `effectiveHighlightHex`, not the raw pick: the
+                // fill below follows the red alert while a prayer is imminent,
+                // and a tone chosen for the calm pick would be unreadable on it.
+                .foregroundColor(PrayerTimeViewModel.onFillColorForHighlight(vm.effectiveHighlightHex))
                 .background(RoundedRectangle(cornerRadius: 6).fill(aboutAccentColor))
                 .help(NSLocalizedString("Download and install the update", comment: ""))
             case .checking:

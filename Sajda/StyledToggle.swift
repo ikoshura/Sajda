@@ -50,7 +50,14 @@ struct StyledToggle: View {
                 // The on-state uses the selected highlight colour so every
                 // switch matches the highlight row and the Accent Panel tint;
                 // nil (no colour selected) keeps the system accent.
-                .tint(PrayerTimeViewModel.controlTint(fromHighlightHex: customHighlightColorHex))
+                //
+                // `currentControlTint`, not the raw pick: while a prayer is
+                // imminent every coloured surface follows the red alert, and the
+                // switches are the most numerous of them. This view owns no view
+                // model, so it reads the mirrored `prayerImminentForTint` rather
+                // than `vm.isPrayerImminent` — the same UserDefaults mirror the
+                // window-root Accent Panel overlay uses.
+                .tint(PrayerTimeViewModel.currentControlTint)
         }
     }
 
