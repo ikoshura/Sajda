@@ -3,23 +3,18 @@
     <channel>
         <title>Sajda</title>
         <item>
-            <title>4.5.0</title>
-            <pubDate>Mon, 05 Oct 2026 02:46:57 +0700</pubDate>
-            <sparkle:version>40</sparkle:version>
-            <sparkle:shortVersionString>4.5.0</sparkle:shortVersionString>
+            <title>4.5.1</title>
+            <pubDate>Mon, 05 Oct 2026 04:13:32 +0700</pubDate>
+            <sparkle:version>41</sparkle:version>
+            <sparkle:shortVersionString>4.5.1</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <description sparkle:format="markdown"><![CDATA[# Sajda 4.5.0
+            <description sparkle:format="markdown"><![CDATA[# Sajda 4.5.1
 
-### Mosque timetables are now offline files
-Prayer times from your mosque are now imported as files — an annual PDF calendar, a ZIP of monthly CSVs, or individual CSVs — and stored on your Mac. They work fully offline: no lookups, no downloads, no accounts. Manage them in Settings > Mosque Timetable.
-
-### Fix: CSV timetables without iqama left an empty gap
-Timetables that publish only adhan times reserved the iqama column anyway, so every clock sat a column away from the right edge with nothing in the gap. The column is now reserved only when the timetable actually publishes an iqama gap for today.
-
-### Fix: February spillover rows counted twice
-Some monthly exports append March 1 as a 29th February row. That copy is now dropped, so February 28 is followed by March 1 with no duplicate day.
+### Legal and attribution patch
+- Expanded Acknowledgements (in-app About + README): every dependency now lists its license (all MIT), the transitive MenuBarExtraAccess is credited, bundled adhan audio cites its Public Domain Mark 1.0 sources, city search carries the required OpenStreetMap/ODbL attribution, and the mosque artwork credits Nawicon (Noun Project, CC BY 3.0).
+- City search backend is now switchable without an app update: a small config file can redirect or disable it if the provider ever asks, per the Nominatim usage policy.
 ]]></description>
-            <enclosure url="https://github.com/ikoshura/Sajda/releases/download/v4.5.0/Sajda-4.5.0.dmg" length="15827104" type="application/octet-stream" sparkle:edSignature="YiyJbkhQN1aR1FxP+1C/bZpN2+EKulChtz1X+XG9rTXEoul8obA2iQR3HQTTcIPBhTdNMI1l8oqlSmaSxvSdDg=="/>
+            <enclosure url="https://github.com/ikoshura/Sajda/releases/download/v4.5.1/Sajda-4.5.1.dmg" length="15834163" type="application/octet-stream" sparkle:edSignature="mWdnUVQOA1shDtBk0V3aeSEyvGdhXTBS5Ayr29fdGnFqh6U1ez2AkPLVVLYRmyReweq3EpBxEzP0c1JvjTbFAw=="/>
         </item>
     </channel>
 </rss>
