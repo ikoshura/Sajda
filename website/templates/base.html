@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#0d0a1f" />
+
+    <title>{% block title %}{{ config.title }}{% endblock title %}</title>
+    <meta
+      name="description"
+      content="{% block description %}{{ config.description }}{% endblock description %}"
+    />
+    <meta
+      property="og:title"
+      content="{% block ogtitle %}{{ config.title }}{% endblock ogtitle %}"
+    />
+    <meta
+      property="og:description"
+      content="{% block ogdescription %}{{ config.description }}{% endblock ogdescription %}"
+    />
+    <meta property="og:type" content="website" />
+    {% if config.extra.og_image %}
+    <meta property="og:image" content="{{ config.base_url }}{{ config.extra.og_image }}" />
+    {% endif %}
+
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🕌</text></svg>"
+    />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,slnt,wdth,wght,GRAD,XOPQ,XTRA,YOPQ,YTAS,YTDE,YTFI,YTLC,YTUC@8..144,-10..0,25..151,100..1000,-200..150,27..175,323..603,25..135,649..854,-305..-98,560..788,416..570,528..760&display=swap"
+      rel="stylesheet"
+    />
+
+    <link
+      rel="stylesheet"
+      href="{{ get_url(path='main.css', cachebust=true) }}"
+    />
+  </head>
+  <body>
+    {% include "partials/header.html" %}
+
+    <main>{% block content %}{% endblock content %}</main>
+
+    {% include "partials/footer.html" %}
+
+    <script>
+      (function () {
+        "use strict";
+        document.querySelectorAll("[data-copy]").forEach(function (btn) {
+          btn.addEventListener("click", function () {
+            var text = btn.getAttribute("data-copy");
+            var done = function () {
+              btn.setAttribute("data-copied", "");
+              setTimeout(function () {
+                btn.removeAttribute("data-copied");
+              }, 1800);
+            };
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              navigator.clipboard.writeText(text).then(done);
+            } else {
+              var ta = document.createElement("textarea");
+              ta.value = text;
+              ta.style.position = "absolute";
+              ta.style.left = "-9999px";
+              document.body.appendChild(ta);
+              ta.select();
+              try {
+                document.execCommand("copy");
+              } catch (e) {}
+              ta.remove();
+              done();
+            }
+          });
+        });
+      })();
+    </script>
+  </body>
+</html>

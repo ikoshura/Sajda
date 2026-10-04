@@ -1,0 +1,20 @@
+<?xml version="1.0" standalone="yes"?>
+<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
+    <channel>
+        <title>Sajda</title>
+        <item>
+            <title>4.5.1</title>
+            <pubDate>Mon, 05 Oct 2026 04:13:32 +0700</pubDate>
+            <sparkle:version>41</sparkle:version>
+            <sparkle:shortVersionString>4.5.1</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description sparkle:format="markdown"><![CDATA[# Sajda 4.5.1
+
+### Legal and attribution patch
+- Expanded Acknowledgements (in-app About + README): every dependency now lists its license (all MIT), the transitive MenuBarExtraAccess is credited, bundled adhan audio cites its Public Domain Mark 1.0 sources, city search carries the required OpenStreetMap/ODbL attribution, and the mosque artwork credits Nawicon (Noun Project, CC BY 3.0).
+- City search backend is now switchable without an app update: a small config file can redirect or disable it if the provider ever asks, per the Nominatim usage policy.
+]]></description>
+            <enclosure url="https://github.com/ikoshura/Sajda/releases/download/v4.5.1/Sajda-4.5.1.dmg" length="15834163" type="application/octet-stream" sparkle:edSignature="mWdnUVQOA1shDtBk0V3aeSEyvGdhXTBS5Ayr29fdGnFqh6U1ez2AkPLVVLYRmyReweq3EpBxEzP0c1JvjTbFAw=="/>
+        </item>
+    </channel>
+</rss>

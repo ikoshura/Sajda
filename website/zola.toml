@@ -1,0 +1,16 @@
+base_url = "https://ikoshura.github.io/Sajda"
+title = "Sajda Pro"
+description = "A minimalist prayer times app for the macOS menu bar. Adhan countdown, red alert, mosque timetables — offline, no tracking."
+default_language = "en"
+compile_sass = true
+output_dir = "../docs"
+
+
+
+[extra]
+github = "https://github.com/ikoshura/Sajda"
+releases = "https://github.com/ikoshura/Sajda/releases"
+kofi = "https://ko-fi.com/ikoshura"
+sponsors = "https://github.com/sponsors/ikoshura"
+brew = "brew install --cask ikoshura/sajda/sajda"
+og_image = "/images/screenshot-og.jpg"

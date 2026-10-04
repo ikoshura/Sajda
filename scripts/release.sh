@@ -184,8 +184,17 @@ fi
   --maximum-versions 3 \
   "$APPCAST_SRC"
 
-cp "${APPCAST_SRC}/appcast.xml" docs/appcast.xml
-echo "appcast -> docs/appcast.xml"
+cp "${APPCAST_SRC}/appcast.xml" website/static/appcast.xml
+echo "appcast -> website/static/appcast.xml"
+# Rebuild the site so the published copy under docs/ (GitHub Pages) picks it
+# up — zola build cleans output_dir, so this is also what re-emits everything
+# in website/static/ (appcast, geocode.json, RELEASE.md, .nojekyll).
+if command -v zola > /dev/null 2>&1; then
+  (cd website && zola build)
+  echo "site -> docs/ (zola build)"
+else
+  echo "warning: zola not installed; docs/ not regenerated" >&2
+fi
 
 # -------------------------------------------------------------- verify ------
 step "Verifying with Gatekeeper"
