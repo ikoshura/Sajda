@@ -3,44 +3,23 @@
     <channel>
         <title>Sajda</title>
         <item>
-            <title>4.4.15</title>
-            <pubDate>Sat, 03 Oct 2026 15:39:29 +0700</pubDate>
-            <sparkle:version>39</sparkle:version>
-            <sparkle:shortVersionString>4.4.15</sparkle:shortVersionString>
+            <title>4.5.0</title>
+            <pubDate>Mon, 05 Oct 2026 02:46:57 +0700</pubDate>
+            <sparkle:version>40</sparkle:version>
+            <sparkle:shortVersionString>4.5.0</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <description sparkle:format="markdown"><![CDATA[# Sajda 4.4.15
+            <description sparkle:format="markdown"><![CDATA[# Sajda 4.5.0
 
-### Properly signed and notarized
-Sajda is now signed with a Developer ID certificate and notarized by Apple, so it opens normally — no workaround needed.
+### Mosque timetables are now offline files
+Prayer times from your mosque are now imported as files — an annual PDF calendar, a ZIP of monthly CSVs, or individual CSVs — and stored on your Mac. They work fully offline: no lookups, no downloads, no accounts. Manage them in Settings > Mosque Timetable.
 
-### Updates install themselves
-Adds Sparkle: new versions are downloaded, verified against a signature, installed and relaunched from inside the app. Turn it on in Settings if you haven't already.
+### Fix: CSV timetables without iqama left an empty gap
+Timetables that publish only adhan times reserved the iqama column anyway, so every clock sat a column away from the right edge with nothing in the gap. The column is now reserved only when the timetable actually publishes an iqama gap for today.
 
-### Fix: red alert left some controls in the old accent colour
-When a prayer became imminent the panel turned red — but the mute buttons and the location row's tick kept your accent colour, so a teal or green pick left teal controls sitting on a red panel. They now follow the alert like everything else does.
-
-### Fix: mute button sitting on top of the time
-On the 12-hour clock — the default — each prayer time was drawn wider than the column reserved for it, so the digits spilled left into the mute button's slot and the two overlapped. It hid whenever **Show Sunnah Prayers** was on, because that setting reserves an extra slot which happened to be just wide enough to cover the overflow.
-
-### Fix: "Minimal Menu Bar" also changed the panel
-That setting shortened the menu bar and, at the same time, dropped AM/PM from every clock in the panel. It now affects the menu bar only.
-
-### Fix: invisible icons with certain colours (issue #24)
-With some theme colours the mute rings and the mosque-search page arrows blended into the panel while staying clickable. Small glyphs now fall back to the system accent when a chosen colour is too pale to read.
-
-### Fix: update notice contrast (issue #24)
-The "Update available" text on the About page was unreadable with pale highlight colours. Its text and icon now adapt to the colour automatically.
-
-### Fix: stale update badge (issue #24)
-The update badge could stick around after you had already updated. It now re-checks itself whenever the panel opens.
-
-### Accent Panel follows the red alert
-With Accent Panel on, the whole panel turns red while the imminent-prayer alert is showing, then returns to your colour.
-
-### Support links
-About now has Support Sajda and Sponsor on GitHub rows.
+### Fix: February spillover rows counted twice
+Some monthly exports append March 1 as a 29th February row. That copy is now dropped, so February 28 is followed by March 1 with no duplicate day.
 ]]></description>
-            <enclosure url="https://github.com/ikoshura/Sajda/releases/download/v4.4.15/Sajda-4.4.15.dmg" length="15805335" type="application/octet-stream" sparkle:edSignature="ONrbkXoBZ7YoY2F2oDQEYcLWU9WL8oY66oUTYUd4v4iSeP72FLz7TJUygOrr5m2hiH4noG+lLTQVcchu7uz+Cw=="/>
+            <enclosure url="https://github.com/ikoshura/Sajda/releases/download/v4.5.0/Sajda-4.5.0.dmg" length="15827104" type="application/octet-stream" sparkle:edSignature="YiyJbkhQN1aR1FxP+1C/bZpN2+EKulChtz1X+XG9rTXEoul8obA2iQR3HQTTcIPBhTdNMI1l8oqlSmaSxvSdDg=="/>
         </item>
     </channel>
 </rss>
