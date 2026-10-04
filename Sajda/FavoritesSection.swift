@@ -103,7 +103,7 @@ struct FavoritesSection: View {
     /// The Button's label owns the row padding + trailing slot so the hit
     /// area is exactly the hover pill (no dead strips at the pill's edges).
     private var automaticRow: some View {
-        let isActive = !vm.isUsingManualLocation && !vm.useMawaqitSchedule
+        let isActive = !vm.isUsingManualLocation && !vm.useCustomTimetable
         // Folds with every other pick: the caption row above is where
         // "Finding your location…" and any failure to find it are reported, so
         // there is nothing left to watch down here.
@@ -148,22 +148,16 @@ struct FavoritesSection: View {
 
     private func favoriteRow(_ favorite: FavoritePlace) -> some View {
         let isActive = vm.isFavoriteActive(favorite)
-        let isLoading = vm.favoriteMosqueLoadingSlug == favorite.slug && favorite.kind == .mosque
         // The row Button's label owns the padding + full-width content
         // (including a reserved 20pt slot for the heart), so the hit area is
         // exactly the hover pill — no dead strips at the pill's edges and no
         // dead column around the heart. The heart overlays that slot as its
         // own button, at the same x it had as an HStack sibling.
         return Button(action: {
-            Task { @MainActor in
-                // Folds the list only when the switch has actually landed, so a
-                // mosque still downloading keeps its row — and its spinner —
-                // on screen (`activateFavorite` returns false for that).
-                if vm.activateFavorite(favorite) { onLocationPicked() }
-            }
+            if vm.activateFavorite(favorite) { onLocationPicked() }
         }) {
             HStack(spacing: 6) {
-                Image(systemName: favorite.kind == .mosque ? "building.columns" : "mappin.circle")
+                Image(systemName: favorite.kind == .timetable ? "building.columns" : "mappin.circle")
                     .scaledFont(.caption)
                     .foregroundColor(isActive ? vm.legibleInteractiveAccent : .secondary)
                     .frame(width: 16)
@@ -185,10 +179,7 @@ struct FavoritesSection: View {
                 // checkmark keeps the exact x it had next to the heart; the
                 // heart overlay sits on the second (reserved) 20pt slot.
                 HStack(spacing: 0) {
-                    if isLoading {
-                        ProgressView().controlSize(.mini)
-                            .frame(width: 20)
-                    } else if isActive {
+                    if isActive {
                         Image(systemName: "checkmark")
                             .scaledFont(.caption, weight: .semibold)
                             .foregroundColor(vm.legibleInteractiveAccent)
@@ -209,7 +200,6 @@ struct FavoritesSection: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .disabled(isLoading)
         // Filled heart removes from favorites; overlays the reserved trailing
         // slot so it stays a separate action without leaving dead hit zones.
         .overlay(alignment: .trailing) {

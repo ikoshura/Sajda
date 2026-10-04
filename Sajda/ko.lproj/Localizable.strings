@@ -139,16 +139,17 @@
 "color_green" = "초록";
 "color_graphite" = "회색";
 
-/* Mosque timetable (Mawaqit) */
-"Mosque Timetable" = "모스크 시간표";
-"Search for a mosque..." = "모스크 검색...";
-"Downloading..." = "다운로드 중...";
-"mawaqit_ready" = "✓ 오프라인 준비 완료（%@）";
-"Couldn't reach mawaqit.net." = "mawaqit.net에 연결할 수 없습니다.";
+/* Custom timetable (local CSV import) */
+"Custom Timetable" = "Custom Timetable";
 "Refresh" = "새로 고침";
 "Use Calculated Times Instead" = "계산된 시간 사용";
-"Use a mosque timetable instead" = "모스크 시간표 사용";
+"Use a custom timetable instead" = "모스크 시간표 사용";
 "Use Calculated Times" = "계산된 시간 사용";
+"timetable_import_hint" = "PDF, ZIP (12 monthly CSVs), or CSV files from your mosque. Files stay on your Mac.";
+"Choose" = "Choose";
+"Add timetable" = "Add timetable";
+"Delete timetable" = "Delete timetable";
+"Import timetable" = "Import timetable";
 "Appearance" = "외관";
 "Visual" = "비주얼";
 "Prayer" = "기도";
@@ -172,17 +173,12 @@
 "Turn On" = "켜기";
 "Recommended: turn on Compact View to fit this text size." = "권장: 이 텍스트 크기에 맞추려면 간결한 보기를 켜세요.";
 "Page %d of %d" = "%d / %d 페이지";
-"Top 10 matches — refine to narrow down." = "상위 10개 결과 — 검색어를 좁혀 보세요.";
-"%d matches — refine your search to narrow it down." = "%d개 결과 — 검색어를 좁혀 보세요.";
-"Next results" = "다음 결과";
-"Previous results" = "이전 결과";
 "Mute Adhan" = "아잔 음소거";
 "Unmute Adhan" = "아잔 음소거 해제";
 "Retry Location" = "위치 다시 시도";
 "Remove from Favorites" = "즐겨찾기에서 제거";
 "Add to Favorites" = "즐겨찾기에 추가";
 "Search for a city…" = "도시 검색…";
-"Search for a mosque…" = "모스크 검색…";
 "Use Automatic Location" = "자동 위치 사용";
 "Refresh the mosque's schedule" = "모스크 일정 새로 고침";
 "Check for the latest version" = "최신 버전 확인";

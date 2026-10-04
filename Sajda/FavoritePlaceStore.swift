@@ -44,18 +44,14 @@ extension PrayerTimeViewModel {
         }
     }
 
-    func isMosqueFavorite(slug: String) -> Bool {
-        favoritePlaces.contains { $0.kind == .mosque && $0.slug == slug }
-    }
-
     /// True when the currently active source is already starred — drives the
     /// empty-state row's trailing star on the main screen. City matching is
     /// by coordinates (not name/country) so a favorite saved from search —
     /// which carries a country string — still matches the manual source.
     var isCurrentSelectionFavorite: Bool {
-        if useMawaqitSchedule {
-            guard let slug = mawaqitMosque?.slug ?? MawaqitService.load()?.slug else { return false }
-            return favoritePlaces.contains { $0.kind == .mosque && $0.slug == slug }
+        if useCustomTimetable {
+            guard let id = activeTimetableId else { return false }
+            return favoritePlaces.contains { $0.kind == .timetable && $0.timetableId == id }
         }
         if isUsingManualLocation, let coords = currentCoordinatesForFavorites {
             return favoritePlaces.contains {
@@ -67,15 +63,13 @@ extension PrayerTimeViewModel {
         return false
     }
 
-    /// Stars whatever is currently active (manual city or mosque timetable)
-    /// into favorites from the main screen's empty state.
+    /// Stars whatever is currently active (manual city or timetable) into
+    /// favorites from the main screen's empty state.
     func starCurrentSelection() {
-        if useMawaqitSchedule {
-            let slug = mawaqitMosque?.slug ?? MawaqitService.load()?.slug
-            let label = mawaqitMosque?.name ?? MawaqitService.load()?.name ?? panelLocationCaption
-            guard let slug else { return }
-            guard !isMosqueFavorite(slug: slug) else { return }
-            toggleMosqueFavorite(slug: slug, label: label)
+        if useCustomTimetable, let timetable = customTimetable {
+            let place = FavoritePlace.timetable(timetable, subtitle: Self.timetableFavoriteSubtitle(timetable))
+            guard !favoritePlaces.contains(where: { $0.id == place.id }) else { return }
+            addFavorite(place)
         } else if isUsingManualLocation, let coords = currentCoordinatesForFavorites {
             // Country isn't shown on the caption, so reuse the favorite's
             // stored country when these coordinates were starred before
@@ -95,126 +89,83 @@ extension PrayerTimeViewModel {
         }
     }
 
-    /// Stars a mosque search hit. Kicks off a background calendar download so
-    /// the favorite switches instantly (and offline) later.
-    func toggleMosqueFavorite(slug: String, label: String) {
-        let place = FavoritePlace.mosque(slug: slug, label: label)
+    /// Short printable summary used as a timetable favorite's subtitle.
+    static func timetableFavoriteSubtitle(_ timetable: CustomTimetable) -> String {
+        let days = timetable.calendar.reduce(0) { $0 + $1.count }
+        var parts = ["\(days) days"]
+        if timetable.iqamaCalendar != nil { parts.append("iqama") }
+        if let jumua = timetable.jumuahSessions, !jumua.isEmpty { parts.append("jumua") }
+        return parts.joined(separator: " · ")
+    }
+
+    /// Stars or unstars a library timetable by id. Adding keeps the newest at
+    /// the end, like cities.
+    func toggleTimetableFavorite(_ timetable: CustomTimetable) {
+        let place = FavoritePlace.timetable(timetable, subtitle: Self.timetableFavoriteSubtitle(timetable))
         if favoritePlaces.contains(where: { $0.id == place.id }) {
             removeFavorite(id: place.id)
         } else {
             addFavorite(place)
-            ensureMosqueCached(slug: slug)
+        }
+    }
+
+    func isTimetableFavorite(id: String) -> Bool {
+        favoritePlaces.contains { $0.kind == .timetable && $0.timetableId == id }
+    }
+
+    /// Drops favorites whose timetable no longer exists in the library.
+    /// Called after a delete so the panel never offers a dead switch.
+    func pruneMissingTimetableFavorites() {
+        let known = Set(CustomTimetableStore.loadAll().map(\.id))
+        let current = favoritePlaces.filter {
+            $0.kind != .timetable || ($0.timetableId.map { known.contains($0) } ?? false)
+        }
+        if current.count != favoritePlaces.count {
+            favoritePlaces = current
+            FavoritePlace.save(current)
         }
     }
 
     /// True when this favorite is the currently active time source.
-    /// Side-effect free: never assigns `mawaqitMosque` here (doing so while
-    /// SwiftUI is reading the row would publish during a view update and can
-    /// crash). Falls back to a disk read without storing.
     func isFavoriteActive(_ favorite: FavoritePlace) -> Bool {
         switch favorite.kind {
         case .city:
-            guard isUsingManualLocation, !useMawaqitSchedule else { return false }
+            guard isUsingManualLocation, !useCustomTimetable else { return false }
             if let lat = favorite.latitude, let lon = favorite.longitude,
                let current = currentCoordinatesForFavorites {
                 return abs(current.latitude - lat) < 0.0001 && abs(current.longitude - lon) < 0.0001
             }
             return locationStatusText == favorite.name
+        case .timetable:
+            guard useCustomTimetable, let id = favorite.timetableId else { return false }
+            if let active = customTimetable, active.id == id { return true }
+            return CustomTimetableStore.timetable(id: activeTimetableId)?.id == id
         case .mosque:
-            guard useMawaqitSchedule else { return false }
-            if let mosque = mawaqitMosque {
-                return mosque.slug == favorite.slug
-            }
-            return MawaqitService.load()?.slug == favorite.slug
+            // Mosque favorites were removed with the timetable import change.
+            return false
         }
     }
 
-    /// Switches to a favorite. City switches are synchronous (same safe
-    /// ordering as `setManualLocation`: coordinates first, timetable mode off
-    /// last, so no intermediate state can crash). Mosque switches use the
-    /// per-slug offline cache when present and download otherwise — always
-    /// activating on the main thread like the Settings flow does.
-    /// The `favoriteMosqueLoadingSlug` guard is the hidden mode-switch
-    /// workaround: only one mosque download runs at a time, and the row is
-    /// disabled while it runs, so tapping city ↔ mosque (or two mosques) in
-    /// quick succession can't interleave two mode flips and crash.
-    @MainActor
     /// Activates a favourite, and reports whether the switch landed *now*.
-    ///
-    /// The panel's location list folds itself on a `true` — that is
-    /// @iMacLion's "instantly switch to it, close the dropdown" (issue #23).
-    /// `false` means it should stay open: either nothing happened (a city
-    /// favourite with no coordinates), or a mosque timetable is still
-    /// downloading, and that row's spinner is the only progress feedback the
-    /// download has — folding would take it off screen along with the list.
     @discardableResult
     func activateFavorite(_ favorite: FavoritePlace) -> Bool {
         switch favorite.kind {
         case .city:
-            // City taps always win: cancel any pending mosque download first,
-            // so mosque → city feels instant and can never interleave two
-            // mode flips. The stale download's guard below then drops it.
-            favoriteMosqueLoadingSlug = nil
             guard let lat = favorite.latitude, let lon = favorite.longitude else { return false }
             setManualLocation(
                 city: favorite.name,
                 coordinates: CLLocationCoordinate2D(latitude: lat, longitude: lon)
             )
             return true
+        case .timetable:
+            guard let id = favorite.timetableId,
+                  let timetable = CustomTimetableStore.timetable(id: id) else { return false }
+            customTimetable = timetable
+            activeTimetableId = id
+            useCustomTimetable = true
+            return true
         case .mosque:
-            guard let slug = favorite.slug else { return false }
-            // Same mosque already active: nothing to do — but the tap was a
-            // pick, so the list still folds.
-            if useMawaqitSchedule, mawaqitMosque?.slug == slug { return true }
-            // A different mosque is still downloading: ignore, don't stack.
-            guard favoriteMosqueLoadingSlug == nil else { return false }
-            if let cached = MawaqitService.load(slug: slug) {
-                activateMosqueSchedule(cached)
-                return true
-            }
-            favoriteMosqueLoadingSlug = slug
-            Task { @MainActor in
-                defer { self.favoriteMosqueLoadingSlug = nil }
-                do {
-                    let mosque = try await MawaqitService.fetchCalendar(slug: slug)
-                    // User may have tapped a city while this downloaded: only
-                    // activate when this favorite is still the pending one.
-                    guard self.favoriteMosqueLoadingSlug == slug else { return }
-                    try? MawaqitService.saveToCache(mosque)
-                    self.activateMosqueSchedule(mosque)
-                } catch {
-                    NSLog("Favorite mosque download failed: %@", error.localizedDescription)
-                }
-            }
-            // Downloading, not switched: the list stays open, because this
-            // row's spinner is the only progress the download shows. The tap
-            // that lands it goes through `activateMosqueSchedule` from inside
-            // the task, which the caller is not waiting on — so the list folds
-            // on the next time the user touches the row.
             return false
-        }
-    }
-
-    /// Downloads a mosque calendar into the per-slug offline cache without
-    /// activating it, so a starred mosque is ready when tapped.
-    ///
-    /// Existence alone isn't enough to skip: a cache written by an older build
-    /// has no Jumu'ah or iqama fields, and serving that to the user would show
-    /// a mosque with no Friday sessions even though the app has (or can get)
-    /// them. Such a copy is re-downloaded when there's a connection, and
-    /// `enriched(_:)` fills it in offline from the active file meanwhile.
-    func ensureMosqueCached(slug: String) {
-        if let cached = MawaqitService.load(slug: slug),
-           !(cached.jumuaSessions?.isEmpty ?? true), cached.iqamaCalendar != nil {
-            return
-        }
-        Task {
-            do {
-                let mosque = try await MawaqitService.fetchCalendar(slug: slug)
-                try? MawaqitService.saveToCache(mosque)
-            } catch {
-                NSLog("Favorite mosque prefetch failed: %@", error.localizedDescription)
-            }
         }
     }
 }

@@ -126,7 +126,7 @@ struct PrayerTimeCorrectionView: View {
                 .frame(maxWidth: .infinity)
 
             // A mosque timetable publishes the mosque's own adhan times, so
-            // the adhan offsets have nothing to correct — `applyMawaqitDay`
+            // the adhan offsets have nothing to correct — `applyTimetableDay`
             // no longer shifts them. The stored values are kept rather than
             // cleared, for the same reason: they come straight back if the
             // timetable is switched off.

@@ -138,21 +138,17 @@
 "color_green" = "Green";
 "color_graphite" = "Graphite";
 
-/* Mosque timetable (Mawaqit) */
-"Mosque Timetable" = "Mosque Timetable";
-"Search for a mosque..." = "Search for a mosque...";
-"Downloading..." = "Downloading...";
-"mawaqit_ready" = "✓ Ready offline (%@)";
-"Couldn't reach mawaqit.net." = "Couldn't reach mawaqit.net.";
+/* Custom timetable (local CSV import) */
+"Custom Timetable" = "Custom Timetable";
 "Page %d of %d" = "Page %d of %d";
-"Top 10 matches — refine to narrow down." = "Top 10 matches — refine to narrow down.";
-"%d matches — refine your search to narrow it down." = "%d matches — refine your search to narrow it down.";
-"Next results" = "Next results";
-"Previous results" = "Previous results";
 "Refresh" = "Refresh";
-"Use Calculated Times Instead" = "Use Calculated Times Instead";
-"Use a mosque timetable instead" = "Use a mosque timetable instead";
+"Use a custom timetable instead" = "Use a custom timetable instead";
 "Use Calculated Times" = "Use Calculated Times";
+"timetable_import_hint" = "PDF, ZIP (12 monthly CSVs), or CSV files from your mosque. Files stay on your Mac.";
+"Choose" = "Choose";
+"Add timetable" = "Add timetable";
+"Delete timetable" = "Delete timetable";
+"Import timetable" = "Import timetable";
 "Appearance" = "Appearance";
 "Visual" = "Visual";
 "Prayer" = "Prayer";
@@ -183,7 +179,6 @@
 "Remove from Favorites" = "Remove from Favorites";
 "Add to Favorites" = "Add to Favorites";
 "Search for a city…" = "Search for a city…";
-"Search for a mosque…" = "Search for a mosque…";
 "Use Automatic Location" = "Use Automatic Location";
 "Refresh the mosque's schedule" = "Refresh the mosque's schedule";
 "Check for the latest version" = "Check for the latest version";

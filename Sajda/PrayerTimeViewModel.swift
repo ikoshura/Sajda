@@ -207,20 +207,49 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
     /// just Fridays — so travellers can plan ahead. Republishes so the panel
     /// redraws the moment the toggle flips.
     @AppStorage("alwaysShowJumuah") var alwaysShowJumuah: Bool = false { didSet { objectWillChange.send() } }
-    /// Downloaded Mawaqit mosque schedule; loaded from disk on first use.
-    @Published var mawaqitMosque: MawaqitMosque?
-    /// Saved favorite cities + mosque timetables (max 5), loaded from disk.
+    /// Cached copy of the active library timetable. Every read goes through
+    /// `resolvedTimetable()` / `activeTimetableId`, so a delete-and-switch on
+    /// another screen can never leave this pointing at a removed timetable.
+    @Published var customTimetable: CustomTimetable?
+    /// Saved favorite cities + timetables (max 5), loaded from disk.
     @Published var favoritePlaces: [FavoritePlace] = FavoritePlace.load()
     /// True once the user has ever starred a favorite (persists after
     /// removal) — drives the first-run guide hint on the main screen.
     @AppStorage("hasEverSavedFavorite") var hasEverSavedFavorite: Bool = false
-    /// Slug of a favorite mosque currently downloading (spinner in the list).
-    @Published var favoriteMosqueLoadingSlug: String?
     /// Read-only view of the active coordinates for favorite matching.
     var currentCoordinatesForFavorites: CLLocationCoordinate2D? { currentCoordinates }
-    /// When true the panel, menu bar, and notifications read the mosque
-    /// calendar instead of calculating from coordinates.
-    @AppStorage("useMawaqitSchedule") var useMawaqitSchedule: Bool = false { didSet { updatePrayerTimes() } }
+    /// When true the panel, menu bar, and notifications read the active
+    /// imported timetable instead of calculating from coordinates.
+    @AppStorage("useCustomTimetable") var useCustomTimetable: Bool = false { didSet { updatePrayerTimes() } }
+    /// Id of the active library timetable (`CustomTimetable.id`). The panel's
+    /// single source of truth for *which* timetable is live — independent of
+    /// the cached copy above.
+    @AppStorage("activeTimetableId") var activeTimetableId: String?
+    /// All saved library timetables, newest import last. Published so the
+    /// Settings list redraws on add/delete; persisted by the store.
+    @Published var customTimetables: [CustomTimetable] = CustomTimetableStore.loadAll()
+
+    /// The active library timetable, read straight from the store when the id
+    /// doesn't match the cached copy. Pure: never publishes, so it is safe to
+    /// read from a view body. The cache is synced in `updatePrayerTimes()`
+    /// (the only place that is allowed to publish).
+    func resolvedTimetable() -> CustomTimetable? {
+        if let cached = customTimetable, cached.id == activeTimetableId { return cached }
+        return CustomTimetableStore.timetable(id: activeTimetableId)
+    }
+
+    /// Writes the store's copy of the active timetable into the cached
+    /// `@Published` slot. Only ever called from `updatePrayerTimes()` — a
+    /// view body must never do this, because SwiftUI rejects publishing
+    /// during its own layout pass.
+    private func syncTimetableCache() {
+        guard let id = activeTimetableId else {
+            if customTimetable != nil { customTimetable = nil }
+            return
+        }
+        if customTimetable?.id == id { return }
+        customTimetable = CustomTimetableStore.timetable(id: id)
+    }
     // Gaya Liquid Glass di atas highlight waktu sholat berikutnya (opsional).
     @AppStorage("useGlassPrayerHighlight") var useGlassPrayerHighlight: Bool = true
     @AppStorage("isNotificationsEnabled") var isNotificationsEnabled: Bool = true { didSet { updateNotifications() } }
@@ -321,6 +350,16 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
         self.authorizationStatus = locMgr.authorizationStatus
         super.init()
         migratePrayerSoundConfigs()
+        // One-time cleanup of scraped-schedule caches from builds that had the
+        // old network timetable downloader; imported timetables live in
+        // `custom_timetables.json` and are never touched here.
+        CustomTimetableStore.deleteLegacyMosqueCaches()
+        // Warm the active-timetable cache before anything reads it, so the
+        // first view body never falls back to a disk read.
+        syncTimetableCache()
+        // Prune favorites whose timetable no longer exists in the library, so
+        // the panel never offers a switch that resolves to nothing.
+        pruneMissingTimetableFavorites()
         locMgr.delegate = self
         locMgr.desiredAccuracy = kCLLocationAccuracyKilometer
         locMgr.distanceFilter = kCLDistanceFilterNone
@@ -468,7 +507,7 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
         // source. (Setting this last recalculates from the fresh coords via
         // its didSet; setting it earlier would recalc from stale ones.)
         currentCoordinates = coordinates
-        useMawaqitSchedule = false
+        useCustomTimetable = false
         authorizationStatus = locMgr.authorizationStatus
         locationSearchQuery = ""
         locationSearchResults = []
@@ -520,14 +559,14 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
         manualLocationFallbackForAutomaticSwitch = loadManualLocation()
         isUsingManualLocation = false
         // Coordinates go before the flag that recalculates from them:
-        // `useMawaqitSchedule`'s didSet runs `updatePrayerTimes()`, and with the
+        // `useCustomTimetable`'s didSet runs `updatePrayerTimes()`, and with the
         // old source's coordinates still set that queued a write of the very
         // times being left behind — which landed *after* this switch and
         // repainted the panel with them. Cleared first, that recalculation
         // returns at the coordinates guard instead.
         currentCoordinates = nil
         // Leaving mosque-timetable mode: automatic location is the new source.
-        useMawaqitSchedule = false
+        useCustomTimetable = false
 
         lastCalculationDate = nil
         locationInfoText = ""
@@ -640,17 +679,16 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
         }
         lastCalculationDate = Date()
 
-        // Mosque timetable (Mawaqit): runs fully offline from the downloaded
-        // calendar and needs no coordinates. Falls through to the calculated
-        // path when the calendar doesn't cover today (e.g. Dec 31 before the
-        // mosque publishes the new year).
-        if mawaqitMosque == nil { mawaqitMosque = MawaqitService.load() }
-        if useMawaqitSchedule, let mosque = mawaqitMosque {
-            if let day = MawaqitService.times(for: Date(), in: mosque.calendar) {
-                applyMawaqitDay(day, mosque: mosque)
+        // Custom timetable: runs fully offline from the imported CSV and needs
+        // no coordinates. Falls through to the calculated path when the
+        // timetable doesn't cover today (e.g. Dec 31 of a one-year file).
+        syncTimetableCache()
+        if useCustomTimetable, let timetable = resolvedTimetable() {
+            if let day = CustomTimetableStore.times(for: Date(), in: timetable.calendar) {
+                applyTimetableDay(day, timetable: timetable)
                 return
             }
-            logger.warning("Mawaqit calendar does not cover today; using calculated times.")
+            logger.warning("Custom timetable does not cover today; using calculated times.")
         }
 
         guard let coord = currentCoordinates else { return }
@@ -710,24 +748,24 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
         }
     }
 
-    /// Builds today's times from a mosque calendar day
+    /// Builds today's times from a custom timetable day
     /// `[fajr, sunrise, dhuhr, asr, maghrib, isha]` ("HH:MM", Mac timezone).
-    private func applyMawaqitDay(_ day: [String], mosque: MawaqitMosque) {
+    private func applyTimetableDay(_ day: [String], timetable: CustomTimetable) {
         guard day.count >= 6,
               let rawFajr = dateFromHM(day[0]), let rawDhuhr = dateFromHM(day[2]),
               let rawAsr = dateFromHM(day[3]), let rawMaghrib = dateFromHM(day[4]),
               let rawIsha = dateFromHM(day[5]) else {
-            logger.warning("Mawaqit day entry incomplete; keeping previous times.")
+            logger.warning("Custom timetable day entry incomplete; keeping previous times.")
             return
         }
 
-        // The mosque's published times are the answer in timetable mode, so
-        // the adhan offsets are deliberately *not* applied here: there is no
-        // calculated time here to bring into line with the local mosque, and
-        // shifting a mosque's own times only makes them wrong. The offsets stay
-        // stored and apply again the moment calculated times come back — which
-        // is why the Time Correction page greys this tab out while a timetable
-        // is active (see `isMosqueTimetableActive`).
+        // The timetable's own times are the answer in timetable mode, so the
+        // adhan offsets are deliberately *not* applied here: there is no
+        // calculated time here to bring into line with the local timetable, and
+        // shifting them only makes them wrong. The offsets stay stored and
+        // apply again the moment calculated times come back — which is why the
+        // Time Correction page greys this tab out while a timetable is active
+        // (see `isMosqueTimetableActive`).
         let fajr = rawFajr
         let dhuhr = rawDhuhr
         let asr = rawAsr
@@ -735,54 +773,35 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
         let isha = rawIsha
 
         // Tomorrow's Fajr for the after-Isha highlight. At the year's edge the
-        // new calendar may not be published yet, so fall back to today's Fajr
-        // clock time on tomorrow's date (the estimate the Mawaqit applet uses).
+        // timetable may not cover tomorrow, so fall back to today's Fajr clock
+        // time on tomorrow's date.
         let tomorrow = Date().addingTimeInterval(86_400)
-        let fajrTomorrow = MawaqitService.times(for: tomorrow, in: mosque.calendar)
+        let fajrTomorrow = CustomTimetableStore.times(for: tomorrow, in: timetable.calendar)
             .flatMap { dateFromHM($0[0], on: tomorrow) }
             ?? dateFromHM(day[0], on: tomorrow)
             ?? rawFajr.addingTimeInterval(86_400)
 
-        // Sunnah prayers stay usable in mosque mode, counted locally: Tahajud
-        // from the *ongoing* night, and Dhuha 20 minutes after the mosque's
-        // sunrise. Both are derived from the mosque's own times, so neither
+        // Sunnah prayers stay usable in timetable mode, counted locally: Tahajud
+        // from the *ongoing* night, and Dhuha 20 minutes after the timetable's
+        // sunrise. Both are derived from the timetable's own times, so neither
         // carries an adhan offset.
         var extras: [(name: String, time: Date)] = []
         if showSunnahPrayers {
-            // Which night is "ongoing" is the whole trick, and it depends on
-            // where we are in the day. Before Fajr it is last night's, running
-            // into this morning's Fajr; after Fajr the night that *will* run is
-            // this evening's Isha into tomorrow's Fajr. Anchoring to today's
-            // Isha unconditionally would put the row a full day ahead once
-            // Fajr had passed, and anchoring only to the before-Fajr window (as
-            // this used to) dropped Tahajud from the panel for the rest of the
-            // day — the row simply vanished until the small hours.
-            //
-            // `nightEnd` is the *upcoming* Fajr, which `fajrTomorrow` already
-            // resolves, so the night is a real span of hours rather than a
-            // guess from today's clock time.
             let now = Date()
             let nightStart: Date
             let nightEnd: Date
             if now < fajr {
                 let yesterday = now.addingTimeInterval(-86_400)
-                if let yesterdayDay = MawaqitService.times(for: yesterday, in: mosque.calendar),
+                if let yesterdayDay = CustomTimetableStore.times(for: yesterday, in: timetable.calendar),
                    yesterdayDay.count >= 6,
                    let yesterdayIsha = dateFromHM(yesterdayDay[5], on: yesterday) {
                     nightStart = yesterdayIsha
                     nightEnd = fajr
                 } else {
-                    // Yesterday's calendar is missing (the year's first night,
-                    // before the new month is published): use tonight's instead.
                     nightStart = isha
                     nightEnd = fajrTomorrow
                 }
             } else {
-                // After Fajr: the night that *will* run is this evening's Isha
-                // into tomorrow's Fajr. Anchoring to last night here would show
-                // a night that has already ended, and skipping the row entirely
-                // — as this once did — dropped Tahajud from the panel for the
-                // whole day.
                 nightStart = isha
                 nightEnd = fajrTomorrow
             }
@@ -811,7 +830,7 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
     /// Parses "HH:MM" into a Date on the given day (Mac timezone).
     private func dateFromHM(_ hm: String, on day: Date = Date()) -> Date? {
         let parts = hm.split(separator: ":")
-        guard parts.count == 2, let hour = Int(parts[0]), let minute = Int(parts[1]) else { return nil }
+        guard parts.count >= 2, let hour = Int(parts[0]), let minute = Int(parts[1]) else { return nil }
         var cal = Calendar(identifier: .gregorian)
         cal.timeZone = .current
         var comps = cal.dateComponents([.year, .month, .day], from: day)
@@ -821,66 +840,56 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
         return cal.date(from: comps)
     }
 
-    /// Re-downloads the active mosque's calendar and re-applies it. Mawaqit
-    /// edits a mosque's Jumu'ah and iqama entries during the year, so a
-    /// schedule picked up months ago goes stale until it's re-fetched. A
-    /// failed refresh leaves the existing schedule untouched — the panel keeps
-    /// showing the times it already had rather than emptying out.
-    ///
-    /// Re-entrant calls are ignored, so a double click on the footer's refresh
-    /// doesn't fire two downloads.
-    ///
-    /// `@MainActor` is load-bearing, not decoration: the view model class
-    /// itself isn't main-actor isolated, so without it this function would
-    /// resume on a background executor after `await`ing the download and
-    /// publish `isRefreshingMosqueSchedule` (and the re-activated schedule)
-    /// off the main thread — which SwiftUI rejects outright. The class has
-    /// other async members with the same constraint; see
-    /// `handleAutomaticLocation` and `downloadMosque` in the picker.
-    @Published var isRefreshingMosqueSchedule: Bool = false
-    @MainActor
-    func refreshActiveMosqueSchedule() async {
-        guard let slug = mawaqitMosque?.slug, !isRefreshingMosqueSchedule else { return }
-        isRefreshingMosqueSchedule = true
-        defer { isRefreshingMosqueSchedule = false }
-        do {
-            let mosque = try await MawaqitService.fetchCalendar(slug: slug)
-            activateMosqueSchedule(mosque)
-            logger.info("Refreshed Mawaqit schedule for \(slug, privacy: .public).")
-        } catch {
-            logger.error("Mawaqit refresh failed: \(error.localizedDescription, privacy: .public)")
+    /// Re-applies the active library timetable from its stored copy.
+    func refreshActiveCustomTimetable() {
+        if let stored = CustomTimetableStore.timetable(id: activeTimetableId) {
+            activateCustomTimetable(stored)
         }
     }
 
-    /// Persists and activates a downloaded mosque schedule.
-    ///
-    /// Writes *both* the active file and the per-favorite cache, and merges
-    /// first (see `MawaqitService.enriched`). Activating from a favorite used
-    /// to read a cache that could be years older than what the user had just
-    /// downloaded and then overwrite the newer active file with it, so the
-    /// Jumu'ah footer vanished on a mosque → city → mosque round trip and only
-    /// came back with a refresh. Keeping the two files in step is what makes
-    /// that round trip free and works offline.
-    func activateMosqueSchedule(_ mosque: MawaqitMosque) {
-        let enriched = MawaqitService.enriched(mosque)
+    /// Saves an import into the library and activates it.
+    func activateCustomTimetable(_ timetable: CustomTimetable) {
         do {
-            try MawaqitService.save(enriched)
-            // Same payload into the per-slug cache, so tapping this mosque in
-            // Favorites later hands back exactly what is on screen now.
-            try MawaqitService.saveToCache(enriched)
+            let stored = try CustomTimetableStore.add(timetable)
+            customTimetables = CustomTimetableStore.loadAll()
+            customTimetable = stored
+            activeTimetableId = stored.id
+            useCustomTimetable = true   // didSet → updatePrayerTimes()
         } catch {
-            logger.error("Failed to save Mawaqit schedule: \(error.localizedDescription, privacy: .public)")
+            logger.error("Failed to save custom timetable: \(error.localizedDescription, privacy: .public)")
         }
-        mawaqitMosque = enriched
-        useMawaqitSchedule = true   // didSet → updatePrayerTimes()
+    }
+
+    /// Activates a saved library timetable without re-importing it.
+    func switchToTimetable(id: String) {
+        guard let timetable = CustomTimetableStore.timetable(id: id) else { return }
+        customTimetable = timetable
+        activeTimetableId = id
+        useCustomTimetable = true   // didSet → updatePrayerTimes()
+    }
+
+    /// Deletes a library timetable. Favorites pointing at it are retired; when
+    /// the deleted timetable was active, the most recently imported survivor
+    /// takes over, or calculation when none remain.
+    func deleteTimetable(id: String) {
+        CustomTimetableStore.remove(id: id)
+        customTimetables = CustomTimetableStore.loadAll()
+        pruneMissingTimetableFavorites()
+        if activeTimetableId == id {
+            if let survivor = customTimetables.last {
+                switchToTimetable(id: survivor.id)
+            } else {
+                disableCustomTimetable()
+            }
+        }
     }
 
     /// Drops back to coordinate-based calculation (the file is kept for reuse).
     /// When there are no coordinates to calculate from (e.g. location was
     /// never granted), starts the location flow so the user lands on a live
     /// permission/search state instead of stale timetable times.
-    func disableMosqueSchedule() {
-        useMawaqitSchedule = false  // didSet → updatePrayerTimes()
+    func disableCustomTimetable() {
+        useCustomTimetable = false  // didSet → updatePrayerTimes()
         if currentCoordinates == nil && !isUsingManualLocation {
             startLocationProcess()
         }
@@ -962,8 +971,9 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
     /// only ever be a guess — and a guess sitting next to a real clock reads as
     /// a fact.
     func publishedIqamaDelay(for prayer: String) -> Int? {
-        guard isMosqueTimetableActive, let mosque = mawaqitMosque else { return nil }
-        return MawaqitService.iqamaOffsets(for: Date(), in: mosque.iqamaCalendar)[prayer]
+        guard isMosqueTimetableActive, let timetable = resolvedTimetable() else { return nil }
+        return CustomTimetableStore.iqamaOffsets(for: Date(), adhan: timetable.calendar,
+                                                 iqama: timetable.iqamaCalendar)[prayer]
     }
 
     /// Iqama time for the next prayer, read from the mosque's published gap.
@@ -1026,7 +1036,7 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
         return calendar.component(.weekday, from: Date()) == 6
     }
 
-    /// True when a downloaded mosque timetable is the active source of the
+    /// True when an imported custom timetable is the active source of the
     /// times. Settings that only feed the *calculated* path (method, madhhab,
     /// high-latitude rule, the hand-entered Jumu'ah list, the iqama gap) are
     /// inert while this is on — the mosque's own published values are used
@@ -1034,21 +1044,19 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
     /// off. The UI greys those rows out through this one flag rather than each
     /// page re-deriving the condition (and disagreeing about what counts).
     var isMosqueTimetableActive: Bool {
-        useMawaqitSchedule && mawaqitMosque != nil
+        useCustomTimetable && resolvedTimetable() != nil
     }
 
     /// The sessions the panel actually shows, in minutes past midnight.
-    /// A downloaded mosque timetable wins over the hand-entered list: Mawaqit
-    /// publishes every gathering the mosque runs (`jumua`, `jumua2`, `jumua3`),
-    /// so a two- or three-khutbah mosque like Aubervilliers shows both or all
-    /// three sessions instead of only the one a user bothered to type in. The
-    /// stored list stays the fallback — it is all there is for calculated
-    /// times, and it keeps showing if the mosque publishes none.
+    /// An imported custom timetable with its own Jumu'ah list wins over the
+    /// hand-entered list, so a two- or three-khutbah mosque shows every
+    /// session instead of only the one a user typed in. The stored list stays
+    /// the fallback — it is all there is for calculated times.
     var effectiveJumuahSessions: [Int] {
-        if useMawaqitSchedule,
-           let mosque = mawaqitMosque,
-           let published = mosque.jumuaSessions?
-                .compactMap({ MawaqitService.minutesFromHM($0) }),
+        if useCustomTimetable,
+           let timetable = resolvedTimetable(),
+           let published = timetable.jumuahSessions?
+                .compactMap({ CustomTimetableStore.minutesFromHM($0) }),
            !published.isEmpty {
             return Self.sanitiseJumuahSessions(published)
         }
@@ -1091,9 +1099,9 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
         return ((total % 1440) + 1440) % 1440
     }
 
-    /// Panel caption: the mosque's name while the mosque timetable is active.
+    /// Panel caption: the timetable's name while a custom timetable is active.
     var panelLocationCaption: String {
-        if useMawaqitSchedule, let mosque = mawaqitMosque { return mosque.name }
+        if useCustomTimetable, let timetable = resolvedTimetable() { return timetable.name }
         return locationStatusText
     }
 
@@ -1632,7 +1640,7 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
         formatter.calendar = Calendar(identifier: .islamicUmmAlQura)
         formatter.locale = displayLocale
         // Same zone as the prayer times: in mosque mode the day being shown
-        // is the one `MawaqitService.times` looked up (Mac day), not the
+        // is the one `CustomTimetableStore.times` looked up (Mac day), not the
         // stale manual-location day.
         formatter.timeZone = displayTimeZone
         formatter.dateFormat = "d MMMM yyyy G"
@@ -1739,7 +1747,7 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
     /// Calculated times are true instants for the chosen location, so they
     /// render in `locationTimeZone`. Mosque-timetable times are the raw
     /// "HH:MM" wall-clock strings the mosque publishes, parsed in
-    /// `TimeZone.current` by `dateFromHM`/`MawaqitService.times` — they must
+    /// `TimeZone.current` by `dateFromHM`/`CustomTimetableStore.times` — they must
     /// render in that same zone. Otherwise a leftover manual-location zone
     /// leaks into mosque mode: switching manual location → Tokyo (UTC+9) and
     /// then activating a mosque shifted every row by the zone difference
@@ -1747,7 +1755,7 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
     /// UTC+7 Mac). Switching back to automatic "fixed" it only because that
     /// path resets `locationTimeZone` to `.current`.
     var displayTimeZone: TimeZone {
-        useMawaqitSchedule ? .current : locationTimeZone
+        useCustomTimetable ? .current : locationTimeZone
     }
 
     /// Formatter for every clock the *panel* draws: the schedule rows, the
@@ -1964,7 +1972,7 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
 
         isUsingManualLocation = false
         // Leaving mosque-timetable mode: a refresh means live location again.
-        useMawaqitSchedule = false
+        useCustomTimetable = false
         UserDefaults.standard.removeObject(forKey: "manualLocationData")
         manualLocationFallbackForAutomaticSwitch = nil
 

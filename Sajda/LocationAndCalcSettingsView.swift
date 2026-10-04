@@ -100,8 +100,8 @@ struct LocationAndCalcSettingsView: View {
                             // exit back to calculated times (manual or automatic,
                             // whichever was active); the normal two-button row
                             // returns once calculation mode is back.
-                            if vm.useMawaqitSchedule {
-                                HStack { Button("Use Calculated Times") { vm.disableMosqueSchedule() }.buttonStyle(.bordered); Spacer() }
+                            if vm.useCustomTimetable {
+                                HStack { Button("Use Calculated Times") { vm.disableCustomTimetable() }.buttonStyle(.bordered); Spacer() }
                             } else {
                                 HStack { Button("Change Manual Location") { navigationModel.showView(Self.id, animation: vm.forwardAnimation()) { ManualLocationView(isModal: false) } }.buttonStyle(.bordered); Spacer(); if vm.isUsingManualLocation { Button("Use Automatic") { vm.switchToAutomaticLocation() }.buttonStyle(.bordered) } }
                             }
@@ -132,7 +132,7 @@ struct LocationAndCalcSettingsView: View {
                             // Time Correction (whose own tabs grey out and say
                             // why). A downloaded mosque timetable replaces the
                             // path wholesale — its own published times win, see
-                            // `applyMawaqitDay` — so all of it is inert while
+                            // `applyTimetableDay` — so all of it is inert while
                             // one is active. Dimmed and non-interactive, but
                             // still shown with its values, so switching back is
                             // a one-click restore rather than a re-set.
@@ -168,8 +168,8 @@ struct LocationAndCalcSettingsView: View {
                         }
                         Rectangle().fill(Color("DividerColor")).frame(height: 0.5)
                         Group {
-                            Text("Mosque Timetable").scaledFont(.caption).foregroundColor(Color("SecondaryTextColor"))
-                            MosqueTimetablePicker().environmentObject(vm)
+                            Text("Custom Timetables").scaledFont(.caption).foregroundColor(Color("SecondaryTextColor"))
+                            CustomTimetableView().environmentObject(vm)
                         }
                     }
                     .controlSize(.small)

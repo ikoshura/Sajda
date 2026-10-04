@@ -15,8 +15,12 @@
 		CCAA00112FABBC0200CCDDEE /* AdhanMuteIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCAA00102FABBC0200CCDDEE /* AdhanMuteIcon.swift */; };
 		CCAA00132FABBC0200CCDDEE /* StatusItemContextMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCAA00142FABBC0200CCDDEE /* StatusItemContextMenu.swift */; };
 		A1B3068783F31CB16A0B04E4 /* AdhanAudioPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B220C2AC258F390A192FF3 /* AdhanAudioPlayer.swift */; };
-		CCAA00072FABBC0200CCDDEE /* MosqueTimetablePicker.swift in Sources */ = {isa = PBXBuildFile; buildActionMask = 2147483647; files = (
-		); fileRef = CCAA00062FABBC0200CCDDEE /* MosqueTimetablePicker.swift */; runOnlyForDeploymentPostprocessing = 0; };
+		DD000A012FABBC0300DDEEFF /* CustomTimetableStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD000A002FABBC0300DDEEFF /* CustomTimetableStore.swift */; };
+		DD000A032FABBC0300DDEEFF /* CustomTimetableCSV.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD000A022FABBC0300DDEEFF /* CustomTimetableCSV.swift */; };
+		DD000A052FABBC0300DDEEFF /* CustomTimetableColumns.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD000A042FABBC0300DDEEFF /* CustomTimetableColumns.swift */; };
+		DD000A072FABBC0300DDEEFF /* CustomTimetableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD000A062FABBC0300DDEEFF /* CustomTimetableView.swift */; };
+		DD000A092FABBC0300DDEEFF /* CustomTimetablePDF.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD000A082FABBC0300DDEEFF /* CustomTimetablePDF.swift */; };
+		DD000A0B2FABBC0400DDEEFF /* CustomTimetableZip.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD000A0A2FABBC0400DDEEFF /* CustomTimetableZip.swift */; };
 		CC07FC602E63FD5800924451 /* LocationAndCalcSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC07FC5F2E63FD5800924451 /* LocationAndCalcSettingsView.swift */; };
 		CC07FC622E63FF5100924451 /* SystemAndNotificationsSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC07FC612E63FF5100924451 /* SystemAndNotificationsSettingsView.swift */; };
 		CC07FC662E64122F00924451 /* NavigationStack in Frameworks */ = {isa = PBXBuildFile; productRef = CC07FC652E64122F00924451 /* NavigationStack */; };
@@ -67,7 +71,6 @@
 		CCEC0E412E60A899001E9B1E /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCEC0E402E60A899001E9B1E /* MainView.swift */; };
 		CCEC0E452E60B08D001E9B1E /* AboutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCEC0E442E60B08D001E9B1E /* AboutView.swift */; };
 		AA0000022E60C10001E9B1E /* UpdateChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000012E60C10001E9B1E /* UpdateChecker.swift */; };
-		AA0000062E60C10001E9B1E /* MawaqitService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000052E60C10001E9B1E /* MawaqitService.swift */; };
 		CCEC0E492E60B700001E9B1E /* StartupManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCEC0E482E60B700001E9B1E /* StartupManager.swift */; };
 		CCEC0E4F2E60D2EC001E9B1E /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCEC0E4E2E60D2EC001E9B1E /* NotificationManager.swift */; };
 		CCED21842E65F7BE0066D0EB /* NavigationAnimations.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCED21832E65F7BE0066D0EB /* NavigationAnimations.swift */; };
@@ -123,7 +126,12 @@
 		CCAA00052FABBC0200CCDDEE /* SajdaSearchField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SajdaSearchField.swift; sourceTree = "<group>"; };
 		CCAA00102FABBC0200CCDDEE /* AdhanMuteIcon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdhanMuteIcon.swift; sourceTree = "<group>"; };
 		CCAA00142FABBC0200CCDDEE /* StatusItemContextMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusItemContextMenu.swift; sourceTree = "<group>"; };
-		CCAA00062FABBC0200CCDDEE /* MosqueTimetablePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MosqueTimetablePicker.swift; sourceTree = "<group>"; };
+		DD000A002FABBC0300DDEEFF /* CustomTimetableStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomTimetableStore.swift; sourceTree = "<group>"; };
+		DD000A022FABBC0300DDEEFF /* CustomTimetableCSV.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomTimetableCSV.swift; sourceTree = "<group>"; };
+		DD000A042FABBC0300DDEEFF /* CustomTimetableColumns.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomTimetableColumns.swift; sourceTree = "<group>"; };
+		DD000A062FABBC0300DDEEFF /* CustomTimetableView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomTimetableView.swift; sourceTree = "<group>"; };
+		DD000A082FABBC0300DDEEFF /* CustomTimetablePDF.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomTimetablePDF.swift; sourceTree = "<group>"; };
+		DD000A0A2FABBC0400DDEEFF /* CustomTimetableZip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomTimetableZip.swift; sourceTree = "<group>"; };
 		A1B2C3D01A1B2C3D01A1B2C30 /* LocationRowPosition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationRowPosition.swift; sourceTree = "<group>"; };
 		CC786E622E63787E007299F3 /* MenuBarTextMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarTextMode.swift; sourceTree = "<group>"; };
 		CC786E642E638353007299F3 /* SajdaCalculationMethod.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SajdaCalculationMethod.swift; sourceTree = "<group>"; };
@@ -169,7 +177,6 @@
 		CCEC0E402E60A899001E9B1E /* MainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
 		CCEC0E442E60B08D001E9B1E /* AboutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutView.swift; sourceTree = "<group>"; };
 		AA0000012E60C10001E9B1E /* UpdateChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateChecker.swift; sourceTree = "<group>"; };
-		AA0000052E60C10001E9B1E /* MawaqitService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MawaqitService.swift; sourceTree = "<group>"; };
 		CCEC0E482E60B700001E9B1E /* StartupManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartupManager.swift; sourceTree = "<group>"; };
 		CCEC0E4E2E60D2EC001E9B1E /* NotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationManager.swift; sourceTree = "<group>"; };
 		CCED21832E65F7BE0066D0EB /* NavigationAnimations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationAnimations.swift; sourceTree = "<group>"; };
@@ -277,7 +284,6 @@
 				CCEC0E402E60A899001E9B1E /* MainView.swift */,
 				CCEC0E442E60B08D001E9B1E /* AboutView.swift */,
 				AA0000012E60C10001E9B1E /* UpdateChecker.swift */,
-				AA0000052E60C10001E9B1E /* MawaqitService.swift */,
 				CCEC0E482E60B700001E9B1E /* StartupManager.swift */,
 				CCEC0E4E2E60D2EC001E9B1E /* NotificationManager.swift */,
 				CC9C2F002E61385B00BAE49A /* AppDelegate.swift */,
@@ -293,7 +299,12 @@
 				CCAA00102FABBC0200CCDDEE /* AdhanMuteIcon.swift */,
 				CCAA00142FABBC0200CCDDEE /* StatusItemContextMenu.swift */,
 				CCAA00052FABBC0200CCDDEE /* SajdaSearchField.swift */,
-				CCAA00062FABBC0200CCDDEE /* MosqueTimetablePicker.swift */,
+				DD000A002FABBC0300DDEEFF /* CustomTimetableStore.swift */,
+				DD000A022FABBC0300DDEEFF /* CustomTimetableCSV.swift */,
+				DD000A042FABBC0300DDEEFF /* CustomTimetableColumns.swift */,
+				DD000A062FABBC0300DDEEFF /* CustomTimetableView.swift */,
+				DD000A082FABBC0300DDEEFF /* CustomTimetablePDF.swift */,
+				DD000A0A2FABBC0400DDEEFF /* CustomTimetableZip.swift */,
 				A1B2C3D01A1B2C3D01A1B2C30 /* LocationRowPosition.swift */,
 				CC786E622E63787E007299F3 /* MenuBarTextMode.swift */,
 				CC786E642E638353007299F3 /* SajdaCalculationMethod.swift */,
@@ -544,14 +555,18 @@
 				CC786E632E63787E007299F3 /* MenuBarTextMode.swift in Sources */,
 				CCEC0E452E60B08D001E9B1E /* AboutView.swift in Sources */,
 				AA0000022E60C10001E9B1E /* UpdateChecker.swift in Sources */,
-				AA0000062E60C10001E9B1E /* MawaqitService.swift in Sources */,
 				CC786E542E6359E1007299F3 /* PrayerTimerMonitor.swift in Sources */,
 				CC786E742E63BD15007299F3 /* VisualEffectView.swift in Sources */,
 				CC786E5F2E637700007299F3 /* AdhanSound.swift in Sources */,
 				CCAA00112FABBC0200CCDDEE /* AdhanMuteIcon.swift in Sources */,
 				CCAA00132FABBC0200CCDDEE /* StatusItemContextMenu.swift in Sources */,
 				CCAA00042FABBC0200CCDDEE /* SajdaSearchField.swift in Sources */,
-				CCAA00072FABBC0200CCDDEE /* MosqueTimetablePicker.swift in Sources */,
+				DD000A012FABBC0300DDEEFF /* CustomTimetableStore.swift in Sources */,
+				DD000A032FABBC0300DDEEFF /* CustomTimetableCSV.swift in Sources */,
+				DD000A052FABBC0300DDEEFF /* CustomTimetableColumns.swift in Sources */,
+				DD000A072FABBC0300DDEEFF /* CustomTimetableView.swift in Sources */,
+				DD000A092FABBC0300DDEEFF /* CustomTimetablePDF.swift in Sources */,
+				DD000A0B2FABBC0400DDEEFF /* CustomTimetableZip.swift in Sources */,
 				CCE1BA3A2E61852B003AF03C /* EventMonitor.swift in Sources */,
 				CC4659652E6629C000159A83 /* SajdaStepper.swift in Sources */,
 				CCE201012E6629C100159A83 /* LocalizedNumber.swift in Sources */,
@@ -761,7 +776,7 @@
 				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 39;
+				CURRENT_PROJECT_VERSION = 40;
 				DEVELOPMENT_ASSET_PATHS = "\"Sajda/Preview Content\"";
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = "";
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -776,7 +791,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 4.4.15;
+				MARKETING_VERSION = 4.5.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.ikoshura.Sajda;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "";
@@ -795,7 +810,7 @@
 				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 39;
+				CURRENT_PROJECT_VERSION = 40;
 				DEVELOPMENT_ASSET_PATHS = "\"Sajda/Preview Content\"";
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = JSYLVAZ935;
 				DEVELOPMENT_TEAM = JSYLVAZ935;
@@ -811,7 +826,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 4.4.15;
+				MARKETING_VERSION = 4.5.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.ikoshura.Sajda;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "";

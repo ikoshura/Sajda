@@ -138,16 +138,17 @@
 "color_green" = "أخضر";
 "color_graphite" = "رمادي";
 
-/* Mosque timetable (Mawaqit) */
-"Mosque Timetable" = "جدول المسجد";
-"Search for a mosque..." = "ابحث عن مسجد...";
-"Downloading..." = "جارٍ التنزيل...";
-"mawaqit_ready" = "✓ جاهز دون اتصال (%@)";
-"Couldn't reach mawaqit.net." = "تعذر الوصول إلى mawaqit.net.";
+/* Custom timetable (local CSV import) */
+"Custom Timetable" = "Custom Timetable";
 "Refresh" = "تحديث";
 "Use Calculated Times Instead" = "استخدم الأوقات المحسوبة بدلاً من ذلك";
-"Use a mosque timetable instead" = "استخدام مواقيت المسجد بدلاً من ذلك";
+"Use a custom timetable instead" = "استخدام مواقيت المسجد بدلاً من ذلك";
 "Use Calculated Times" = "استخدام الأوقات المحسوبة";
+"timetable_import_hint" = "PDF, ZIP (12 monthly CSVs), or CSV files from your mosque. Files stay on your Mac.";
+"Choose" = "Choose";
+"Add timetable" = "Add timetable";
+"Delete timetable" = "Delete timetable";
+"Import timetable" = "Import timetable";
 "Appearance" = "المظهر";
 "Visual" = "المظهر البصري";
 "Prayer" = "الصلاة";
@@ -172,17 +173,12 @@
 "Turn On" = "تشغيل";
 "Recommended: turn on Compact View to fit this text size." = "مُوصى به: شغّل العرض المضغوط لتناسب هذه الكتابة.";
 "Page %d of %d" = "صفحة %d من %d";
-"Top 10 matches — refine to narrow down." = "أفضل ١٠ نتائج — حسّن البحث لتضييق النتائج.";
-"%d matches — refine your search to narrow it down." = "%d نتيجة — حسّن البحث لتضييق النتائج.";
-"Next results" = "النتائج التالية";
-"Previous results" = "النتائج السابقة";
 "Mute Adhan" = "كتم الأذان";
 "Unmute Adhan" = "إلغاء كتم الأذان";
 "Retry Location" = "إعادة محاولة تحديد الموقع";
 "Remove from Favorites" = "إزالة من المفضلة";
 "Add to Favorites" = "إضافة إلى المفضلة";
 "Search for a city…" = "ابحث عن مدينة…";
-"Search for a mosque…" = "ابحث عن مسجد…";
 "Use Automatic Location" = "استخدام الموقع التلقائي";
 "Refresh the mosque's schedule" = "تحديث جدول المسجد";
 "Check for the latest version" = "التحقق من أحدث إصدار";

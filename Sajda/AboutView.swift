@@ -168,11 +168,6 @@ struct AboutView: View {
                 blurb: "Menu builder and controls that mimic macOS Control Center"
             ),
             Acknowledgement(
-                id: "Mawaqit",
-                url: URL(string: "https://mawaqit.net")!,
-                blurb: "Mosque prayer and iqama timetables behind the mosque mode"
-            ),
-            Acknowledgement(
                 id: "NavigationStack",
                 url: URL(string: "https://github.com/indieSoftware/NavigationStack")!,
                 blurb: "View navigation system"

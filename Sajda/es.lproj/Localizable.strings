@@ -139,16 +139,17 @@
 "color_green" = "Verde";
 "color_graphite" = "Grafito";
 
-/* Mosque timetable (Mawaqit) */
-"Mosque Timetable" = "Horario de la mezquita";
-"Search for a mosque..." = "Buscar una mezquita...";
-"Downloading..." = "Descargando...";
-"mawaqit_ready" = "✓ Listo sin conexión (%@)";
-"Couldn't reach mawaqit.net." = "No se pudo contactar con mawaqit.net.";
+/* Custom timetable (local CSV import) */
+"Custom Timetable" = "Custom Timetable";
 "Refresh" = "Actualizar";
 "Use Calculated Times Instead" = "Usar horarios calculados";
-"Use a mosque timetable instead" = "Usar el horario de una mezquita";
+"Use a custom timetable instead" = "Usar el horario de una mezquita";
 "Use Calculated Times" = "Usar horas calculadas";
+"timetable_import_hint" = "PDF, ZIP (12 monthly CSVs), or CSV files from your mosque. Files stay on your Mac.";
+"Choose" = "Choose";
+"Add timetable" = "Add timetable";
+"Delete timetable" = "Delete timetable";
+"Import timetable" = "Import timetable";
 "Appearance" = "Apariencia";
 "Visual" = "Visual";
 "Prayer" = "Oración";
@@ -172,17 +173,12 @@
 "Turn On" = "Activar";
 "Recommended: turn on Compact View to fit this text size." = "Recomendado: activa la vista compacta para este tamaño de texto.";
 "Page %d of %d" = "Página %d de %d";
-"Top 10 matches — refine to narrow down." = "10 mejores resultados: afina la búsqueda.";
-"%d matches — refine your search to narrow it down." = "%d resultados: afina la búsqueda.";
-"Next results" = "Siguientes resultados";
-"Previous results" = "Resultados anteriores";
 "Mute Adhan" = "Silenciar adhan";
 "Unmute Adhan" = "Activar el sonido del adhan";
 "Retry Location" = "Reintentar ubicación";
 "Remove from Favorites" = "Quitar de favoritos";
 "Add to Favorites" = "Añadir a favoritos";
 "Search for a city…" = "Buscar una ciudad…";
-"Search for a mosque…" = "Buscar una mezquita…";
 "Use Automatic Location" = "Usar ubicación automática";
 "Refresh the mosque's schedule" = "Actualizar el horario de la mezquita";
 "Check for the latest version" = "Buscar la última versión";

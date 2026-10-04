@@ -9,7 +9,6 @@ struct MainView: View {
     @EnvironmentObject var navigationModel: NavigationModel
     @State private var isSettingsHovering = false
     @State private var isAboutHovering = false
-    @State private var isMosqueRefreshHovering = false
     @State private var isQuitHovering = false
     @State private var isLocationHovering = false
     /// Location accordion, expanded or shut.
@@ -530,55 +529,6 @@ struct MainView: View {
                         .focusable(false)
                         .help(Text(String(format: NSLocalizedString("Update available: %@", comment: ""), version) + " — " + NSLocalizedString("Click to install", comment: "")))
                         .accessibilityLabel(Text(String(format: NSLocalizedString("Update available: %@", comment: ""), version)))
-                    }
-
-                    // Re-fetch the active mosque's timetable, sitting just
-                    // before About. Mawaqit edits a mosque's Jumu'ah and iqama
-                    // entries during the year, so a schedule picked up months
-                    // ago goes stale and this is the one-tap way to pull the
-                    // new one (which also brings the mosque's own iqama gaps).
-                    //
-                    // It lives in the footer rather than on the location row
-                    // on purpose: here it is just another sibling in this
-                    // HStack, so it needs no reserved slot and no overlay. The
-                    // location row's caption is the one thing that must stay
-                    // exactly one line tall, and an overlaid control there
-                    // stretched the whole row. Only shown in mosque mode,
-                    // where it has something to refresh.
-                    if vm.useMawaqitSchedule && vm.mawaqitMosque != nil {
-                        Button {
-                            Task { await vm.refreshActiveMosqueSchedule() }
-                        } label: {
-                            // A spinner in place of the glyph while the
-                            // download runs, so a tap with no visible response
-                            // (the times usually land identical) still reads
-                            // as "it worked". The padding sits in the label
-                            // and both branches are measured the same, so the
-                            // pill doesn't jump or resize mid-refresh.
-                            Group {
-                                if vm.isRefreshingMosqueSchedule {
-                                    ProgressView().controlSize(.small)
-                                } else {
-                                    Image(systemName: "arrow.clockwise")
-                                        .scaledFont(.body)
-                                }
-                            }
-                            .frame(width: Self.footerIconWidth, height: Self.footerIconHeight)
-                            .padding(.vertical, 5).padding(.horizontal, 8)
-                            // Padding, hit shape and pill all inside the label:
-                            // applied to the Button instead, the hover fill is
-                            // drawn past the label's frame but only the glyph
-                            // itself is hit-testable, so you have to click the
-                            // exact pixels of the icon.
-                            .contentShape(Rectangle())
-                            .liquidHover(isMosqueRefreshHovering)
-                        }
-                        .buttonStyle(.plain)
-                        .disabled(vm.isRefreshingMosqueSchedule)
-                        .onHover { hovering in isMosqueRefreshHovering = hovering }
-                        .focusable(false)
-                        .help(Text(NSLocalizedString("Refresh the mosque's schedule", comment: "")))
-                        .accessibilityLabel(Text(NSLocalizedString("Refresh the mosque's schedule", comment: "")))
                     }
 
                     Button(action: {
@@ -1178,9 +1128,12 @@ private struct PrayerRow: View {
     /// the same rule `displayedIqamaDelay(for:)` applies — a live gap somewhere
     /// to show, and the position not turned off — but checked across all rows
     /// rather than one, so the column exists from the first gap onward instead
-    /// of shifting the times in as they load.
+    /// of shifting the times in as they load. A CSV without iqama data has no
+    /// gap on any row, so no column is reserved and the times stay flush right
+    /// like the calculated layout.
     private var hasIqamaColumn: Bool {
-        vm.isMosqueTimetableActive && vm.iqamaDelayPosition != .none
+        guard vm.isMosqueTimetableActive, vm.iqamaDelayPosition != .none else { return false }
+        return ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"].contains { vm.displayedIqamaDelay(for: $0) != nil }
     }
 
     /// The highlighted row is the one place the dimmed treatment never applies:

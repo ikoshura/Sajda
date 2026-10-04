@@ -139,16 +139,17 @@
 "color_green" = "绿色";
 "color_graphite" = "灰色";
 
-/* Mosque timetable (Mawaqit) */
-"Mosque Timetable" = "清真寺时刻表";
-"Search for a mosque..." = "搜索清真寺...";
-"Downloading..." = "正在下载...";
-"mawaqit_ready" = "✓ 已离线就绪（%@）";
-"Couldn't reach mawaqit.net." = "无法连接 mawaqit.net。";
+/* Custom timetable (local CSV import) */
+"Custom Timetable" = "Custom Timetable";
 "Refresh" = "刷新";
 "Use Calculated Times Instead" = "使用计算时间";
-"Use a mosque timetable instead" = "使用清真寺时间表";
+"Use a custom timetable instead" = "使用清真寺时间表";
 "Use Calculated Times" = "使用计算时间";
+"timetable_import_hint" = "PDF, ZIP (12 monthly CSVs), or CSV files from your mosque. Files stay on your Mac.";
+"Choose" = "Choose";
+"Add timetable" = "Add timetable";
+"Delete timetable" = "Delete timetable";
+"Import timetable" = "Import timetable";
 "Appearance" = "外观";
 "Visual" = "视觉效果";
 "Prayer" = "礼拜";
@@ -172,17 +173,12 @@
 "Turn On" = "开启";
 "Recommended: turn on Compact View to fit this text size." = "建议：开启紧凑视图以适配此文字大小。";
 "Page %d of %d" = "第 %d 页，共 %d 页";
-"Top 10 matches — refine to narrow down." = "前 10 个结果 — 请细化搜索。";
-"%d matches — refine your search to narrow it down." = "%d 个结果 — 请细化搜索。";
-"Next results" = "下一页结果";
-"Previous results" = "上一页结果";
 "Mute Adhan" = "静音宣礼";
 "Unmute Adhan" = "取消静音宣礼";
 "Retry Location" = "重试定位";
 "Remove from Favorites" = "从收藏中移除";
 "Add to Favorites" = "添加到收藏";
 "Search for a city…" = "搜索城市…";
-"Search for a mosque…" = "搜索清真寺…";
 "Use Automatic Location" = "使用自动定位";
 "Refresh the mosque's schedule" = "刷新清真寺时间表";
 "Check for the latest version" = "检查最新版本";

@@ -139,16 +139,17 @@
 "color_green" = "グリーン";
 "color_graphite" = "グラファイト";
 
-/* Mosque timetable (Mawaqit) */
-"Mosque Timetable" = "モスクの時刻表";
-"Search for a mosque..." = "モスクを検索...";
-"Downloading..." = "ダウンロード中...";
-"mawaqit_ready" = "✓ オフライン準備完了（%@）";
-"Couldn't reach mawaqit.net." = "mawaqit.netに接続できませんでした。";
+/* Custom timetable (local CSV import) */
+"Custom Timetable" = "Custom Timetable";
 "Refresh" = "更新";
 "Use Calculated Times Instead" = "計算された時刻を使用";
-"Use a mosque timetable instead" = "モスクの時刻表を使う";
+"Use a custom timetable instead" = "モスクの時刻表を使う";
 "Use Calculated Times" = "計算時刻を使う";
+"timetable_import_hint" = "PDF, ZIP (12 monthly CSVs), or CSV files from your mosque. Files stay on your Mac.";
+"Choose" = "Choose";
+"Add timetable" = "Add timetable";
+"Delete timetable" = "Delete timetable";
+"Import timetable" = "Import timetable";
 "Appearance" = "外観";
 "Visual" = "ビジュアル";
 "Prayer" = "礼拝";
@@ -172,17 +173,12 @@
 "Turn On" = "オンにする";
 "Recommended: turn on Compact View to fit this text size." = "推奨: この文字サイズに合わせてコンパクト表示をオンにしてください。";
 "Page %d of %d" = "%d / %d ページ";
-"Top 10 matches — refine to narrow down." = "上位10件 — 検索を絞り込んでください。";
-"%d matches — refine your search to narrow it down." = "%d 件 — 検索を絞り込んでください。";
-"Next results" = "次の結果";
-"Previous results" = "前の結果";
 "Mute Adhan" = "アザーンをミュート";
 "Unmute Adhan" = "アザーンのミュート解除";
 "Retry Location" = "位置情報を再取得";
 "Remove from Favorites" = "お気に入りから削除";
 "Add to Favorites" = "お気に入りに追加";
 "Search for a city…" = "都市を検索…";
-"Search for a mosque…" = "モスクを検索…";
 "Use Automatic Location" = "自動位置情報を使用";
 "Refresh the mosque's schedule" = "モスクのスケジュールを更新";
 "Check for the latest version" = "最新バージョンを確認";

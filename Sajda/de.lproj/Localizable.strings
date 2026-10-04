@@ -139,16 +139,17 @@
 "color_green" = "Grün";
 "color_graphite" = "Graphit";
 
-/* Mosque timetable (Mawaqit) */
-"Mosque Timetable" = "Moschee-Zeitplan";
-"Search for a mosque..." = "Moschee suchen...";
-"Downloading..." = "Wird heruntergeladen...";
-"mawaqit_ready" = "✓ Offline bereit (%@)";
-"Couldn't reach mawaqit.net." = "mawaqit.net konnte nicht erreicht werden.";
+/* Custom timetable (local CSV import) */
+"Custom Timetable" = "Custom Timetable";
 "Refresh" = "Aktualisieren";
 "Use Calculated Times Instead" = "Berechnete Zeiten verwenden";
-"Use a mosque timetable instead" = "Moschee-Zeiten verwenden";
+"Use a custom timetable instead" = "Moschee-Zeiten verwenden";
 "Use Calculated Times" = "Berechnete Zeiten verwenden";
+"timetable_import_hint" = "PDF, ZIP (12 monthly CSVs), or CSV files from your mosque. Files stay on your Mac.";
+"Choose" = "Choose";
+"Add timetable" = "Add timetable";
+"Delete timetable" = "Delete timetable";
+"Import timetable" = "Import timetable";
 "Appearance" = "Erscheinungsbild";
 "Visual" = "Optik";
 "Prayer" = "Gebet";
@@ -172,17 +173,12 @@
 "Turn On" = "Aktivieren";
 "Recommended: turn on Compact View to fit this text size." = "Empfohlen: Kompaktansicht aktivieren, damit diese Textgröße passt.";
 "Page %d of %d" = "Seite %d von %d";
-"Top 10 matches — refine to narrow down." = "Top 10 Treffer — Suche eingrenzen.";
-"%d matches — refine your search to narrow it down." = "%d Treffer — Suche eingrenzen.";
-"Next results" = "Nächste Ergebnisse";
-"Previous results" = "Vorherige Ergebnisse";
 "Mute Adhan" = "Adhan stummschalten";
 "Unmute Adhan" = "Adhan laut schalten";
 "Retry Location" = "Standort erneut suchen";
 "Remove from Favorites" = "Aus Favoriten entfernen";
 "Add to Favorites" = "Zu Favoriten hinzufügen";
 "Search for a city…" = "Stadt suchen…";
-"Search for a mosque…" = "Moschee suchen…";
 "Use Automatic Location" = "Automatischen Standort verwenden";
 "Refresh the mosque's schedule" = "Zeitplan der Moschee aktualisieren";
 "Check for the latest version" = "Nach der neuesten Version suchen";

@@ -15,7 +15,7 @@ A prayer times app for macOS that lives in the menu bar.
 - Shows the next prayer in the menu bar as an icon, a countdown, or the exact time.
 - Turns red a set amount of time before prayer. You choose how early.
 - Detects your location automatically, or lets you pick any city.
-- Supports several calculation methods, and mosque timetables through Mawaqit.
+- Supports several calculation methods, and custom timetables imported from a PDF or CSV.
 - Works offline for prayer time calculation. No accounts or tracking.
 - Available in English, Indonesian, Arabic, Spanish, French, German, Japanese, Korean, and Simplified Chinese.
 
@@ -86,7 +86,6 @@ Thanks also to [@iMacLion](https://github.com/iMacLion) for testing releases and
 - [ColorSelector](https://github.com/jaywcjlove/ColorSelector): highlight colour picker
 - [FluidMenuBarExtra](https://github.com/lfroms/fluid-menu-bar-extra): resizing menu bar window
 - [MacControlCenterUI](https://github.com/orchetect/MacControlCenterUI): Control Center style menu and controls
-- [Mawaqit](https://mawaqit.net): mosque prayer and iqama timetables
 - [NavigationStack](https://github.com/indieSoftware/NavigationStack): view navigation
 - [Sparkle](https://sparkle-project.org): signed, notarized in-app updates
 

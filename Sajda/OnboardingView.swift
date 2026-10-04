@@ -155,8 +155,8 @@ struct OnboardingView: View {
                     transaction.animation = nil
                 }
 
-                // Prayer-times source: calculated from location, or a
-                // mosque's own timetable (Mawaqit) — same search box as
+                // Prayer-times source: calculated from location, or imported
+                // from a user-supplied file — same library as
                 // Settings > Calculation & Location.
                 VStack(alignment: .leading, spacing: 8) {
                     Button(action: { showingMosqueTimetable.toggle() }) {
@@ -164,10 +164,10 @@ struct OnboardingView: View {
                             Image(systemName: showingMosqueTimetable ? "chevron.down" : "chevron.right")
                                 .font(.caption.weight(.semibold))
                                 .foregroundColor(.secondary)
-                            Text("Use a mosque timetable instead").font(.subheadline)
+                            Text("Use an imported timetable instead").font(.subheadline)
                             Spacer()
-                            if vm.useMawaqitSchedule, let mosque = vm.mawaqitMosque {
-                                Text(mosque.name)
+                            if vm.useCustomTimetable, let timetable = vm.resolvedTimetable() {
+                                Text(timetable.name)
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                                     .lineLimit(1)
@@ -178,7 +178,7 @@ struct OnboardingView: View {
                     }
                     .buttonStyle(.plain)
                     if showingMosqueTimetable {
-                        MosqueTimetablePicker().environmentObject(vm)
+                        CustomTimetableView().environmentObject(vm)
                     }
                 }
                 .padding(.horizontal, 40)

@@ -37,100 +37,121 @@ final class SajdaTests: XCTestCase {
         }
     }
 
-    // MARK: - Cached-schedule merge
+    // MARK: - CSV parsing
 
-    /// A per-favorite cache written by an older build carries no Jumu'ah or
-    /// iqama fields. Activating that copy is what made the Jumu'ah footer
-    /// disappear on a mosque → city → mosque round trip, so the merge has to
-    /// restore exactly the fields the fresh copy is missing — and nothing else.
-    func testMergingRestoresMissingSessionsWithoutTouchingAnythingElse() {
-        let stale = MawaqitMosque(slug: "mosque", name: "Old Name", fetchedAt: Date(timeIntervalSince1970: 0),
-                                   calendar: [[String: [String]]]())
-        let fresh = MawaqitMosque(slug: "mosque", name: "New Name", fetchedAt: Date(timeIntervalSince1970: 100),
-                                   calendar: [[String: [String]]](repeating: [:], count: 12),
-                                   jumuaSessions: ["13:30", "14:30"],
-                                   iqamaCalendar: [[String: [String]]](repeating: [:], count: 12))
-        let merged = MawaqitService.merging(stale, with: fresh)
-
-        // The missing fields come across…
-        XCTAssertEqual(merged.jumuaSessions, ["13:30", "14:30"])
-        XCTAssertNotNil(merged.iqamaCalendar)
-        // …and everything the stale copy already had is left alone: it is the
-        // copy being activated, so its own calendar and metadata must survive.
-        XCTAssertEqual(merged.name, "Old Name")
-        XCTAssertEqual(merged.fetchedAt, Date(timeIntervalSince1970: 0))
-        XCTAssertTrue(merged.calendar.isEmpty)
+    /// A full-year adhan CSV maps onto the 12-month calendar, blank
+    /// separator rows are skipped, and every time lands clean as HH:MM.
+    func testParseAdhanCSVParsesFullYearWithBlankSeparatorRows() {
+        let csv = """
+        Month,Day,Fajr,Shuruk,Duhr,Asr,Maghrib,Isha
+        1,1,06:26,08:03,12:09,13:46,16:05,17:42
+        ,,,,,,,
+        1,2,06:26:00,08:03,12:10,13:47,16:06,17:43
+        ,,,,,,,
+        12,31,06:26,08:03,12:09,13:45,16:04,17:41
+        """
+        let calendar = try! CustomTimetableStore.parseAdhanCSV(csv)
+        XCTAssertEqual(calendar.count, 12)
+        XCTAssertEqual(calendar[0]["1"], ["06:26", "08:03", "12:09", "13:46", "16:05", "17:42"])
+        // Seconds in the source are dropped, not rejected.
+        XCTAssertEqual(calendar[0]["2"]?[0], "06:26")
+        XCTAssertEqual(calendar[11]["31"]?[5], "17:41")
     }
 
-    /// A complete copy is returned untouched, and merging from a copy that has
-    /// nothing either leaves the empties as nil rather than as empty arrays —
-    /// `nil` and `[]` mean the same thing downstream, but nil round-trips
-    /// through JSON as absent instead of as noise on every save.
-    func testMergingIsANoOpWhenNothingIsMissing() {
-        let iqama = [[String: [String]]](repeating: [:], count: 12)
-        let complete = MawaqitMosque(slug: "m", name: "N", fetchedAt: Date(), calendar: [],
-                                     jumuaSessions: ["13:30"], iqamaCalendar: iqama)
-        let merged = MawaqitService.merging(complete, with: MawaqitMosque(slug: "m", name: "Other", fetchedAt: Date(), calendar: []))
-        XCTAssertEqual(merged.jumuaSessions, ["13:30"])
-        XCTAssertNotNil(merged.iqamaCalendar)
-
-        let bare = MawaqitService.merging(MawaqitMosque(slug: "m", name: "N", fetchedAt: Date(), calendar: []),
-                                          with: MawaqitMosque(slug: "m", name: "N", fetchedAt: Date(), calendar: []))
-        XCTAssertNil(bare.jumuaSessions)
-        XCTAssertNil(bare.iqamaCalendar)
+    /// A French Excel export (semicolon separator, accented/french headers)
+    /// parses the same as the comma English one.
+    func testParseAdhanCSVSniffsSemicolonAndFrenchHeaders() {
+        let csv = """
+        Mois;Jour;Fajr;Shuruq;Dhuhr;Asr;Maghrib;Isha
+        3;9;05:07;06:40;13:10;16:35;19:32;20:49
+        """
+        let calendar = try! CustomTimetableStore.parseAdhanCSV(csv)
+        XCTAssertEqual(calendar[2]["9"], ["05:07", "06:40", "13:10", "16:35", "19:32", "20:49"])
     }
 
-    // MARK: - Mosque iqama offsets
-
-    /// Mawaqit publishes the mosque's own iqama gaps as signed minute strings,
-    /// five of them in a fixed prayer order (sunrise has no iqama). The app
-    /// follows these in mosque mode instead of estimating, so the sign has to
-    /// be stripped without swallowing the value.
-    func testMinutesFromSignedOffset() {
-        XCTAssertEqual(MawaqitService.minutesFromSignedOffset("+20"), 20)
-        XCTAssertEqual(MawaqitService.minutesFromSignedOffset("+0"), 0)
-        // A missing sign (older entries) is still a valid gap.
-        XCTAssertEqual(MawaqitService.minutesFromSignedOffset("10"), 10)
-        XCTAssertEqual(MawaqitService.minutesFromSignedOffset("  +7 "), 7)
-        // An iqama can't precede its adhan, and junk is simply unusable.
-        XCTAssertNil(MawaqitService.minutesFromSignedOffset("-5"))
-        XCTAssertNil(MawaqitService.minutesFromSignedOffset("+abc"))
-        XCTAssertNil(MawaqitService.minutesFromSignedOffset(""))
-        XCTAssertNil(MawaqitService.minutesFromSignedOffset("+"))
+    /// A single date column (dd/mm/yyyy) substitutes for Month+Day.
+    func testParseAdhanCSVAcceptsSingleDateColumn() {
+        let csv = """
+        Date,Fajr,Sunrise,Dhuhr,Asr,Maghrib,Isha
+        05/01/2026,06:26,08:03,12:09,13:46,16:05,17:42
+        """
+        let calendar = try! CustomTimetableStore.parseAdhanCSV(csv)
+        XCTAssertEqual(calendar[0]["5"]?[0], "06:26")
     }
 
-    /// The five offsets are positional, so they have to land on the right
-    /// prayer names — a shift by one would silently give Asr the Dhuhr iqama.
-    func testIqamaOffsetsMapOntoTheRightPrayers() {
-        var calendar = Array(repeating: [String: [String]](), count: 12)
-        calendar[0]["1"] = ["+20", "+10", "+10", "+7", "+10"]
-        let offsets = MawaqitService.iqamaOffsets(for: date(year: 2026, month: 1, day: 1), in: calendar)
+    /// A file with no recognizable date or prayer columns fails loudly rather
+    /// than importing garbage.
+    func testParseAdhanCSVRejectsMissingColumns() {
+        let csv = """
+        Foo,Bar
+        1,2
+        """
+        XCTAssertThrowsError(try CustomTimetableStore.parseAdhanCSV(csv))
+    }
+
+    /// The iqama CSV (no sunrise column) parses into its own calendar.
+    func testParseIqamaCSV() {
+        let csv = """
+        Month,Day,Fajr,Duhr,Asr,Maghrib,Isha
+        1,1,06:45,12:30,14:15,16:10,19:00
+        """
+        let calendar = try! CustomTimetableStore.parseIqamaCSV(csv)
+        XCTAssertEqual(calendar[0]["1"], ["06:45", "12:30", "14:15", "16:10", "19:00"])
+    }
+
+    // MARK: - Jumu'ah file
+
+    func testParseJumuahKeepsEveryValidSession() {
+        XCTAssertEqual(try CustomTimetableStore.parseJumuah("13:30\n14:30\n"), ["13:30", "14:30"])
+        XCTAssertEqual(try CustomTimetableStore.parseJumuah("13:30,14:30"), ["13:30", "14:30"])
+        // A header line and junk are dropped, not rejected.
+        XCTAssertEqual(try CustomTimetableStore.parseJumuah("jumua\n13:41"), ["13:41"])
+        // Caps at the panel's session limit.
+        XCTAssertEqual(try CustomTimetableStore.parseJumuah("12:00\n13:00\n14:00\n15:00\n16:00\n17:00").count, 5)
+        XCTAssertThrowsError(try CustomTimetableStore.parseJumuah(""))
+    }
+
+    // MARK: - Iqama offsets
+
+    /// The gap shown in the panel is derived per day as iqama clock minus
+    /// adhan clock, keyed onto the right prayers (sunrise has no iqama).
+    func testIqamaOffsetsAreDerivedFromAdhanMinusIqama() {
+        var adhan = Array(repeating: [String: [String]](), count: 12)
+        adhan[0]["1"] = ["06:25", "08:00", "12:30", "15:00", "17:00", "19:00"]
+        var iqama = Array(repeating: [String: [String]](), count: 12)
+        iqama[0]["1"] = ["06:45", "12:40", "15:10", "17:07", "19:10"]
+        let offsets = CustomTimetableStore.iqamaOffsets(for: date(year: 2026, month: 1, day: 1),
+                                                       adhan: adhan, iqama: iqama)
         XCTAssertEqual(offsets, ["Fajr": 20, "Dhuhr": 10, "Asr": 10, "Maghrib": 7, "Isha": 10])
     }
 
-    /// One bad entry must not cost the other four, and a mosque that publishes
-    /// nothing usable has to come back empty so the caller falls back to the
-    /// user's own gap rather than showing a bogus iqama.
+    /// One bad entry must not cost the other four, and gaps that wrap past
+    /// midnight stay valid while nonsense gaps are dropped.
     func testIqamaOffsetsDegradeGracefully() {
-        var calendar = Array(repeating: [String: [String]](), count: 12)
-        calendar[0]["1"] = ["+20", "?", "+10", "+7", "+10"]
-        let partial = MawaqitService.iqamaOffsets(for: date(year: 2026, month: 1, day: 1), in: calendar)
-        XCTAssertNil(partial["Dhuhr"])
+        var adhan = Array(repeating: [String: [String]](), count: 12)
+        adhan[0]["1"] = ["06:25", "08:00", "12:30", "15:00", "17:00", "19:00"]
+        // Iqama day is [fajr, dhuhr, asr, maghrib, isha] — the "?" lands on
+        // Maghrib so the other four must survive it.
+        var iqama = Array(repeating: [String: [String]](), count: 12)
+        iqama[0]["1"] = ["06:45", "12:40", "15:10", "?", "19:10"]
+        let partial = CustomTimetableStore.iqamaOffsets(for: date(year: 2026, month: 1, day: 1),
+                                                       adhan: adhan, iqama: iqama)
+        XCTAssertNil(partial["Maghrib"])
         XCTAssertEqual(partial["Fajr"], 20)
+        XCTAssertEqual(partial["Dhuhr"], 10)
+        XCTAssertEqual(partial["Asr"], 10)
         XCTAssertEqual(partial["Isha"], 10)
 
-        // A short row can't fill all five; the rest fall back.
-        var short = Array(repeating: [String: [String]](), count: 12)
-        short[0]["1"] = ["+20", "+10"]
-        let shortOffsets = MawaqitService.iqamaOffsets(for: date(year: 2026, month: 1, day: 1), in: short)
-        XCTAssertEqual(shortOffsets, ["Fajr": 20, "Dhuhr": 10])
-
-        // No calendar at all, the wrong number of months, and a date the
-        // calendar doesn't cover all come back empty.
-        XCTAssertTrue(MawaqitService.iqamaOffsets(for: date(year: 2026, month: 1, day: 1), in: nil).isEmpty)
-        XCTAssertTrue(MawaqitService.iqamaOffsets(for: date(year: 2026, month: 1, day: 1),
-                                                in: [[String: [String]]](repeating: [:], count: 3)).isEmpty)
-        XCTAssertTrue(MawaqitService.iqamaOffsets(for: date(year: 2026, month: 3, day: 9), in: calendar).isEmpty)
+        // An iqama before its adhan that does not wrap is junk, not a gap.
+        var bad = Array(repeating: [String: [String]](), count: 12)
+        bad[0]["1"] = ["06:00", "12:30", "15:00", "17:00", "19:00"]
+        var badAdhan = Array(repeating: [String: [String]](), count: 12)
+        badAdhan[0]["1"] = ["06:25", "08:00", "12:30", "15:00", "17:00", "19:00"]
+        let wrapped = CustomTimetableStore.iqamaOffsets(for: date(year: 2026, month: 1, day: 1),
+                                                       adhan: badAdhan, iqama: bad)
+        XCTAssertNil(wrapped["Fajr"])  // -25 wraps to 1415 > 180 cap: dropped
+        // Dhuhr iqama == adhan yields a 0 gap, which is "no delay": dropped.
+        XCTAssertNil(wrapped["Dhuhr"])
     }
 
     /// Local-timezone date at midnight, for the calendar lookups above.
@@ -140,45 +161,18 @@ final class SajdaTests: XCTestCase {
         return cal.date(from: DateComponents(year: year, month: month, day: day))!
     }
 
-    // MARK: - Jumu'ah sessions
-
-    /// Mawaqit publishes the Friday gatherings in three separate confData
-    /// fields, not as a list. Only the first was read, which is why a mosque
-    /// running two khutbahs (Aubervilliers: 13:30 + 14:30) showed a single
-    /// session. Every populated field has to come through, in order.
-    func testJumuaTimesKeepsEveryPublishedSession() {
-        XCTAssertEqual(MawaqitService.jumuaTimes(["13:30", "14:30", nil]), ["13:30", "14:30"])
-        XCTAssertEqual(MawaqitService.jumuaTimes(["13:41", nil, nil]), ["13:41"])
-        XCTAssertEqual(
-            MawaqitService.jumuaTimes(["12:30", "13:00", "14:15"]),
-            ["12:30", "13:00", "14:15"]
-        )
-    }
-
-    /// A gap in the middle of the three fields (a mosque with a first and a
-    /// third khutbah but no second) must not leave a hole, and a blank or
-    /// malformed value must not become a bogus midnight session.
-    func testJumuaTimesDropsBlanksAndJunk() {
-        XCTAssertEqual(MawaqitService.jumuaTimes(["13:30", nil, "14:30"]), ["13:30", "14:30"])
-        XCTAssertEqual(MawaqitService.jumuaTimes([nil, "  ", nil]), [])
-        XCTAssertEqual(MawaqitService.jumuaTimes(["", "-", nil]), [])
-        XCTAssertEqual(MawaqitService.jumuaTimes([nil, nil, nil]), [])
-        // Surrounding whitespace from the page is trimmed, not rejected.
-        XCTAssertEqual(MawaqitService.jumuaTimes([" 13:30 ", nil, nil]), ["13:30"])
-    }
-
-    /// "HH:MM" → minutes past midnight, guarding the range so a malformed
+    /// "HH:MM" -> minutes past midnight, guarding the range so a malformed
     /// entry can't become a session outside the 0...1439 clock.
     func testMinutesFromHM() {
-        XCTAssertEqual(MawaqitService.minutesFromHM("13:30"), 13 * 60 + 30)
-        XCTAssertEqual(MawaqitService.minutesFromHM("00:00"), 0)
-        XCTAssertEqual(MawaqitService.minutesFromHM("23:59"), 23 * 60 + 59)
-        // Seconds are accepted and dropped — Mawaqit writes them sometimes.
-        XCTAssertEqual(MawaqitService.minutesFromHM("13:30:00"), 13 * 60 + 30)
-        XCTAssertNil(MawaqitService.minutesFromHM("24:00"))
-        XCTAssertNil(MawaqitService.minutesFromHM("13:60"))
-        XCTAssertNil(MawaqitService.minutesFromHM("1330"))
-        XCTAssertNil(MawaqitService.minutesFromHM(""))
+        XCTAssertEqual(CustomTimetableStore.minutesFromHM("13:30"), 13 * 60 + 30)
+        XCTAssertEqual(CustomTimetableStore.minutesFromHM("00:00"), 0)
+        XCTAssertEqual(CustomTimetableStore.minutesFromHM("23:59"), 23 * 60 + 59)
+        // Seconds are accepted and dropped.
+        XCTAssertEqual(CustomTimetableStore.minutesFromHM("13:30:00"), 13 * 60 + 30)
+        XCTAssertNil(CustomTimetableStore.minutesFromHM("24:00"))
+        XCTAssertNil(CustomTimetableStore.minutesFromHM("13:60"))
+        XCTAssertNil(CustomTimetableStore.minutesFromHM("1330"))
+        XCTAssertNil(CustomTimetableStore.minutesFromHM(""))
     }
 
     /// A session added in Settings is seeded at the quarter hour just after
@@ -194,6 +188,211 @@ final class SajdaTests: XCTestCase {
         // Late Dhuhr wraps to the start of the next day instead of overflowing
         // the 0...1439 clock the session list is stored in.
         XCTAssertEqual(PrayerTimeViewModel.jumuahSessionSeed(hour: 23, minute: 50), 0)
+    }
+
+    // MARK: - Mosque PDF import
+
+    /// Real deflated entries, byte-identical shape to the mosque ZIP shipment:
+    /// one made by zlib's default (dynamic Huffman) strategy, one with a
+    /// forced fixed Huffman strategy. Both decode to their exact bytes.
+    private static let dynamicZipBase64 = "UEsDBBQAAAAIAAAAAAB2ISWKVwAAAD4GAAAGAAAAMTEuY3N27cohDoAwDEZhz1l+0SYDRh3JQoJAcYJiGOC6THB7dg9qnnj5kr5Y9DbsuVp9kGo2zMWw6ZntOrCWrB0HUC/MoEFCBLOECRyEWtshcBQanTlz5szZX9gHUEsBAhQAFAAAAAgAAAAAAHYhJYpXAAAAPgYAAAYAAAAAAAAAAAAAAAAAAAAAADExLmNzdlBLBQYAAAAAAQABADQAAAB7AAAAAAA="
+    private static let fixedZipBase64 = "UEsDBBQAAAAIAAAAAAAfxtjRTgAAAEwAAAAGAAAAMDIuY3N2c0ms1HFLzCrSCc4oLSrN1nEpzSjScSwu0vFNTM8oykzS8SzOSOQy1TEwsTIy1DEwtTI10zE0sjK01DE0sTI11TE0tzI21DG0sDK15AIAUEsBAhQAFAAAAAgAAAAAAB/G2NFOAAAATAAAAAYAAAAAAAAAAAAAAAAAAAAAADAyLmNzdlBLBQYAAAAAAQABADQAAAByAAAAAAA="
+
+    func testZipDecodesDeflatedEntries() throws {
+        for base64 in [Self.dynamicZipBase64, Self.fixedZipBase64] {
+            let data = Data(base64Encoded: base64, options: .ignoreUnknownCharacters)!
+            let entries = try CustomTimetableStore.listZip(data: data)
+            XCTAssertEqual(entries.count, 1)
+            XCTAssertTrue(entries[0].name.hasSuffix(".csv"))
+            let text = String(data: entries[0].data, encoding: .utf8)
+            XCTAssertNotNil(text)
+            XCTAssertTrue(text?.hasPrefix("Day,Fajr,Shuruk,Duhr,Asr,Maghrib,Isha") ?? false)
+        }
+    }
+
+    func testZipRejectsNonArchives() {
+        XCTAssertThrowsError(try CustomTimetableStore.listZip(data: Data("hello".utf8)))
+        XCTAssertThrowsError(try CustomTimetableStore.listZip(data: Data()))
+    }
+
+    func testZipStoredEntryDecodes() throws {
+        // ZIP method 0 ("stored") carries the file bytes verbatim — no
+        // deflate framing. Wrap one in local + central headers.
+        let raw: [UInt8] = [0x41, 0x42]
+        let name = Array("a.csv".utf8)
+        var bytes: [UInt8] = []
+        func u16(_ v: Int) { bytes.append(UInt8(v & 0xFF)); bytes.append(UInt8((v >> 8) & 0xFF)) }
+        func u32(_ v: UInt32) { for s in [0, 8, 16, 24] as [UInt32] { bytes.append(UInt8((v >> s) & 0xFF)) } }
+        // local header: sig ver flags method time date crc comp uncomp nameLen extraLen
+        u32(0x04034B50); u16(20); u16(0); u16(0); u16(0); u16(0); u32(0); u32(2); u32(2); u16(name.count); u16(0)
+        bytes += name
+        bytes += raw
+        let centralAt = bytes.count
+        u32(0x02014B50); u16(20); u16(20); u16(0); u16(0); u16(0); u16(0); u32(0); u32(2); u32(2)
+        u16(name.count); u16(0); u16(0); u16(0); u16(0); u32(0); u32(0)
+        bytes += name
+        u32(0x06054B50); u16(0); u16(0); u16(1); u16(1); u32(UInt32(bytes.count - centralAt)); u32(UInt32(centralAt)); u16(0)
+        let entries = try CustomTimetableStore.listZip(data: Data(bytes))
+        XCTAssertEqual(entries.count, 1)
+        XCTAssertEqual(entries[0].name, "a.csv")
+        XCTAssertEqual(entries[0].data, Data(raw))
+    }
+
+    /// A deflate *stored block* (type 00, inside a method-8 stream) copies its
+    /// bytes verbatim after byte-aligning.
+    func testDeflateStoredBlockCopiesBytes() throws {
+        let payload: [UInt8] = [0x41, 0x42, 0x43]
+        // BFINAL=1, BTYPE=00 → then byte-align, LEN=3, NLEN=3^0xFFFF.
+        let stream = [0x01, 0x03, 0x00, UInt8(truncatingIfNeeded: 0xFC), 0xFF] + payload
+        let bytes = Data(stream)
+        // Exercise the decoder through the ZIP layer with a method-8 member.
+        var zip: [UInt8] = []
+        func u16(_ v: Int) { zip.append(UInt8(v & 0xFF)); zip.append(UInt8((v >> 8) & 0xFF)) }
+        func u32(_ v: UInt32) { for s in [0, 8, 16, 24] as [UInt32] { zip.append(UInt8((v >> s) & 0xFF)) } }
+        let name = Array("b.csv".utf8)
+        u32(0x04034B50); u16(20); u16(0); u16(8); u16(0); u16(0); u32(0); u32(UInt32(bytes.count)); u32(3); u16(name.count); u16(0)
+        zip += name
+        zip += bytes
+        let centralAt = zip.count
+        u32(0x02014B50); u16(20); u16(20); u16(0); u16(8); u16(0); u16(0); u32(0); u32(UInt32(bytes.count)); u32(3)
+        u16(name.count); u16(0); u16(0); u16(0); u16(0); u32(0); u32(0)
+        zip += name
+        u32(0x06054B50); u16(0); u16(0); u16(1); u16(1); u32(UInt32(zip.count - centralAt)); u32(UInt32(centralAt)); u16(0)
+        let entries = try CustomTimetableStore.listZip(data: Data(zip))
+        XCTAssertEqual(entries.count, 1)
+        XCTAssertEqual(entries[0].data, Data(payload))
+    }
+
+    /// Synthetic page in the shape the "Annual prayer calendar" PDF
+    /// produces: header line, one date line per day (Fajr inline, Jumu'ah on
+    /// Fridays), each followed by its Fajr-offset line, then the five other
+    /// prayer columns as time/offset pairs.
+    private func pdfPage(month: Int, days: Int, jumua: String? = nil,
+                         fajrOffset: Int = 10, dhuhrOffset: Int = 10) -> String {
+        var lines = ["Annual prayer calendar", "Test Mosque", "2026",
+                     "Date Hijri date Day Fadjr Shoeroeq Dhoehr ‘Asr Maghrib ‘Ishaa"]
+        for day in 1...days {
+            let jumuaPart = (jumua != nil && day % 7 == 2) ? " Vrijdag / Salat al-jumua \(jumua!)" : ""
+            lines.append(String(format: "2026-%02d-%02d 1 Rajab 1447 Donderdag%@ 06:%02d",
+                                month, day, jumuaPart, day))
+            lines.append("+\(fajrOffset)")
+        }
+        for base in [7, 12, 15, 18, 20] {
+            for day in 1...days {
+                lines.append(String(format: "%02d:%02d", base, day))
+                lines.append("+\(dhuhrOffset)")
+            }
+        }
+        return lines.joined(separator: "\n")
+    }
+
+    func testParsePDFPageBuildsAdhanIqamaAndJumua() throws {
+        let timetable = try CustomTimetableStore.parsePDFPages(
+            [pdfPage(month: 1, days: 31, jumua: "13:00")], name: "Test")
+        XCTAssertEqual(timetable.calendar.count, 12)
+        XCTAssertEqual(timetable.calendar[0]["1"], ["06:01", "07:01", "12:01", "15:01", "18:01", "20:01"])
+        // Iqama is stored as absolute clock times = adhan + published offset.
+        XCTAssertEqual(timetable.iqamaCalendar?[0]["1"], ["06:11", "12:11", "15:11", "18:11", "20:11"])
+        XCTAssertEqual(timetable.jumuahSessions, ["13:00"])
+        // Round-trip: the derived gap is the offset the PDF published.
+        let offsets = CustomTimetableStore.iqamaOffsets(
+            for: date(year: 2026, month: 1, day: 1),
+            adhan: timetable.calendar, iqama: timetable.iqamaCalendar)
+        XCTAssertEqual(offsets["Fajr"], 10)
+        XCTAssertEqual(offsets["Dhuhr"], 10)
+    }
+
+    /// A next-month day-1 spillover row at the foot of a page (the export appends
+    /// one to February) must not be counted twice or land in the wrong month.
+    func testParsePDFIgnoresNextMonthSpilloverRow() throws {
+        let page = pdfPage(month: 2, days: 28) + "\n2026-03-01 Zondag 06:05\n+10"
+        let timetable = try CustomTimetableStore.parsePDFPages([page], name: "Test")
+        XCTAssertEqual(timetable.calendar[1].count, 28)
+        XCTAssertNil(timetable.calendar[2]["1"])
+    }
+
+    func testParsePDFAcceptsTwoJumuaSessions() throws {
+        let timetable = try CustomTimetableStore.parsePDFPages(
+            [pdfPage(month: 1, days: 31, jumua: "13:50 & 14:30")], name: "Test")
+        XCTAssertEqual(timetable.jumuahSessions, ["13:50", "14:30"])
+    }
+
+    func testParsePDFRejectsNonCalendarPages() {
+        XCTAssertThrowsError(try CustomTimetableStore.parsePDFPages(["just some text"], name: "x"))
+    }
+
+    // MARK: - Mosque CSV (per-month, Day-only) import
+
+    /// The real export has no Month column: the month comes from the filename.
+    func testParseAdhanCSVUsesExternalMonthFromFilename() throws {
+        let csv = "Day,Fajr,Shuruk,Duhr,Asr,Maghrib,Isha\n1,07:18,08:49,12:45,14:14,16:34,18:50\n"
+        let calendar = try CustomTimetableStore.parseAdhanCSV(csv, month: 2)
+        XCTAssertEqual(calendar[1]["1"], ["07:18", "08:49", "12:45", "14:14", "16:34", "18:50"])
+        XCTAssertTrue(calendar[0].isEmpty)
+    }
+
+    func testMonthFromFilename() {
+        XCTAssertEqual(CustomTimetableStore.monthFromFilename(URL(fileURLWithPath: "/x/01.csv")), 1)
+        XCTAssertEqual(CustomTimetableStore.monthFromFilename(URL(fileURLWithPath: "/x/12.csv")), 12)
+        XCTAssertEqual(CustomTimetableStore.monthFromFilename(URL(fileURLWithPath: "/x/3.csv")), 3)
+        XCTAssertEqual(CustomTimetableStore.monthFromFilename(URL(fileURLWithPath: "/x/march.csv")), 3)
+        XCTAssertNil(CustomTimetableStore.monthFromFilename(URL(fileURLWithPath: "/x/notes.csv")))
+    }
+
+    /// A February 29th row survives the single-file parse (it might be a
+    /// leap-year Feb 29); `dropFebruarySpillover` then compares it against
+    /// March's day 1 and removes it when the two match — which is what a
+    /// non-leap monthly export's March-1 spillover looks like.
+    func testFebruarySpilloverDroppedWhenItMatchesMarch() throws {
+        // 2026 is not a leap year: the 29th row is a copy of March 1.
+        let feb = "Day,Fajr,Shuruk,Duhr,Asr,Maghrib,Isha\n"
+            + "27,06:09,07:28,12:54,15:32,18:14,19:30\n"
+            + "28,06:07,07:25,12:54,15:34,18:16,19:32\n"
+            + "29,06:05,07:23,12:53,15:35,18:17,19:34\n"
+        let mar = "Day,Fajr,Shuruk,Duhr,Asr,Maghrib,Isha\n"
+            + "1,06:05,07:23,12:53,15:35,18:17,19:34\n"
+            + "2,06:03,07:21,12:53,15:36,18:19,19:36\n"
+
+        var calendar = Array(repeating: [String: [String]](), count: 12)
+        calendar[1] = try CustomTimetableStore.parseAdhanCSV(feb, month: 2)[1]
+        calendar[2] = try CustomTimetableStore.parseAdhanCSV(mar, month: 3)[2]
+        // The single-file parse keeps it (could be a leap year)…
+        XCTAssertNotNil(calendar[1]["29"])
+        // …but the cross-check against an identical March 1 proves it's a
+        // spillover and drops it.
+        let cleaned = CustomTimetableStore.dropFebruarySpillover(calendar)
+        XCTAssertNil(cleaned[1]["29"])
+        XCTAssertEqual(cleaned[1]["27"], ["06:09", "07:28", "12:54", "15:32", "18:14", "19:30"])
+        XCTAssertNotNil(cleaned[2]["1"])
+    }
+
+    /// A real leap-year Feb 29 differs from March 1, so it stays put.
+    func testLeapYearFeb29SurvivesTheCrossCheck() throws {
+        let feb = "Day,Fajr,Shuruk,Duhr,Asr,Maghrib,Isha\n"
+            + "28,06:07,07:25,12:54,15:34,18:16,19:32\n"
+            + "29,05:58,07:20,12:53,15:37,18:20,19:37\n"
+        let mar = "Day,Fajr,Shuruk,Duhr,Asr,Maghrib,Isha\n"
+            + "1,05:56,07:18,12:53,15:38,18:22,19:39\n"
+
+        var calendar = Array(repeating: [String: [String]](), count: 12)
+        calendar[1] = try CustomTimetableStore.parseAdhanCSV(feb, month: 2)[1]
+        calendar[2] = try CustomTimetableStore.parseAdhanCSV(mar, month: 3)[2]
+        let cleaned = CustomTimetableStore.dropFebruarySpillover(calendar)
+        XCTAssertNotNil(cleaned[1]["29"])
+        XCTAssertEqual(cleaned[1]["29"], ["05:58", "07:20", "12:53", "15:37", "18:20", "19:37"])
+    }
+
+    /// With no March file to compare against, an ambiguous 29th row is
+    /// dropped: the safer reading is spillover than a phantom leap day.
+    func testFebruary29DroppedWithoutMarchToCompare() throws {
+        let feb = "Day,Fajr,Shuruk,Duhr,Asr,Maghrib,Isha\n"
+            + "28,06:07,07:25,12:54,15:34,18:16,19:32\n"
+            + "29,06:05,07:23,12:53,15:35,18:17,19:34\n"
+        var calendar = Array(repeating: [String: [String]](), count: 12)
+        calendar[1] = try CustomTimetableStore.parseAdhanCSV(feb, month: 2)[1]
+        let cleaned = CustomTimetableStore.dropFebruarySpillover(calendar)
+        XCTAssertNil(cleaned[1]["29"])
+        XCTAssertNotNil(cleaned[1]["28"])
     }
 
     // MARK: - Settings tab (the dropdown)

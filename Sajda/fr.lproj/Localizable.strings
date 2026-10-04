@@ -139,16 +139,17 @@
 "color_green" = "Vert";
 "color_graphite" = "Graphite";
 
-/* Mosque timetable (Mawaqit) */
-"Mosque Timetable" = "Horaire de la mosquée";
-"Search for a mosque..." = "Rechercher une mosquée...";
-"Downloading..." = "Téléchargement...";
-"mawaqit_ready" = "✓ Prêt hors connexion (%@)";
-"Couldn't reach mawaqit.net." = "Impossible de joindre mawaqit.net.";
+/* Custom timetable (local CSV import) */
+"Custom Timetable" = "Custom Timetable";
 "Refresh" = "Actualiser";
 "Use Calculated Times Instead" = "Utiliser les horaires calculés";
-"Use a mosque timetable instead" = "Utiliser les horaires d’une mosquée";
+"Use a custom timetable instead" = "Utiliser les horaires d’une mosquée";
 "Use Calculated Times" = "Utiliser les heures calculées";
+"timetable_import_hint" = "PDF, ZIP (12 monthly CSVs), or CSV files from your mosque. Files stay on your Mac.";
+"Choose" = "Choose";
+"Add timetable" = "Add timetable";
+"Delete timetable" = "Delete timetable";
+"Import timetable" = "Import timetable";
 "Appearance" = "Apparence";
 "Visual" = "Visuel";
 "Prayer" = "Prière";
@@ -172,17 +173,12 @@
 "Turn On" = "Activer";
 "Recommended: turn on Compact View to fit this text size." = "Recommandé : activez la vue compacte pour cette taille de texte.";
 "Page %d of %d" = "Page %d sur %d";
-"Top 10 matches — refine to narrow down." = "10 meilleurs résultats — affinez votre recherche.";
-"%d matches — refine your search to narrow it down." = "%d résultats — affinez votre recherche.";
-"Next results" = "Résultats suivants";
-"Previous results" = "Résultats précédents";
 "Mute Adhan" = "Couper l'adhan";
 "Unmute Adhan" = "Rétablir l'adhan";
 "Retry Location" = "Réessayer la localisation";
 "Remove from Favorites" = "Retirer des favoris";
 "Add to Favorites" = "Ajouter aux favoris";
 "Search for a city…" = "Rechercher une ville…";
-"Search for a mosque…" = "Rechercher une mosquée…";
 "Use Automatic Location" = "Utiliser la localisation automatique";
 "Refresh the mosque's schedule" = "Actualiser le planning de la mosquée";
 "Check for the latest version" = "Vérifier la dernière version";
