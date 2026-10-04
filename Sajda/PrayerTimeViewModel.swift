@@ -366,6 +366,7 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
         logger.info("Location manager configured. Services enabled: \(CLLocationManager.locationServicesEnabled(), privacy: .public). Initial authorization: \(self.authorizationDescription(self.locMgr.authorizationStatus), privacy: .public). Desired accuracy: \(self.locMgr.desiredAccuracy, privacy: .public)m")
         startTimer()
         setupSearchPublisher()
+        refreshGeocodeConfig()
         setupAdhanObservers()
         setupLanguageRefresh()
     }
@@ -411,6 +412,62 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
         let city: String?, town: String?, village: String?, state: String?, county: String?, country: String?
     }
 
+    /// City-search backend, swappable without an app update (Nominatim usage
+    /// policy: apps must be able to switch service at OSMF's request).
+    ///
+    /// A tiny JSON at `geocodeConfigURL` may override or disable the search:
+    /// `{ "search_base": "https://…" }` redirects it, `{ "disabled": true }`
+    /// turns city search off (coordinate input keeps working). Anything else
+    /// — fetch failure, bad JSON, non-https URL — keeps the built-in default.
+    /// The last good value is cached in UserDefaults so it survives offline.
+    static let defaultSearchBase = "https://nominatim.openstreetmap.org/search"
+    static let geocodeConfigURL = URL(string: "https://ikoshura.github.io/Sajda/geocode.json")!
+    private static let searchBaseKey = "geocodeSearchBase"
+    private static let searchDisabledKey = "geocodeSearchDisabled"
+
+    /// Validated override, or nil when search must use the built-in default.
+    /// `nil` base + `disabled == true` means search is off entirely.
+    static func resolveGeocodeConfig(data: Data?) -> (base: String?, disabled: Bool) {
+        guard let data,
+              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+            return (nil, false)
+        }
+        if json["disabled"] as? Bool == true { return (nil, true) }
+        guard let raw = (json["search_base"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !raw.isEmpty else { return (nil, false) }
+        guard let url = URL(string: raw), url.scheme?.lowercased() == "https", url.host != nil else {
+            return (nil, false)
+        }
+        return (url.absoluteString, false)
+    }
+
+    /// Effective search base: cached override when valid, else the default.
+    /// Nil means city search is disabled by remote config.
+    var geocodeSearchBase: String? {
+        if UserDefaults.standard.bool(forKey: Self.searchDisabledKey) { return nil }
+        if let cached = UserDefaults.standard.string(forKey: Self.searchBaseKey), !cached.isEmpty {
+            if let url = URL(string: cached), url.scheme?.lowercased() == "https", url.host != nil {
+                return url.absoluteString
+            }
+        }
+        return Self.defaultSearchBase
+    }
+
+    /// Fetches the remote override once per launch; never blocks search.
+    private func refreshGeocodeConfig() {
+        var request = URLRequest(url: Self.geocodeConfigURL, timeoutInterval: 15)
+        request.setValue("Sajda Pro Prayer Times App/1.0", forHTTPHeaderField: "User-Agent")
+        URLSession.shared.dataTask(with: request) { data, _, _ in
+            let resolved = Self.resolveGeocodeConfig(data: data)
+            UserDefaults.standard.set(resolved.disabled, forKey: Self.searchDisabledKey)
+            if let base = resolved.base {
+                UserDefaults.standard.set(base, forKey: Self.searchBaseKey)
+            } else if !resolved.disabled {
+                UserDefaults.standard.removeObject(forKey: Self.searchBaseKey)
+            }
+        }.resume()
+    }
+
     private func setupSearchPublisher() {
         $locationSearchQuery
             .debounce(for: .milliseconds(400), scheduler: RunLoop.main)
@@ -429,7 +486,12 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
                     return Just([coordResult]).eraseToAnyPublisher()
                 }
 
-                var components = URLComponents(string: "https://nominatim.openstreetmap.org/search")!
+                // Remote config may disable city search (OSMF kill switch);
+                // coordinate input above keeps working regardless.
+                guard let searchBase = self.geocodeSearchBase else {
+                    return Just([]).eraseToAnyPublisher()
+                }
+                var components = URLComponents(string: searchBase)!
                 components.queryItems = [
                     URLQueryItem(name: "q", value: trimmedQuery),
                     URLQueryItem(name: "format", value: "json"),

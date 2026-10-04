@@ -890,6 +890,30 @@ final class SajdaTests: XCTestCase {
         XCTAssertTrue(vm.isPrayerDataAvailable)
     }
 
+    // MARK: - Geocode backend override
+
+    /// The search backend must be redirectable/disablable without an app
+    /// update (Nominatim usage policy). Bad config never breaks search.
+    func testGeocodeConfigResolution() {
+        // Nil data / garbage / empty object -> default stays.
+        XCTAssertEqual(PrayerTimeViewModel.resolveGeocodeConfig(data: nil).base, nil)
+        XCTAssertEqual(PrayerTimeViewModel.resolveGeocodeConfig(data: Data("{}".utf8)).base, nil)
+        XCTAssertEqual(PrayerTimeViewModel.resolveGeocodeConfig(data: Data("nope".utf8)).disabled, false)
+        // Good https URL accepted.
+        let good = Data("{\"search_base\":\"https://example.org/search\"}".utf8)
+        XCTAssertEqual(PrayerTimeViewModel.resolveGeocodeConfig(data: good).base, "https://example.org/search")
+        // http and garbage rejected.
+        let plain = Data("{\"search_base\":\"http://example.org/search\"}".utf8)
+        XCTAssertNil(PrayerTimeViewModel.resolveGeocodeConfig(data: plain).base)
+        let junk = Data("{\"search_base\":\"not a url\"}".utf8)
+        XCTAssertNil(PrayerTimeViewModel.resolveGeocodeConfig(data: junk).base)
+        // Kill switch disables search.
+        let off = Data("{\"disabled\":true}".utf8)
+        let resolved = PrayerTimeViewModel.resolveGeocodeConfig(data: off)
+        XCTAssertNil(resolved.base)
+        XCTAssertTrue(resolved.disabled)
+    }
+
     // MARK: - Localization
 
     /// Every localizable key exists in every language.

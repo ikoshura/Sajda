@@ -150,32 +150,57 @@ struct AboutView: View {
             Acknowledgement(
                 id: "Adhan",
                 url: URL(string: "https://github.com/batoulapps/Adhan")!,
-                blurb: "Prayer time calculation library"
+                blurb: "Prayer time calculation library (MIT)"
             ),
             Acknowledgement(
                 id: "ColorSelector",
                 url: URL(string: "https://github.com/jaywcjlove/ColorSelector")!,
-                blurb: "Colour picker for the highlight colour"
+                blurb: "Colour picker for the highlight colour (MIT)"
             ),
             Acknowledgement(
                 id: "FluidMenuBarExtra",
                 url: URL(string: "https://github.com/lfroms/fluid-menu-bar-extra")!,
-                blurb: "Dynamically resizing menu bar window"
+                blurb: "Dynamically resizing menu bar window (MIT, vendored)"
             ),
             Acknowledgement(
                 id: "MacControlCenterUI",
                 url: URL(string: "https://github.com/orchetect/MacControlCenterUI")!,
-                blurb: "Menu builder and controls that mimic macOS Control Center"
+                blurb: "Menu builder and controls that mimic macOS Control Center (MIT, vendored)"
+            ),
+            Acknowledgement(
+                id: "MenuBarExtraAccess",
+                url: URL(string: "https://github.com/orchetect/MenuBarExtraAccess")!,
+                blurb: "Status-item access behind MacControlCenterUI (MIT, transitive)"
             ),
             Acknowledgement(
                 id: "NavigationStack",
                 url: URL(string: "https://github.com/indieSoftware/NavigationStack")!,
-                blurb: "View navigation system"
+                blurb: "View navigation system (MIT)"
             ),
             Acknowledgement(
                 id: "Sparkle",
                 url: URL(string: "https://sparkle-project.org")!,
-                blurb: "In-app updates, signed and verified"
+                blurb: "In-app updates, signed and verified (MIT)"
+            ),
+            Acknowledgement(
+                id: "Adhan recordings",
+                url: URL(string: "https://archive.org/details/adhan.notifications")!,
+                blurb: "Bundled adhan audio, Public Domain Mark 1.0 (archive.org)"
+            ),
+            Acknowledgement(
+                id: "Doha adhan recordings",
+                url: URL(string: "https://archive.org/details/adhan.recordings.from.doha.qatar")!,
+                blurb: "Bundled Fajr adhan audio, Public Domain Mark 1.0 (archive.org)"
+            ),
+            Acknowledgement(
+                id: "OpenStreetMap Nominatim",
+                url: URL(string: "https://wiki.openstreetmap.org/wiki/Nominatim")!,
+                blurb: "City search; results © OpenStreetMap contributors (ODbL)"
+            ),
+            Acknowledgement(
+                id: "App artwork",
+                url: URL(string: "https://thenounproject.com/icon/mosque-3364513/")!,
+                blurb: "Menu-bar mosque glyph and app icon: Mosque by Nawicon from Noun Project (CC BY 3.0)"
             ),
         ]
     }

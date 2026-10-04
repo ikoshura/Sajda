@@ -82,12 +82,15 @@ Thanks also to [@iMacLion](https://github.com/iMacLion) for testing releases and
 
 ## Acknowledgements
 
-- [Adhan](https://github.com/batoulapps/Adhan): prayer time calculation
-- [ColorSelector](https://github.com/jaywcjlove/ColorSelector): highlight colour picker
-- [FluidMenuBarExtra](https://github.com/lfroms/fluid-menu-bar-extra): resizing menu bar window
-- [MacControlCenterUI](https://github.com/orchetect/MacControlCenterUI): Control Center style menu and controls
-- [NavigationStack](https://github.com/indieSoftware/NavigationStack): view navigation
-- [Sparkle](https://sparkle-project.org): signed, notarized in-app updates
+- [Adhan](https://github.com/batoulapps/Adhan): prayer time calculation (MIT)
+- [ColorSelector](https://github.com/jaywcjlove/ColorSelector): highlight colour picker (MIT)
+- [FluidMenuBarExtra](https://github.com/lfroms/fluid-menu-bar-extra): resizing menu bar window (MIT, vendored in `Sajda/FluidMenuBar/`)
+- [MacControlCenterUI](https://github.com/orchetect/MacControlCenterUI): Control Center style menu and controls (MIT, vendored; pulls in [MenuBarExtraAccess](https://github.com/orchetect/MenuBarExtraAccess), also MIT)
+- [NavigationStack](https://github.com/indieSoftware/NavigationStack): view navigation (MIT)
+- [Sparkle](https://sparkle-project.org): signed, notarized in-app updates (MIT)
+- Adhan audio: bundled recordings from [adhan.notifications](https://archive.org/details/adhan.notifications) and [adhan.recordings.from.doha.qatar](https://archive.org/details/adhan.recordings.from.doha.qatar), both Public Domain Mark 1.0
+- City search: [OpenStreetMap Nominatim](https://wiki.openstreetmap.org/wiki/Nominatim); results © OpenStreetMap contributors (ODbL). Timezone detection uses Apple's reverse geocoding
+- Artwork: menu-bar mosque glyph and app icon use [Mosque by Nawicon](https://thenounproject.com/icon/mosque-3364513/) from Noun Project (CC BY 3.0, via [@sabuz796](https://github.com/sabuz796) in [PR #17](https://github.com/ikoshura/Sajda/pull/17)). No bundled fonts — system fonts only
 
 ## License
 
