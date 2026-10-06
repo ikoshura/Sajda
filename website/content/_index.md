@@ -1,5 +1,5 @@
 ---
-title: Sajda Pro
+title: Sajda
 description: A minimalist prayer times app for the macOS menu bar. Next-prayer countdown, red alert, mosque timetables — offline, no tracking, no accounts.
 ---
 
