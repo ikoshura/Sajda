@@ -3,21 +3,21 @@
     <channel>
         <title>Sajda</title>
         <item>
-            <title>4.5.2</title>
-            <pubDate>Tue, 06 Oct 2026 09:56:03 +0700</pubDate>
-            <sparkle:version>42</sparkle:version>
-            <sparkle:shortVersionString>4.5.2</sparkle:shortVersionString>
+            <title>4.5.3</title>
+            <pubDate>Tue, 06 Oct 2026 12:43:29 +0700</pubDate>
+            <sparkle:version>43</sparkle:version>
+            <sparkle:shortVersionString>4.5.3</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <description sparkle:format="markdown"><![CDATA[# Sajda 4.5.2
+            <description sparkle:format="markdown"><![CDATA[# Sajda 4.5.3
 
 ### Patch release
-- **About page update status now matches Sparkle.** The "Couldn't check for updates" text no longer appears when Sparkle has just confirmed you're on the latest version — a manual check that finds no newer build shows "You're up to date." Real failures (unreachable feed, bad signature) still surface the retry prompt.
-- **Adhan reliability:** the adhan player is now held from launch so App Nap can't throttle the countdown timer and miss the prayer-time window; launch after a prayer no longer re-fires its adhan.
-- **Notifications:** the app now tracks banner authorization and surfaces Allow / Open System Settings rows in onboarding and Settings, so a missed or denied prompt is visible and fixable in-app.
-- **Accent consistency:** switches and the Settings tab pill now resolve to the same concrete system accent when no custom colour is picked.
-- Website refresh polish.
+- **Adhan while it sounds:** the prayer row no longer swaps its mute toggle for a stop button — a quiet **Dismiss** link appears beside the prayer name (underlined on hover) and stops the adhan. **Stop Adhan** also moved into the footer row, left of About.
+- **Time correction now re-arms the adhan:** changing a prayer's time (or any recalculation that moves it) counts as a new occurrence, so the corrected prayer sounds again instead of being swallowed by the played-once dedup for the rest of the session.
+- **Sound check plays the full adhan:** Settings → Adhan Sound preview no longer cuts off after a few seconds — and restarting it can no longer be killed by a previous sample's leftover auto-stop. The stop glyph reverts when the sample ends on its own, and now follows the red alert colour while a prayer is imminent.
+- **Settings:** Time Correction moved above the collapsed Calculation accordion — one click instead of two.
+- Website: refreshed minimal design (white, black buttons, app-icon favicon).
 ]]></description>
-            <enclosure url="https://github.com/ikoshura/Sajda/releases/download/v4.5.2/Sajda-4.5.2.dmg" length="15860122" type="application/octet-stream" sparkle:edSignature="p/j0ZvzefgRL4hY2ehpYaOhAu8yipb+S8sTPtVZR5ixJJYFtz50CskZm/1s8Egal5un2BWEkxrobpVWBOtSwBA=="/>
+            <enclosure url="https://github.com/ikoshura/Sajda/releases/download/v4.5.3/Sajda-4.5.3.dmg" length="15866536" type="application/octet-stream" sparkle:edSignature="XiEJK81Zj0cvgZx3kUNiS9W54qlo2PWezklcs+xeMBXngPtFKII2oUe5w2hr5P5kLCIsksX3H1JqjzX+LVeFAw=="/>
         </item>
     </channel>
 </rss>
