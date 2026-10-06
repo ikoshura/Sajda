@@ -188,3 +188,6 @@
 "Location Settings" = "位置情報の設定";
 "Click to install" = "クリックしてインストール";
 "Download and install the update" = "アップデートをダウンロードしてインストール";
+"Allow Notifications" = "通知を許可";
+"Notifications allowed" = "通知が許可されています";
+"Notifications are turned off in System Settings." = "システム設定で通知がオフになっています。";

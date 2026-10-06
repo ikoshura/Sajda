@@ -116,8 +116,10 @@ final class UpdateChecker: NSObject, ObservableObject, SPUUpdaterDelegate {
         }
     }
 
-    /// No newer item in the feed — or the check itself failed. Either way the
-    /// result is only *reported* when the user asked for the check.
+    /// No newer item in the feed. Sparkle reports "already on the latest
+    /// version" through this callback (error code SUNoUpdateError = 1001),
+    /// so a manual check lands on `.upToDate` ("You're up to date.") while
+    /// a background check stays silent.
     nonisolated func updaterDidNotFindUpdate(_ updater: SPUUpdater, error: Error) {
         Task { @MainActor in
             self.state = self.isManualCheckInFlight ? .upToDate : .idle
@@ -125,11 +127,30 @@ final class UpdateChecker: NSObject, ObservableObject, SPUUpdaterDelegate {
         }
     }
 
-    /// The update cycle aborted — bad signature, unreadable feed, install
-    /// failure.
+    /// A real failure of the update cycle — feed unreachable/unreadable, bad
+    /// signature, download/install failure.
+    ///
+    /// NOTE: Sparkle *also* routes the benign "no update found" result
+    /// (SUNoUpdateError) through here right after `updaterDidNotFindUpdate`,
+    /// so that code must map to `.upToDate`/`.idle` — never `.failed` —
+    /// otherwise the About page shows "Couldn't check for updates." even
+    /// though Sparkle just confirmed we're on the latest version.
+    /// Cancellation codes (user dismissed / authorize-later) are likewise
+    /// not failures: they return to `.idle` silently.
     nonisolated func updater(_ updater: SPUUpdater, didAbortWithError error: Error) {
+        let nsError = error as NSError
         Task { @MainActor in
-            self.state = .failed
+            switch nsError.code {
+            case 1001: // SUNoUpdateError — checked fine, already latest.
+                self.state = self.isManualCheckInFlight ? .upToDate : .idle
+            case 4007, 4008: // SUInstallationCanceledError / SUInstallationAuthorizeLaterError
+                self.state = .idle
+            default:
+                // Only a manual check surfaces the failure text; a
+                // background check stays silent instead of painting an
+                // error the user never asked for.
+                self.state = self.isManualCheckInFlight ? .failed : .idle
+            }
             self.isManualCheckInFlight = false
         }
     }

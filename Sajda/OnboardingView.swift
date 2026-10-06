@@ -200,7 +200,40 @@ struct OnboardingView: View {
                         .onChange(of: autoCheckForUpdates) { enabled in
                             if enabled { UpdateChecker.shared.checkIfDue() }
                         }
-                    
+
+                    // The adhan itself plays app-side, but the banner that
+                    // accompanies it needs system authorization — and the
+                    // (one-shot) prompt can realistically only be answered
+                    // here or in Settings, where this row mirrors it.
+                    HStack(spacing: 8) {
+                        switch vm.notificationAuthorizationStatus {
+                        case .authorized:
+                            Image(systemName: "checkmark.circle.fill")
+                                .font(.system(size: 11))
+                                .foregroundColor(.green)
+                            Text("Notifications allowed")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        case .notDetermined:
+                            Button("Allow Notifications") {
+                                vm.requestNotificationPermission()
+                            }
+                            .controlSize(.small)
+                        default:
+                            Text("Notifications are turned off in System Settings.")
+                                .font(.caption)
+                                .foregroundColor(.orange)
+                                .lineLimit(2)
+                                .fixedSize(horizontal: false, vertical: true)
+                            Spacer(minLength: 4)
+                            Button("Open System Settings") {
+                                vm.openNotificationSettings()
+                            }
+                            .controlSize(.small)
+                        }
+                    }
+                    .onAppear { vm.refreshNotificationAuthorizationStatus() }
+
                     Button(action: { NSApp.keyWindow?.close() }) {
                         Text("Done").frame(maxWidth: .infinity)
                     }

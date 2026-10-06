@@ -188,3 +188,6 @@
 "Location Settings" = "위치 설정";
 "Click to install" = "클릭하여 설치";
 "Download and install the update" = "업데이트 다운로드 및 설치";
+"Allow Notifications" = "알림 허용";
+"Notifications allowed" = "알림이 허용됨";
+"Notifications are turned off in System Settings." = "시스템 설정에서 알림이 꺼져 있습니다.";

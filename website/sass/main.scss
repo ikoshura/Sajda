@@ -19,9 +19,10 @@
 /* ---------- global: tokens + page defaults ---------- */
 @layer global {
   :root {
-    --color-ink: #062018;
-    --color-teal: #1f8a70;
-    --color-mint: #7ee0c3;
+    --color-ink: #14122b;
+    --color-primary: #5b54ec;
+    --color-lavender: #c9c6f5;
+    --color-mist: #efedff;
     --color-lime: #c8ff3d;
     --color-cyan: #27e1ff;
     --color-sun: #ffd23f;
@@ -52,7 +53,7 @@
   }
 
   ::selection {
-    background: var(--color-mint);
+    background: var(--color-lavender);
     color: var(--color-ink);
   }
   :where(a) {
@@ -207,11 +208,21 @@
     margin-inline: auto;
   }
   .site-header__brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+  }
+  .site-header__brand img {
+    display: block;
+    inline-size: 26px;
+    block-size: 26px;
+  }
+  .site-header__brand span {
     font-weight: 1000;
     font-stretch: 70%;
     letter-spacing: -0.02em;
     font-size: 1.05rem;
-    text-decoration: none;
   }
   .site-header__nav {
     font-size: 0.78rem;
@@ -240,19 +251,18 @@
     text-decoration: none;
   }
 
-  /* hero */
+  /* hero: static, no motion */
   .hero {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
     gap: var(--space-gap);
-    min-height: 88svh;
   }
   .hero-title {
     font-size: clamp(5.5rem, 26vw, 21rem);
     line-height: 0.8;
     letter-spacing: -0.03em;
-    color: var(--color-lime);
+    color: var(--color-lavender);
     overflow-wrap: anywhere;
     font-variation-settings: "opsz" 144;
   }
@@ -301,7 +311,7 @@
     opacity: 0.6;
   }
   .countdown[data-urgent] .countdown__num {
-    color: var(--color-mint);
+    color: var(--color-lavender);
   }
   .countdown[data-done] .countdown__num {
     color: var(--color-sun);
@@ -498,12 +508,12 @@
   }
   .chip[data-style="heavy"] {
     font-weight: 1000;
-    background: var(--color-mint);
+    background: var(--color-lavender);
     color: var(--color-ink);
   }
   .chip[data-style="hairline"] {
     font-weight: 200;
-    background: var(--color-teal);
+    background: var(--color-primary);
   }
   .chip[data-style="tight"] {
     font-stretch: 45%;
@@ -589,9 +599,9 @@
   .button--ghost {
     background: transparent;
   }
-  .button--teal {
-    border-color: var(--color-teal);
-    background: var(--color-teal);
+  .button--primary {
+    border-color: var(--color-primary);
+    background: var(--color-primary);
     color: var(--color-white);
   }
   .button--ink {
@@ -643,10 +653,10 @@
     font-stretch: 88%;
   }
   .faq summary::marker {
-    color: var(--color-mint);
+    color: var(--color-lavender);
   }
   .faq details[open] summary {
-    color: var(--color-teal);
+    color: var(--color-primary);
   }
   .faq details > p {
     margin-block-start: 10px;
@@ -691,7 +701,7 @@
     overflow-x: auto;
   }
 
-  /* wave + finale */
+  /* static display text, no motion hooks */
   .wave-text {
     font-size: clamp(2.6rem, 12vw, 9rem);
     line-height: 1;
@@ -703,7 +713,7 @@
     color: var(--letter-color, currentColor);
   }
   .wave-text[data-motion="weight"] > :nth-child(5n + 1) {
-    --letter-color: var(--color-mint);
+    --letter-color: var(--color-lavender);
   }
   .wave-text[data-motion="weight"] > :nth-child(5n + 2) {
     --letter-color: var(--color-sun);
@@ -718,6 +728,7 @@
     --letter-color: var(--color-white);
   }
 
+  /* finale: static, no gradient */
   .finale {
     text-align: center;
   }
@@ -728,6 +739,7 @@
     font-weight: 900;
     font-stretch: 50%;
     overflow-wrap: anywhere;
+    color: var(--color-white);
   }
   .finale .cluster {
     justify-content: center;
@@ -737,11 +749,11 @@
     .finale-title {
       background: linear-gradient(
           90deg,
-          var(--color-mint),
+          var(--color-lavender),
           var(--color-sun),
           var(--color-lime),
           var(--color-cyan),
-          var(--color-mint)
+          var(--color-lavender)
         )
         0 0 / 300% 100%;
       -webkit-background-clip: text;
@@ -768,71 +780,8 @@
     text-underline-offset: 3px;
   }
 
-  /* motion: opt-in, reduced-motion users never need an override */
-  @keyframes breathe {
-    from {
-      font-variation-settings:
-        "wght" 100,
-        "wdth" 40,
-        "opsz" 144;
-    }
-    50% {
-      font-variation-settings:
-        "wght" 600,
-        "wdth" 90,
-        "opsz" 144;
-    }
-    to {
-      font-variation-settings:
-        "wght" 1000,
-        "wdth" 125,
-        "opsz" 144;
-    }
-  }
-  @keyframes wave-weight {
-    from {
-      font-variation-settings:
-        "wght" 100,
-        "wdth" 40;
-    }
-    to {
-      font-variation-settings:
-        "wght" 1000,
-        "wdth" 140;
-    }
-  }
-  @keyframes gradient-slide {
-    to {
-      background-position: -300% 0;
-    }
-  }
-  @keyframes bar-pulse {
-    from {
-      filter: brightness(0.92);
-    }
-    to {
-      filter: brightness(1.12);
-    }
-  }
+  /* no entrance/animation: the site is static */
 
-  @media (prefers-reduced-motion: no-preference) {
-    .hero-title {
-      animation: breathe 5s ease-in-out infinite alternate;
-    }
-    .wave-text > span {
-      animation: wave-weight 2.4s ease-in-out infinite alternate;
-      animation-delay: calc(var(--i) * -0.16s);
-    }
-    .finale-title {
-      animation: gradient-slide 6s linear infinite;
-    }
-    .debt__bar::-webkit-progress-value {
-      animation: bar-pulse 1.6s ease-in-out infinite alternate;
-    }
-    .debt__bar::-moz-progress-bar {
-      animation: bar-pulse 1.6s ease-in-out infinite alternate;
-    }
-  }
 }
 
 /* ---------- exception: surface + tone variations ---------- */
@@ -841,16 +790,16 @@
     --surface-bg: var(--color-ink);
     --surface-fg: var(--color-white);
   }
-  [data-surface="teal"] {
-    --surface-bg: var(--color-teal);
+  [data-surface="primary"] {
+    --surface-bg: var(--color-primary);
     --surface-fg: var(--color-white);
   }
   [data-surface="sun"] {
     --surface-bg: var(--color-sun);
     --surface-fg: var(--color-ink);
   }
-  [data-surface="mint"] {
-    --surface-bg: var(--color-mint);
+  [data-surface="lavender"] {
+    --surface-bg: var(--color-lavender);
     --surface-fg: var(--color-ink);
   }
   [data-surface="white"] {
@@ -865,8 +814,8 @@
     --surface-bg: var(--color-lime);
     --surface-fg: var(--color-ink);
   }
-  [data-tone="teal"] {
-    color: var(--color-mint);
+  [data-tone="primary"] {
+    color: var(--color-lavender);
   }
   [data-tone="cyan"] {
     color: var(--color-cyan);

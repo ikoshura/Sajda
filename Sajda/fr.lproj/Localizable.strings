@@ -188,3 +188,6 @@
 "Location Settings" = "Réglages de position";
 "Click to install" = "Cliquer pour installer";
 "Download and install the update" = "Télécharger et installer la mise à jour";
+"Allow Notifications" = "Autoriser les notifications";
+"Notifications allowed" = "Notifications autorisées";
+"Notifications are turned off in System Settings." = "Les notifications sont désactivées dans les Réglages du système.";

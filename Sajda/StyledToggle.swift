@@ -49,7 +49,10 @@ struct StyledToggle: View {
                 .controlSize(nativeControlSize)
                 // The on-state uses the selected highlight colour so every
                 // switch matches the highlight row and the Accent Panel tint;
-                // nil (no colour selected) keeps the system accent.
+                // the concrete `systemControlAccent` (read from
+                // `NSColor.controlAccentColor`) keeps the system accent when
+                // no colour is selected — the dynamic `.accentColor` does not
+                // resolve the system accent inside a native switch's `.tint()`.
                 //
                 // `currentControlTint`, not the raw pick: while a prayer is
                 // imminent every coloured surface follows the red alert, and the

@@ -8,6 +8,7 @@ import SwiftUI
 import AppKit
 import NavigationStack
 import OSLog
+import UserNotifications
 
 @propertyWrapper
 struct FlexibleDouble: Codable, Equatable, Hashable {
@@ -252,7 +253,12 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
     }
     // Gaya Liquid Glass di atas highlight waktu sholat berikutnya (opsional).
     @AppStorage("useGlassPrayerHighlight") var useGlassPrayerHighlight: Bool = true
-    @AppStorage("isNotificationsEnabled") var isNotificationsEnabled: Bool = true { didSet { updateNotifications() } }
+    @AppStorage("isNotificationsEnabled") var isNotificationsEnabled: Bool = true { didSet { updateNotifications(); refreshNotificationAuthorizationStatus() } }
+    /// Live system authorization for notification banners. The adhan itself is
+    /// played by the app, but without this the banner never appears — and
+    /// before this existed there was no in-app way to see (or fix) a prompt
+    /// that was missed or denied.
+    @Published var notificationAuthorizationStatus: UNAuthorizationStatus = .notDetermined
     @AppStorage("useCompactLayout") var useCompactLayout: Bool = false
     /// True once the user has set Compact View by hand — from *any* page that
     /// exposes the toggle, or the "Turn On" button on the accessibility page.
@@ -329,6 +335,9 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
     private var locationTimeZone: TimeZone = .current
     private var locationDisplayTimer: Timer?
     private var dailyRescheduleTimer: Timer?
+    /// One wall-clock timer per remaining prayer of the day — the app-side
+    /// adhan trigger. See `scheduleAdhanTriggers(for:prayerOrder:)`.
+    private var adhanTriggerTimers: [String: Timer] = [:]
     private var lastCalculationDate: Date?
     private var locationRequestTimeoutTask: DispatchWorkItem?
     private var locationProgressUpdateTask: DispatchWorkItem?
@@ -369,6 +378,7 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
         refreshGeocodeConfig()
         setupAdhanObservers()
         setupLanguageRefresh()
+        refreshNotificationAuthorizationStatus()
     }
 
     private func migratePrayerSoundConfigs() {
@@ -1418,13 +1428,27 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
     /// `prayerImminentForTint`, which exists precisely so view-model-less code
     /// can follow the alert. Falls back to the picked colour so a switch keeps
     /// its tint when nothing is painted.
+    /// Concrete system accent shared by every "no custom colour" fallback.
+    /// `Color.accentColor` resolves to the app's `AccentColor` asset — an
+    /// empty system-default template — which a shape fill resolves against
+    /// the environment accent but a native switch's `.tint()` does not,
+    /// leaving every toggle on a fixed blue while the tab pill follows the
+    /// system accent. Reading `NSColor.controlAccentColor` into a concrete
+    /// sRGB colour gives both surfaces the exact same value.
+    static var systemControlAccent: Color {
+        if let rgb = NSColor.controlAccentColor.usingColorSpace(.sRGB) {
+            return Color(red: rgb.redComponent, green: rgb.greenComponent, blue: rgb.blueComponent)
+        }
+        return Color(red: 0.0, green: 0.478, blue: 1.0)
+    }
+
     static var currentControlTint: Color {
         if let alertHex = alertHighlightHex,
            let alert = Self.controlTint(fromHighlightHex: alertHex) {
             return alert
         }
         let picked = UserDefaults.standard.string(forKey: "customHighlightColorHex") ?? ""
-        return Self.controlTint(fromHighlightHex: picked) ?? .accentColor
+        return Self.controlTint(fromHighlightHex: picked) ?? Self.systemControlAccent
     }
 
     /// Key `updateCountdown()` mirrors `isPrayerImminent` under, so code with no
@@ -1464,7 +1488,7 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
     /// the alert reaches all of them from here rather than each surface
     /// remembering to ask.
     var selectedHighlightColor: Color {
-        Self.controlTint(fromHighlightHex: effectiveHighlightHex) ?? .accentColor
+        Self.controlTint(fromHighlightHex: effectiveHighlightHex) ?? Self.systemControlAccent
     }
 
     /// Contrast-safe variant of `selectedHighlightColor` for *small glyphs*
@@ -1501,12 +1525,12 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
             return selectedHighlightColor
         }
         guard Self.controlTint(fromHighlightHex: hex) != nil else {
-            return .accentColor
+            return Self.systemControlAccent
         }
         let c = Self.accentPanelBaseComponents(fromHighlightHex: hex)
         // WCAG relative luminance of the pick; pale picks (> ~0.55) read as
         // "almost white" at glyph sizes and need the fallback.
-        return Self.relativeLuminance(c.r, c.g, c.b) > 0.55 ? .accentColor : selectedHighlightColor
+        return Self.relativeLuminance(c.r, c.g, c.b) > 0.55 ? Self.systemControlAccent : selectedHighlightColor
     }
 
     /// True while the picked highlight is one of the two red-ish presets
@@ -1862,18 +1886,76 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
         dailyRescheduleTimer?.invalidate()
         dailyRescheduleTimer = nil
 
-        guard isNotificationsEnabled, !todayTimes.isEmpty else {
-            NotificationManager.cancelNotifications()
-            return
-        }
-        NotificationManager.requestPermission()
         var prayersToNotify = ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"]
         if showSunnahPrayers {
             if todayTimes.keys.contains("Tahajud") { prayersToNotify.append("Tahajud") }
             if todayTimes.keys.contains("Dhuha") { prayersToNotify.append("Dhuha") }
         }
+
+        // The adhan is played by the app, never by the notification payload
+        // (see NotificationManager) — so its triggers are scheduled regardless
+        // of whether banners are enabled, exactly like the countdown poll.
+        scheduleAdhanTriggers(for: todayTimes, prayerOrder: prayersToNotify)
+
+        guard isNotificationsEnabled, !todayTimes.isEmpty else {
+            NotificationManager.cancelNotifications()
+            return
+        }
+        // Requests (first run only) and keeps `notificationAuthorizationStatus`
+        // in sync with however the prompt was answered.
+        requestNotificationPermission()
         NotificationManager.scheduleNotifications(for: todayTimes, prayerOrder: prayersToNotify, prayerConfigs: prayerSoundConfigs)
         scheduleNextDayReschedule()
+    }
+
+    /// One wall-clock timer per remaining prayer of the day, firing at the
+    /// prayer instant itself. The countdown poll alone is not enough: it can be
+    /// throttled while the menu is closed (App Nap), and any `updatePrayerTimes()`
+    /// between the prayer and the poll's first "Now" tick advances
+    /// `nextPrayerName` past the prayer, losing that day's adhan entirely while
+    /// the banner still shows. These timers use wall-clock fire dates (so a
+    /// sleep-delayed one fires on wake) and resolve the sound config when they
+    /// fire, so Settings changes apply immediately. Double playback with the
+    /// poll or the notification delegates is impossible — `AdhanAudioPlayer`
+    /// plays each prayer once.
+    private func scheduleAdhanTriggers(for prayerTimes: [String: Date], prayerOrder: [String]) {
+        adhanTriggerTimers.values.forEach { $0.invalidate() }
+        adhanTriggerTimers = [:]
+
+        let pending = NotificationManager.pendingPrayerTimes(for: prayerTimes, prayerOrder: prayerOrder)
+        for (prayerName, prayerTime) in pending {
+            let timer = Timer(timeInterval: 0, repeats: false) { [weak self] _ in
+                self?.adhanTriggerTimers.removeValue(forKey: prayerName)
+                guard let self = self, let sound = self.adhanSound(for: prayerName) else { return }
+                AdhanAudioPlayer.shared.play(adhanType: sound.adhanType, customFilePath: sound.customFilePath, prayerName: prayerName)
+            }
+            timer.fireDate = prayerTime
+            // Common mode so menu tracking can never hold the adhan back.
+            RunLoop.main.add(timer, forMode: .common)
+            adhanTriggerTimers[prayerName] = timer
+        }
+    }
+
+    /// Re-reads the system notification authorization on the main queue.
+    /// Called at launch, when the settings toggle flips, and whenever a page
+    /// showing the status appears.
+    func refreshNotificationAuthorizationStatus() {
+        NotificationManager.authorizationStatus { [weak self] status in
+            self?.notificationAuthorizationStatus = status
+        }
+    }
+
+    /// Shows the system prompt (first time only) and refreshes the status.
+    func requestNotificationPermission() {
+        NotificationManager.requestPermission { [weak self] _ in
+            self?.refreshNotificationAuthorizationStatus()
+        }
+    }
+
+    /// Opens System Settings > Notifications, the only place a denied prompt
+    /// can be reversed.
+    func openNotificationSettings() {
+        NotificationManager.openSystemSettings()
     }
 
     private func scheduleNextDayReschedule() {

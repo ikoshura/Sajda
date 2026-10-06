@@ -771,6 +771,47 @@ final class SajdaTests: XCTestCase {
         )
     }
 
+    /// With no custom colour picked and no alert up, the switches
+    /// (`currentControlTint`) and the Settings tab pill
+    /// (`selectedHighlightColor`) must resolve to the same concrete system
+    /// accent — not the dynamic `.accentColor`, which a native switch's
+    /// `.tint()` never resolves to the system accent, leaving the toggles a
+    /// fixed blue while the pill follows the system setting.
+    func testDefaultTintMatchesTheTabPillAccent() {
+        let defaults = UserDefaults.standard
+        let keys = ["prayerImminentForTint", "customHighlightColorHex", "useAccentColor", "accentPanelTheme"]
+        let saved = keys.map { defaults.object(forKey: $0) }
+        defer {
+            for (index, key) in keys.enumerated() {
+                if let previous = saved[index] {
+                    defaults.set(previous, forKey: key)
+                } else {
+                    defaults.removeObject(forKey: key)
+                }
+            }
+        }
+
+        defaults.set(false, forKey: PrayerTimeViewModel.imminentDefaultsKey)
+        defaults.set("", forKey: "customHighlightColorHex")
+        defaults.set(true, forKey: "useAccentColor")
+        defaults.set(false, forKey: "accentPanelTheme")
+
+        let vm = PrayerTimeViewModel()
+        vm.customHighlightColorHex = ""
+        vm.isPrayerImminent = false
+
+        XCTAssertEqual(
+            PrayerTimeViewModel.currentControlTint,
+            vm.selectedHighlightColor,
+            "the default toggle tint and the default tab pill must be the same colour"
+        )
+        XCTAssertEqual(
+            PrayerTimeViewModel.currentControlTint,
+            PrayerTimeViewModel.systemControlAccent,
+            "the default tint must be the concrete system accent"
+        )
+    }
+
     /// …including the amber fallback when the user's pick is itself red-ish, so
     /// the glyphs stay legible instead of vanishing into the alert.
     func testInteractiveGlyphAccentUsesTheAmberFallbackForRedPicks() {
@@ -955,6 +996,39 @@ final class SajdaTests: XCTestCase {
             guard let keyRange = Range(match.range(at: 1), in: text) else { return nil }
             return String(text[keyRange])
         })
+    }
+
+    // MARK: - Notification / adhan scheduling
+
+    /// Notifications and the app-side adhan triggers both schedule off this
+    /// helper, so it must keep exactly the prayers still ahead of `now`: a
+    /// prayer already past must never be rescheduled (launching the app after
+    /// Maghrib would otherwise fire Maghrib's adhan on the spot), and a prayer
+    /// missing from today's times must not be invented.
+    func testPendingPrayerTimesKeepsOnlyPrayersStillAhead() {
+        let now = Date()
+        let times = [
+            "Fajr": now.addingTimeInterval(-3600),     // already prayed today
+            "Dhuhr": now.addingTimeInterval(60),       // the next one
+            "Asr": now.addingTimeInterval(7200),       // later today
+        ]
+        let order = ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"]
+
+        let pending = NotificationManager.pendingPrayerTimes(for: times, prayerOrder: order, now: now)
+
+        XCTAssertEqual(Set(pending.keys), ["Dhuhr", "Asr"])
+        XCTAssertEqual(pending["Dhuhr"]!.timeIntervalSince(now), 60, accuracy: 0.001)
+        XCTAssertEqual(pending["Asr"]!.timeIntervalSince(now), 7200, accuracy: 0.001)
+    }
+
+    /// A prayer exactly at `now` is already happening — it must not be
+    /// scheduled, or it would fire a zero-second timer into the past.
+    func testPendingPrayerTimesExcludesPrayersThatAreDue() {
+        let now = Date()
+        let pending = NotificationManager.pendingPrayerTimes(
+            for: ["Dhuhr": now], prayerOrder: ["Dhuhr"], now: now
+        )
+        XCTAssertTrue(pending.isEmpty)
     }
 
 }

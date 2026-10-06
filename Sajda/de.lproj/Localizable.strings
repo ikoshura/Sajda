@@ -188,3 +188,6 @@
 "Location Settings" = "Standorteinstellungen";
 "Click to install" = "Zum Installieren klicken";
 "Download and install the update" = "Update herunterladen und installieren";
+"Allow Notifications" = "Benachrichtigungen zulassen";
+"Notifications allowed" = "Benachrichtigungen erlaubt";
+"Notifications are turned off in System Settings." = "Benachrichtigungen sind in den Systemeinstellungen deaktiviert.";

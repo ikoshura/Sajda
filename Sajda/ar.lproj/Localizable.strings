@@ -188,3 +188,6 @@
 "Location Settings" = "إعدادات الموقع";
 "Click to install" = "انقر للتثبيت";
 "Download and install the update" = "نزّل التحديث وثبّته";
+"Allow Notifications" = "السماح بالإشعارات";
+"Notifications allowed" = "تم السماح بالإشعارات";
+"Notifications are turned off in System Settings." = "تم إيقاف الإشعارات في إعدادات النظام.";

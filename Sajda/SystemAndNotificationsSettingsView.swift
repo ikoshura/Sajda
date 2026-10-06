@@ -31,6 +31,41 @@ struct SystemAndNotificationsSettingsView: View {
         return prayers
     }
 
+    /// Authorization state under the Prayer Notifications toggle: a green
+    /// confirmation once allowed, the one-shot prompt button while the system
+    /// hasn't asked yet, and an Open System Settings shortcut once denied
+    /// (the only state the app cannot fix by itself).
+    @ViewBuilder
+    private var notificationPermissionRow: some View {
+        switch vm.notificationAuthorizationStatus {
+        case .authorized:
+            HStack(spacing: 6) {
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.system(size: 11))
+                    .foregroundColor(.green)
+                Text("Notifications allowed")
+                    .scaledFont(.caption)
+                    .foregroundColor(Color("SecondaryTextColor"))
+            }
+        case .notDetermined:
+            Button("Allow Notifications") {
+                vm.requestNotificationPermission()
+            }
+            .scaledFont(.caption)
+        default:
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Notifications are turned off in System Settings.")
+                    .scaledFont(.caption)
+                    .foregroundColor(.orange)
+                    .fixedSize(horizontal: false, vertical: true)
+                Button("Open System Settings") {
+                    vm.openNotificationSettings()
+                }
+                .scaledFont(.caption)
+            }
+        }
+    }
+
     var body: some View {
         NavigationStackView(Self.id) {
             VStack(alignment: .leading, spacing: 6) {
@@ -56,6 +91,14 @@ struct SystemAndNotificationsSettingsView: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 12) {
                         StyledToggle(label: "Prayer Notifications", isOn: $vm.isNotificationsEnabled)
+
+                        // System authorization is the gate on the banner itself
+                        // (the adhan plays app-side, the banner does not) — and
+                        // macOS never re-prompts after a deny, so the only fix
+                        // is a shortcut to System Settings.
+                        if vm.isNotificationsEnabled {
+                            notificationPermissionRow
+                        }
 
                         Rectangle()
                             .fill(Color("DividerColor"))
@@ -171,6 +214,9 @@ struct SystemAndNotificationsSettingsView: View {
             .padding(.bottom, 2)
             .frame(width: viewWidth)
         }
+        // The status can change while the page is closed (prompt answered in
+        // System Settings) — re-read it every time the page is shown.
+        .onAppear { vm.refreshNotificationAuthorizationStatus() }
     }
 }
 
@@ -208,10 +254,10 @@ struct PrayerSoundRow: View {
                     onUpdateConfig(newConfig)
                 }) {
                     // Speaker glyphs here, and always a speaker: this page is
-                    // about picking and previewing sounds, so the speaker *is*
-                    // the vocabulary, and the glyph needs to say "preview" while
-                    // it sits beside "mute". The panel rows are free to be a
-                    // bell or a halo instead (see `MuteIconStyle`) because
+                    // about picking sounds. Previewing gets the play/stop
+                    // glyphs instead, so the two buttons beside each other
+                    // never read as one control. The panel rows are free to be
+                    // a bell or a halo instead (see `MuteIconStyle`) because
                     // there the icon is the whole control.
                     //
                     // Slashed when muted, waved when not — the shape carries
@@ -237,11 +283,16 @@ struct PrayerSoundRow: View {
 
                 if config.adhanType.isAzan || config.adhanType == .custom {
                     Button(action: onPreview) {
-                        Image(systemName: isPreviewing ? "speaker.wave.3.fill" : "speaker.fill")
+                        // Play/stop glyphs, not speakers: the row already has a
+                        // speaker for mute beside it, and two speakers side by
+                        // side read as one control. The triangle says "play a
+                        // sample", the square stops it.
+                        Image(systemName: isPreviewing ? "stop.fill" : "play.fill")
                             .font(.system(size: 12))
                             .foregroundColor(isPreviewing ? .accentColor : .secondary)
                     }
                     .buttonStyle(.plain)
+                    .help(isPreviewing ? "Stop Preview" : "Preview Adhan")
                 }
             }
 

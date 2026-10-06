@@ -143,10 +143,15 @@ xcodebuild \
 - `NSApp.setActivationPolicy(.accessory)` hides Dock icon; toggled by `showInDock` setting
 
 ### Notification Sound Pipeline
-1. `userNotificationCenter(_:willPresent:)` in AppDelegate receives notification
-2. Looks up `vm.soundConfig(for: prayerName)` → `PrayerSoundConfig`
-3. `AdhanAudioPlayer.shared.play()` handles playback (bundled CAF, default beep, or custom file)
-4. User can stop via context menu "Stop Adhan" item or the inline stop button in the prayer list
+1. The notification payload is always silent (`content.sound = nil`) — `UNNotificationSound` rejects the long CAF adhans (>30s) and would then play nothing. Banners therefore need notification authorization; the adhan does not.
+2. The adhan audio is played by the app itself, in order of precedence (deduped by `AdhanAudioPlayer.playedPrayers` — each prayer plays once):
+   - `scheduleAdhanTriggers` (PrayerTimeViewModel) — wall-clock `Timer` per remaining prayer, scheduled alongside the notifications, fires at the prayer instant (`.common` run-loop mode, resolves the sound config at fire time).
+   - The 1-second countdown poll (`updateCountdown`) — plays when the countdown reaches "Now" (safety net).
+   - `userNotificationCenter(_:willPresent:)` in AppDelegate — foreground-only (Apple: "arrived while the app was running in the foreground"), i.e. effectively only while the menu is open.
+   - `userNotificationCenter(_:didReceive:)` — plays when the user clicks the banner.
+3. `AdhanAudioPlayer.shared` is touched at launch so its App Nap / idle-sleep assertion is held from startup — otherwise the countdown timer can be throttled while the menu is closed.
+4. User can stop via the "Stop Adhan" menu command or the inline stop button in the prayer list.
+5. Notification authorization is surfaced in onboarding and Settings → Adhan Sound (Allow prompt / Open System Settings shortcut); `PrayerTimeViewModel.notificationAuthorizationStatus` mirrors the system state.
 
 ## Key Dependencies
 

@@ -40,6 +40,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
 
         UNUserNotificationCenter.current().delegate = self
 
+        // Touch the adhan player now so its process activity (the App Nap /
+        // idle-sleep assertion) is held from launch. Until first playback the
+        // menu-bar-only app is a nap candidate, and a throttled countdown
+        // timer is exactly how the prayer-time window gets missed.
+        _ = AdhanAudioPlayer.shared
+
         let showInDock = UserDefaults.standard.bool(forKey: "showInDock")
         NSApp.setActivationPolicy(showInDock ? .regular : .accessory)
 
@@ -123,7 +129,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
         let hostingController = NSHostingController(rootView: onboardingView)
         let window = NSWindow(contentViewController: hostingController)
         
-        window.setContentSize(NSSize(width: 380, height: 490))
+        // 510 (was 490): the notification-permission row above Done needs
+        // ~20pt more than the original layout had to spare.
+        window.setContentSize(NSSize(width: 380, height: 510))
         window.styleMask.remove(.resizable)
         window.center()
         

@@ -3,18 +3,21 @@
     <channel>
         <title>Sajda</title>
         <item>
-            <title>4.5.1</title>
-            <pubDate>Mon, 05 Oct 2026 04:13:32 +0700</pubDate>
-            <sparkle:version>41</sparkle:version>
-            <sparkle:shortVersionString>4.5.1</sparkle:shortVersionString>
+            <title>4.5.2</title>
+            <pubDate>Tue, 06 Oct 2026 09:56:03 +0700</pubDate>
+            <sparkle:version>42</sparkle:version>
+            <sparkle:shortVersionString>4.5.2</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <description sparkle:format="markdown"><![CDATA[# Sajda 4.5.1
+            <description sparkle:format="markdown"><![CDATA[# Sajda 4.5.2
 
-### Legal and attribution patch
-- Expanded Acknowledgements (in-app About + README): every dependency now lists its license (all MIT), the transitive MenuBarExtraAccess is credited, bundled adhan audio cites its Public Domain Mark 1.0 sources, city search carries the required OpenStreetMap/ODbL attribution, and the mosque artwork credits Nawicon (Noun Project, CC BY 3.0).
-- City search backend is now switchable without an app update: a small config file can redirect or disable it if the provider ever asks, per the Nominatim usage policy.
+### Patch release
+- **About page update status now matches Sparkle.** The "Couldn't check for updates" text no longer appears when Sparkle has just confirmed you're on the latest version — a manual check that finds no newer build shows "You're up to date." Real failures (unreachable feed, bad signature) still surface the retry prompt.
+- **Adhan reliability:** the adhan player is now held from launch so App Nap can't throttle the countdown timer and miss the prayer-time window; launch after a prayer no longer re-fires its adhan.
+- **Notifications:** the app now tracks banner authorization and surfaces Allow / Open System Settings rows in onboarding and Settings, so a missed or denied prompt is visible and fixable in-app.
+- **Accent consistency:** switches and the Settings tab pill now resolve to the same concrete system accent when no custom colour is picked.
+- Website refresh polish.
 ]]></description>
-            <enclosure url="https://github.com/ikoshura/Sajda/releases/download/v4.5.1/Sajda-4.5.1.dmg" length="15834163" type="application/octet-stream" sparkle:edSignature="mWdnUVQOA1shDtBk0V3aeSEyvGdhXTBS5Ayr29fdGnFqh6U1ez2AkPLVVLYRmyReweq3EpBxEzP0c1JvjTbFAw=="/>
+            <enclosure url="https://github.com/ikoshura/Sajda/releases/download/v4.5.2/Sajda-4.5.2.dmg" length="15860122" type="application/octet-stream" sparkle:edSignature="p/j0ZvzefgRL4hY2ehpYaOhAu8yipb+S8sTPtVZR5ixJJYFtz50CskZm/1s8Egal5un2BWEkxrobpVWBOtSwBA=="/>
         </item>
     </channel>
 </rss>
