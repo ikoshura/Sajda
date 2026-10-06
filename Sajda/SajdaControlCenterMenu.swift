@@ -7,9 +7,8 @@
 // About, sub-pages — all NavigationStack-based) are hosted verbatim inside it
 // via `NavigationStackView(ContentView.id)`, so every push/pop keeps working
 // unchanged and the menu's height-resize animation carries the transitions.
-// A small footer section adds Stop Adhan (while playing) as a first-class
-// menu command — MainView's own one-line footer already covers Quit /
-// About / Settings.
+// Stop Adhan (while playing) is an icon button in MainView's one-line footer,
+// immediately left of About.
 
 import SwiftUI
 import NavigationStack
@@ -21,7 +20,6 @@ struct SajdaControlCenterMenu: View {
     @EnvironmentObject var vm: PrayerTimeViewModel
     @EnvironmentObject var languageManager: LanguageManager
     @EnvironmentObject var navigationModel: NavigationModel
-    @EnvironmentObject var appDelegate: AppDelegate
 
     var body: some View {
         LanguageManagerView(manager: languageManager) {
@@ -31,16 +29,9 @@ struct SajdaControlCenterMenu: View {
                         MainView()
                     }
                 }
-                // MainView's footer already covers About / Settings / Quit
-                // (single one-line row). This only adds Stop Adhan while
-                // playing, which otherwise has no in-panel home.
-                if vm.isAdhanPlaying {
-                    MenuSection(divider: true) {
-                        MenuCommand(dismissesMenu: false) { appDelegate.stopAdhanFromMenu() } label: {
-                            HStack { Image(systemName: "stop.circle"); Text("Stop Adhan"); Spacer() }
-                        }
-                    }
-                }
+                // Stop Adhan lives inside MainView now, in its footer row
+                // just left of About (see the block there) — at the menu root
+                // it rendered *below* the whole footer.
             }
             .environmentObject(vm)
             .environmentObject(navigationModel)

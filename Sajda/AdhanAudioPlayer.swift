@@ -10,6 +10,14 @@ class AdhanAudioPlayer: NSObject, AVAudioPlayerDelegate, NSSoundDelegate {
     private var activityToken: NSObjectProtocol?
 
     private(set) var currentPrayerName: String?
+    /// True while a Settings sound-check sample owns the output. Set by
+    /// `preview()`, cleared by any `stop()` (the row's stop glyph, a real
+    /// adhan taking over) or by the sample finishing naturally — which is
+    /// what turns the finish into `.adhanPreviewDidFinish` rather than
+    /// `.adhanDidStop` (a sample has no prayer to report). Read by the Adhan
+    /// Sound page so leaving the page can end only *its* sample, never a real
+    /// adhan playing over a stale preview state.
+    private(set) var isPreviewPlayback = false
 
     private static let supportedAudioExtensions = ["caf", "mp3", "m4a", "aiff", "wav"]
 
@@ -83,6 +91,7 @@ class AdhanAudioPlayer: NSObject, AVAudioPlayerDelegate, NSSoundDelegate {
 
     func stop() {
         let wasPlaying = player != nil || sound != nil
+        isPreviewPlayback = false
         player?.stop()
         player = nil
         sound?.stop()
@@ -101,25 +110,34 @@ class AdhanAudioPlayer: NSObject, AVAudioPlayerDelegate, NSSoundDelegate {
         NotificationCenter.default.post(name: .adhanDidStart, object: self, userInfo: ["prayerName": prayer])
     }
 
-    func preview(adhanType: AdhanType, customFilePath: String? = nil, duration: TimeInterval = 5.0) {
+    /// Plays a full-length sound check from Settings → Adhan Sound, exactly as
+    /// the adhan will sound at prayer time — it runs to the end of the file
+    /// with no auto-stop. The old fixed cut showed only the opening seconds,
+    /// and worse: every restart left the *previous* sample's pending auto-stop
+    /// alive to kill the new one, so consecutive taps cut the sample shorter
+    /// and shorter. The row reverts its stop glyph when `.adhanPreviewDidFinish`
+    /// arrives; any `stop()` ends the sample silently instead.
+    func preview(adhanType: AdhanType, customFilePath: String? = nil) {
         stop()
 
         switch adhanType {
         case .none:
             return
         case .defaultBeep:
+            isPreviewPlayback = true
             playSystemBeep()
-            return
         case .custom:
             guard let path = customFilePath,
                   !path.isEmpty,
                   let url = URL(string: path),
                   FileManager.default.fileExists(atPath: url.path) else { return }
-            playURL(url, autoStopAfter: duration)
+            isPreviewPlayback = true
+            playURL(url)
         default:
             guard let fileName = adhanType.bundleFileName,
                   let url = bundleURL(forResource: fileName) else { return }
-            playURL(url, autoStopAfter: duration)
+            isPreviewPlayback = true
+            playURL(url)
         }
     }
 
@@ -127,11 +145,20 @@ class AdhanAudioPlayer: NSObject, AVAudioPlayerDelegate, NSSoundDelegate {
         playedPrayers.insert(prayerName)
     }
 
+    /// Re-arms one prayer: forget it already played so its next trigger can
+    /// sound. Called when a prayer's scheduled instant moves (a time
+    /// correction or recalculation) — a moved instant is a *new occurrence*,
+    /// not a replay of the one that already played. See
+    /// `PrayerTimeViewModel.scheduleAdhanTriggers`.
+    func rearmPrayer(_ prayerName: String) {
+        playedPrayers.remove(prayerName)
+    }
+
     func resetPlayedPrayers() {
         playedPrayers.removeAll()
     }
 
-    private func playURL(_ url: URL, autoStopAfter: TimeInterval? = nil) {
+    private func playURL(_ url: URL) {
         // Use NSSound as primary player — more reliable for long-form audio on macOS.
         // byReference: false loads the entire file into memory, preventing mid-playback
         // buffering issues that can occur with AVAudioPlayer for files longer than ~15s.
@@ -140,11 +167,6 @@ class AdhanAudioPlayer: NSObject, AVAudioPlayerDelegate, NSSoundDelegate {
             self.sound = snd
             if snd.play() {
                 print("AdhanAudioPlayer: playing \(url.lastPathComponent) via NSSound")
-                if let duration = autoStopAfter {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + duration) { [weak self] in
-                        self?.stop()
-                    }
-                }
                 return
             }
             self.sound = nil
@@ -159,11 +181,6 @@ class AdhanAudioPlayer: NSObject, AVAudioPlayerDelegate, NSSoundDelegate {
 
             if player?.play() == true {
                 print("AdhanAudioPlayer: playing \(url.lastPathComponent) via AVAudioPlayer")
-                if let duration = autoStopAfter {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + duration) { [weak self] in
-                        self?.stop()
-                    }
-                }
                 return
             }
         } catch {
@@ -185,6 +202,11 @@ class AdhanAudioPlayer: NSObject, AVAudioPlayerDelegate, NSSoundDelegate {
             currentPrayerName = nil
             if let prayer = finishedPrayer {
                 NotificationCenter.default.post(name: .adhanDidStop, object: self, userInfo: ["prayerName": prayer])
+            } else if isPreviewPlayback {
+                // A sound check has no prayer to report — announce the finish
+                // on its own channel so the row's stop glyph reverts to play.
+                isPreviewPlayback = false
+                NotificationCenter.default.post(name: .adhanPreviewDidFinish, object: self)
             }
         }
     }
@@ -199,6 +221,11 @@ class AdhanAudioPlayer: NSObject, AVAudioPlayerDelegate, NSSoundDelegate {
         currentPrayerName = nil
         if let prayer = finishedPrayer {
             NotificationCenter.default.post(name: .adhanDidStop, object: self, userInfo: ["prayerName": prayer])
+        } else if isPreviewPlayback {
+            // A sound check has no prayer to report — announce the finish on
+            // its own channel so the row's stop glyph reverts to play.
+            isPreviewPlayback = false
+            NotificationCenter.default.post(name: .adhanPreviewDidFinish, object: self)
         }
     }
 

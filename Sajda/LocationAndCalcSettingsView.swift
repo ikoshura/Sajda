@@ -106,6 +106,19 @@ struct LocationAndCalcSettingsView: View {
                                 HStack { Button("Change Manual Location") { navigationModel.showView(Self.id, animation: vm.forwardAnimation()) { ManualLocationView(isModal: false) } }.buttonStyle(.bordered); Spacer(); if vm.isUsingManualLocation { Button("Use Automatic") { vm.switchToAutomaticLocation() }.buttonStyle(.bordered) } }
                             }
                         }
+
+                        // Time Correction sits directly above the Calculation
+                        // accordion — on the page rather than inside the
+                        // collapsed accordion, so reaching it takes one click
+                        // instead of two. Same mosque-timetable dimming the
+                        // accordion rows have: a published timetable overrides
+                        // the calculated path entirely, so the offsets would
+                        // be inert.
+                        HStack { Text("Time Correction").scaledFont(.subheadline); Spacer(); Button("Adjust") { navigationModel.showView(Self.id, animation: vm.forwardAnimation()) { PrayerTimeCorrectionView() } }.buttonStyle(.bordered) }
+                            .allowsHitTesting(!vm.isMosqueTimetableActive)
+                            .opacity(vm.isMosqueTimetableActive ? 0.5 : 1)
+                            .disabled(vm.isMosqueTimetableActive)
+
                         // Calculation starts closed. It is the least-used block on
                         // this page — the method, the madhhab and the latitude
                         // rule are set once and then left alone — and it is the
@@ -140,7 +153,6 @@ struct LocationAndCalcSettingsView: View {
                                 HStack { Text("Method").scaledFont(.subheadline); Spacer(); ScaledMenuPicker(selection: $vm.method, options: SajdaCalculationMethod.allCases, maxWidth: 150) { $0.name } }
                                 StyledToggle(label: "Hanafi Madhhab (for Asr)", isOn: $vm.useHanafiMadhhab)
                                 HStack { Text("High-Latitude Rule").scaledFont(.subheadline); Spacer(); ScaledMenuPicker(selection: $vm.highLatitudeRuleSetting, options: HighLatitudeRuleSetting.allCases, maxWidth: 150) { $0.displayName } }
-                                HStack { Text("Time Correction").scaledFont(.subheadline); Spacer(); Button("Adjust") { navigationModel.showView(Self.id, animation: vm.forwardAnimation()) { PrayerTimeCorrectionView() } }.buttonStyle(.bordered) }
                                 if let caption = vm.highLatitudeRuleCaption {
                                     Text(caption)
                                         .scaledFont(.caption2)

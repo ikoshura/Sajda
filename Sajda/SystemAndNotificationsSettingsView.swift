@@ -175,12 +175,11 @@ struct SystemAndNotificationsSettingsView: View {
                                                 adhanType: config.adhanType,
                                                 customFilePath: config.customFilePath
                                             )
+                                            // No timer here: the sample plays to the
+                                            // end of the file and the row reverts when
+                                            // `.adhanPreviewDidFinish` arrives (see
+                                            // the onReceive on the page root).
                                             previewingPrayer = prayerName
-                                            DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
-                                                if previewingPrayer == prayerName {
-                                                    previewingPrayer = nil
-                                                }
-                                            }
                                         }
                                     },
                                     onBrowse: {
@@ -217,6 +216,23 @@ struct SystemAndNotificationsSettingsView: View {
         // The status can change while the page is closed (prompt answered in
         // System Settings) — re-read it every time the page is shown.
         .onAppear { vm.refreshNotificationAuthorizationStatus() }
+        // A sound check runs to the end of the file now, so the row needs the
+        // player's own finish signal instead of a guessed 5-second timer. The
+        // delegate can post off the main queue — hop like the other adhan
+        // observers do.
+        .onReceive(NotificationCenter.default.publisher(for: .adhanPreviewDidFinish)) { _ in
+            DispatchQueue.main.async { previewingPrayer = nil }
+        }
+        // Leaving the page ends the sound check: with no auto-stop the sample
+        // would otherwise keep playing with its stop glyph unreachable. The
+        // `isPreviewPlayback` guard spares a real adhan that took over a stale
+        // preview state — only this page's own sample is stopped.
+        .onDisappear {
+            if previewingPrayer != nil, AdhanAudioPlayer.shared.isPreviewPlayback {
+                AdhanAudioPlayer.shared.stop()
+            }
+            previewingPrayer = nil
+        }
     }
 }
 
@@ -289,7 +305,14 @@ struct PrayerSoundRow: View {
                         // sample", the square stops it.
                         Image(systemName: isPreviewing ? "stop.fill" : "play.fill")
                             .font(.system(size: 12))
-                            .foregroundColor(isPreviewing ? .accentColor : .secondary)
+                            // The active stop glyph is a coloured surface like
+                            // every other interactive one: `legibleInteractiveAccent`
+                            // keeps the user's pick (with the pale-pick fallback)
+                            // and follows the red alert while a prayer is
+                            // imminent — raw `.accentColor` stayed blue on an
+                            // otherwise red panel. At rest it recedes to the
+                            // system secondary like the quiet glyphs around it.
+                            .foregroundColor(isPreviewing ? vm.legibleInteractiveAccent : .secondary)
                     }
                     .buttonStyle(.plain)
                     .help(isPreviewing ? "Stop Preview" : "Preview Adhan")

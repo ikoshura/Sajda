@@ -26,13 +26,6 @@ struct SajdaMenuBarApp: App {
                 .environmentObject(appDelegate.vm)
                 .environmentObject(appDelegate.languageManager)
                 .environmentObject(appDelegate.navigationModel)
-                // `SajdaControlCenterMenu` reads `appDelegate` for the
-                // status item's pending-page request (and for Stop Adhan). It
-                // was never injected: the only previous reader sat inside a
-                // closure that only evaluated while an adhan was playing, so
-                // the missing environment object went unnoticed until a read
-                // happened on every panel open.
-                .environmentObject(appDelegate)
                 .onReceive(NotificationCenter.default.publisher(for: .popoverDidClose)) { _ in
                     if appDelegate.navigationModel.hasAlternativeViewShowing {
                         appDelegate.navigationModel.hideView(ContentView.id, animation: nil)

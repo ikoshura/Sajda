@@ -338,6 +338,10 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
     /// One wall-clock timer per remaining prayer of the day — the app-side
     /// adhan trigger. See `scheduleAdhanTriggers(for:prayerOrder:)`.
     private var adhanTriggerTimers: [String: Timer] = [:]
+    /// The instant each adhan trigger was last scheduled for. A prayer whose
+    /// instant moved (time correction, recalculation, new day) is a new
+    /// occurrence and gets re-armed in the player — see `scheduleAdhanTriggers`.
+    private var lastAdhanTriggerTimes: [String: Date] = [:]
     private var lastCalculationDate: Date?
     private var locationRequestTimeoutTask: DispatchWorkItem?
     private var locationProgressUpdateTask: DispatchWorkItem?
@@ -744,7 +748,11 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
     private func updateAndDisplayTimes() { updatePrayerTimes() }
 
     func updatePrayerTimes() {
-        // Reset played prayers when day changes or prayer times are recalculated
+        // Clear the played-once dedup when the day changes — tomorrow's
+        // prayers are different occurrences. Moved instants *within* the day
+        // re-arm individually in `scheduleAdhanTriggers`, so a recalculation
+        // never blanket-resets here: that would reopen the window where the
+        // countdown poll and the notification delegates double-play.
         if let lastDate = lastCalculationDate,
            !Calendar.current.isDate(lastDate, inSameDayAs: Date()) {
             AdhanAudioPlayer.shared.resetPlayedPrayers()
@@ -1917,13 +1925,24 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
     /// sleep-delayed one fires on wake) and resolve the sound config when they
     /// fire, so Settings changes apply immediately. Double playback with the
     /// poll or the notification delegates is impossible — `AdhanAudioPlayer`
-    /// plays each prayer once.
+    /// plays each prayer once per scheduled instant; a prayer whose instant
+    /// moves (a time correction) is re-armed below as a new occurrence.
     private func scheduleAdhanTriggers(for prayerTimes: [String: Date], prayerOrder: [String]) {
         adhanTriggerTimers.values.forEach { $0.invalidate() }
         adhanTriggerTimers = [:]
 
         let pending = NotificationManager.pendingPrayerTimes(for: prayerTimes, prayerOrder: prayerOrder)
         for (prayerName, prayerTime) in pending {
+            // A moved instant is a new occurrence, not a replay: the
+            // played-once dedup only clears on relaunch or a new day, so
+            // without re-arming here a corrected prayer's adhan would be
+            // swallowed for the rest of the session. An *unchanged* instant
+            // stays deduped — that is what keeps the countdown poll and the
+            // notification delegates from double-playing the same one.
+            if lastAdhanTriggerTimes[prayerName] != prayerTime {
+                AdhanAudioPlayer.shared.rearmPrayer(prayerName)
+                lastAdhanTriggerTimes[prayerName] = prayerTime
+            }
             let timer = Timer(timeInterval: 0, repeats: false) { [weak self] _ in
                 self?.adhanTriggerTimers.removeValue(forKey: prayerName)
                 guard let self = self, let sound = self.adhanSound(for: prayerName) else { return }

@@ -10,6 +10,7 @@ struct MainView: View {
     @State private var isSettingsHovering = false
     @State private var isAboutHovering = false
     @State private var isQuitHovering = false
+    @State private var isStopAdhanHovering = false
     @State private var isLocationHovering = false
     /// Location accordion, expanded or shut.
     ///
@@ -481,9 +482,10 @@ struct MainView: View {
             }
 
             // One separator after the prayer times, then a single compact
-            // line: Quit on the leading edge, then the update badge, About and
-            // Settings trailing. The text labels move to hover tooltips and
-            // VoiceOver since the icons stand alone.
+            // line: Quit on the leading edge, then the update badge, Stop
+            // Adhan (while sounding), About and Settings trailing. The text
+            // labels move to hover tooltips and VoiceOver since the icons
+            // stand alone.
             VStack(alignment: .leading, spacing: 0) {
                 Rectangle()
                     .fill(Color("DividerColor"))
@@ -529,6 +531,26 @@ struct MainView: View {
                         .focusable(false)
                         .help(Text(String(format: NSLocalizedString("Update available: %@", comment: ""), version) + " — " + NSLocalizedString("Click to install", comment: "")))
                         .accessibilityLabel(Text(String(format: NSLocalizedString("Update available: %@", comment: ""), version)))
+                    }
+
+                    // Stop Adhan, immediately left of About and only while the
+                    // adhan sounds — icon-only like the rest of the row, so the
+                    // tooltip and VoiceOver carry the label. It used to live at
+                    // the menu root, *below* this whole footer; the prayer row's
+                    // own "Dismiss" link remains the in-row control.
+                    if vm.isAdhanPlaying {
+                        Button(action: { vm.stopAdhan() }) {
+                            Image(systemName: "stop.circle")
+                                .scaledFont(.body)
+                                .padding(.vertical, 5).padding(.horizontal, 8)
+                                .contentShape(Rectangle())
+                                .liquidHover(isStopAdhanHovering)
+                        }
+                        .buttonStyle(.plain)
+                        .onHover { hovering in isStopAdhanHovering = hovering }
+                        .focusable(false)
+                        .help(Text(NSLocalizedString("Stop Adhan", comment: "")))
+                        .accessibilityLabel(Text(NSLocalizedString("Stop Adhan", comment: "")))
                     }
 
                     Button(action: {
@@ -955,6 +977,16 @@ private struct PrayerRow: View {
     /// capsule's height too.
     private var contentHeight: CGFloat { PrayerListView.rowContentHeight(fontScale: fontScale) }
 
+    /// Hover state for the inline "Dismiss" link: the underline only appears
+    /// while the pointer is over it, so the link sits quiet at rest.
+    @State private var isDismissHovered = false
+
+    /// The one row whose adhan is sounding right now — the row that gets the
+    /// "Dismiss" link beside its name.
+    private var isAdhanSounding: Bool {
+        vm.isAdhanPlaying && prayerName == vm.activeAdhanPrayerName
+    }
+
     var body: some View {
         if let prayerTime = vm.todayTimes[prayerName] {
             let isNextPrayer = prayerName == vm.nextPrayerName
@@ -967,15 +999,23 @@ private struct PrayerRow: View {
                 return vm.nextPrayerHighlight()
             }()
             HStack(spacing: 6) {
-                Text(vm.prayerDisplayName(prayerName))
-                    // At large text sizes a long prayer name (or the
-                    // localised "Around" that follows it) can out-run the space
-                    // the fixed time column leaves. Let it wrap onto a second
-                    // line — the row is already text-led, so the highlight
-                    // capsule grows with it — instead of truncating.
-                    .fixedSize(horizontal: false, vertical: true)
-                    .multilineTextAlignment(.leading)
-                    .padding(.leading, PrayerListView.rowHorizontalInset)
+                HStack(spacing: 6) {
+                    Text(vm.prayerDisplayName(prayerName))
+                        // At large text sizes a long prayer name (or the
+                        // localised "Around" that follows it) can out-run the space
+                        // the fixed time column leaves. Let it wrap onto a second
+                        // line — the row is already text-led, so the highlight
+                        // capsule grows with it — instead of truncating.
+                        .fixedSize(horizontal: false, vertical: true)
+                        .multilineTextAlignment(.leading)
+                    // While this prayer's adhan is sounding, the stop control
+                    // lives here as a quiet link beside the name, so the mute
+                    // toggle in its cell is never taken over (see `dismissAdhanLink`).
+                    if isAdhanSounding {
+                        dismissAdhanLink(isNextPrayer: isNextPrayer, textColor: textColor)
+                    }
+                }
+                .padding(.leading, PrayerListView.rowHorizontalInset)
                 Spacer(minLength: 4)
                 toggleCell(isNextPrayer: isNextPrayer, textColor: textColor)
                 // The gap goes on whichever side the user picked (Settings >
@@ -1142,24 +1182,34 @@ private struct PrayerRow: View {
     /// the user's own pick, and dimming it would quietly change what they chose.
     private func isMuteIconDimmed(isNextPrayer: Bool) -> Bool { !isNextPrayer && vm.isMuteIconDimmed }
 
+    /// "Dismiss", beside the name of the prayer whose adhan is sounding: the
+    /// stop control that used to take over the mute toggle's cell, so muting
+    /// stays reachable while the adhan plays. System secondary — the row's own
+    /// text colour on the highlight fill, where `.secondary` is unreadable
+    /// (the same exception the ± mark and the iqama gap make). Underlined only
+    /// while hovered: quiet text at rest, unmistakably a link on hover.
+    private func dismissAdhanLink(isNextPrayer: Bool, textColor: Color) -> some View {
+        Button(action: { vm.stopAdhan() }) {
+            Text("Dismiss")
+                .scaledFont(.callout)
+                // The row's emphasis (`.bold` on the next-prayer row) rides
+                // down onto every child; opt out so the link stays quiet.
+                .fontWeight(.regular)
+                .foregroundStyle(isNextPrayer ? textColor.opacity(0.8) : Color.secondary)
+                .underline(isDismissHovered)
+        }
+        .buttonStyle(.plain)
+        .onHover { isDismissHovered = $0 }
+        .help("Stop Adhan")
+        .accessibilityLabel(Text("Stop Adhan"))
+    }
+
     @ViewBuilder
     private func toggleCell(isNextPrayer: Bool, textColor: Color) -> some View {
-        if vm.isAdhanPlaying && prayerName == vm.activeAdhanPrayerName {
-            Button(action: { vm.stopAdhan() }) {
-                Image(systemName: "speaker.slash.fill")
-                    .scaledFont(.caption)
-                    .foregroundColor(textColor)
-                    // Same 25pt-wide, text-tall cell as the toggle below: the slot
-                    // is always reserved at the same size, so the time column
-                    // can't shift when adhan starts playing.
-                    .frame(width: 13, height: 13)
-                    .padding(6)
-                    .frame(width: 25, height: contentHeight)
-                    .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .help("Stop Adhan")
-        } else if vm.muteIconStyle == .none {
+        // While an adhan sounds, the stop control is the "Dismiss" link beside
+        // the prayer name (see `dismissAdhanLink`) — this cell keeps showing
+        // the mute toggle instead of being taken over by a stop button.
+        if vm.muteIconStyle == .none {
             // "None" means no control, not an invisible one. The cell is still
             // reserved so the time column doesn't shift when the user switches
             // styles, but nothing is clickable, focusable, hoverable or
