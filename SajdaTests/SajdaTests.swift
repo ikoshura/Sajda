@@ -1031,4 +1031,63 @@ final class SajdaTests: XCTestCase {
         XCTAssertTrue(pending.isEmpty)
     }
 
+    // MARK: - Menu bar RTL mirroring
+
+    /// The baked icon+text images must mirror in RTL: same size, and the
+    /// icon/text gap sits at mirrored positions across the center.
+    /// Columns count as inked when mostly dark (black template rendering).
+    private func inkedColumns(of image: NSImage) -> [Bool] {
+        guard let tiff = image.tiffRepresentation,
+              let rep = NSBitmapImageRep(data: tiff) else { return [] }
+        let w = rep.pixelsWide, h = rep.pixelsHigh
+        guard w > 4, h > 0 else { return [] }
+        return (0..<w).map { x in
+            var dark = 0, total = 0
+            for y in stride(from: 0, to: h, by: max(1, h / 8)) {
+                guard let c = rep.colorAt(x: x, y: y) else { continue }
+                total += 1
+                if c.redComponent < 0.5 && c.greenComponent < 0.5 && c.blueComponent < 0.5 { dark += 1 }
+            }
+            return total > 0 && dark * 2 >= total
+        }
+    }
+
+    func testMenuBarLabelMirrorsIconForRTL() {
+        let title = NSAttributedString(string: "Test 00:18:12")
+        guard let ltr = SajdaMenuBarLabel.combinedLabelImageForTest(
+            title: title, larger: false, bold: false, iconSize: 19, rtl: false),
+              let rtl = SajdaMenuBarLabel.combinedLabelImageForTest(
+            title: title, larger: false, bold: false, iconSize: 19, rtl: true)
+        else {
+            XCTFail("combined label image returned nil")
+            return
+        }
+        XCTAssertEqual(ltr.size, rtl.size, "RTL must not change the label size")
+        let ltrInk = inkedColumns(of: ltr)
+        let rtlInk = inkedColumns(of: rtl)
+        XCTAssertEqual(ltrInk.count, rtlInk.count)
+        XCTAssertEqual(ltrInk.firstIndex(of: true), 0, "LTR icon must start at the left edge")
+        XCTAssertEqual(rtlInk.firstIndex(of: true), 0, "RTL text must start at the left edge")
+        XCTAssertEqual(ltrInk.lastIndex(of: true), rtlInk.lastIndex(of: true),
+                       "mirrored images must end at the same edge")
+        func gapCenter(_ ink: [Bool]) -> Double? {
+            let gaps = ink.enumerated().filter { !$0.element }.map(\.offset)
+            guard let start = gaps.first, let end = gaps.last else { return nil }
+            return Double(start + end) / 2
+        }
+        if let gL = gapCenter(ltrInk), let gR = gapCenter(rtlInk) {
+            XCTAssertEqual(gL + gR, Double(ltrInk.count), accuracy: 3.0,
+                           "icon/text gap must mirror across the center")
+        }
+        guard let tintL = SajdaMenuBarLabel.tintedLabelImageForTest(
+            title: title, iconSize: 19, color: .systemRed, rtl: false),
+              let tintR = SajdaMenuBarLabel.tintedLabelImageForTest(
+            title: title, iconSize: 19, color: .systemRed, rtl: true)
+        else {
+            XCTFail("tinted label image returned nil")
+            return
+        }
+        XCTAssertEqual(tintL.size, tintR.size)
+    }
+
 }

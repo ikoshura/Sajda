@@ -153,6 +153,24 @@ enum CustomTimetableStore {
         try? saveAll(list)
     }
 
+    /// Renames a saved timetable. Returns the updated copy, or nil when the
+    /// id is unknown or the name is blank / unchanged.
+    @discardableResult
+    static func rename(id: String, to newName: String) -> CustomTimetable? {
+        let trimmed = newName.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return nil }
+        var list = loadAll()
+        guard let index = list.firstIndex(where: { $0.id == id }),
+              list[index].name != trimmed else { return nil }
+        list[index].name = trimmed
+        do {
+            try saveAll(list)
+        } catch {
+            return nil
+        }
+        return list[index]
+    }
+
     static func timetable(id: String?) -> CustomTimetable? {
         guard let id else { return nil }
         return loadAll().first { $0.id == id }

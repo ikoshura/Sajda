@@ -1,6 +1,6 @@
 /* 한국어 */
 "Fajr" = "파지르"; "Sunrise" = "일출"; "Dhuhr" = "즈흐르"; "Asr" = "아스르"; "Maghrib" = "마그리브"; "Isha" = "이샤"; "Tahajud" = "타흐주드"; "Dhuha" = "두하";
-"Sajda Pro" = "Sajda Pro"; "Settings" = "환경설정"; "About" = "정보"; "Quit" = "종료"; "Quit Sajda Pro" = "Sajda Pro 종료"; "Done" = "완료"; "Cancel" = "취소";
+"Sajda Pro" = "Sajda"; "Settings" = "환경설정"; "About" = "정보"; "Quit" = "종료"; "Quit Sajda Pro" = "Sajda Pro 종료"; "Done" = "완료"; "Cancel" = "취소";
 "prayer_in_countdown" = "%@ %@ 후"; "prayer_at_time" = "%@ %@"; "Location Required" = "위치 권한 필요"; "Open System Settings" = "시스템 설정 열기"; "Allow Location Access" = "위치 접근 허용"; "Or, set location manually" = "또는 위치를 수동으로 설정하세요";
 "To provide accurate prayer times, Sajda Pro needs to know your location." = "정확한 기도 시간을 제공하기 위해 Sajda Pro는 현재 위치를 알아야 합니다."; "Location access is already enabled." = "위치 접근이 이미 활성화되어 있습니다."; "Or, Set Location Manually" = "또는 위치를 수동으로 설정"; "Please grant location access in System Settings." = "시스템 설정에서 위치 접근을 허용해 주세요."; "You are using a manual location: **%@**" = "수동 위치를 사용 중입니다: **%@**"; "Switch to Automatic Location" = "자동 위치로 전환"; "Change Manual Location" = "수동 위치 변경"; "Show this window on launch" = "실행 시 이 창 표시"; "Welcome to Sajda Pro" = "Sajda Pro에 오신 것을 환영합니다";
 "To get started, please provide your location for accurate prayer times." = "시작하려면 정확한 기도 시간을 위해 위치를 설정해 주세요."; "Using manual location: **%@**" = "수동 위치 사용 중: **%@**"; "Location access is enabled." = "위치 접근이 활성화되어 있습니다."; "Please grant access in System Settings." = "시스템 설정에서 접근을 허용해 주세요.";
@@ -140,16 +140,16 @@
 "color_graphite" = "회색";
 
 /* Custom timetable (local CSV import) */
-"Custom Timetable" = "Custom Timetable";
+"Custom Timetable" = "사용자 시간표";
 "Refresh" = "새로 고침";
 "Use Calculated Times Instead" = "계산된 시간 사용";
 "Use a custom timetable instead" = "모스크 시간표 사용";
 "Use Calculated Times" = "계산된 시간 사용";
-"timetable_import_hint" = "PDF, ZIP (12 monthly CSVs), or CSV files from your mosque. Files stay on your Mac.";
-"Choose" = "Choose";
-"Add timetable" = "Add timetable";
-"Delete timetable" = "Delete timetable";
-"Import timetable" = "Import timetable";
+"timetable_import_hint" = "연간 PDF가 가장 쉽습니다 (파일 1개). 또는 12개월 CSV를 한 번에 선택하거나 ZIP으로 압축하세요. 파일은 Mac에 보관됩니다.";
+"Choose" = "선택";
+"Add timetable" = "시간표 추가";
+"Delete timetable" = "시간표 삭제";
+"Import timetable" = "시간표 가져오기";
 "Appearance" = "외관";
 "Visual" = "비주얼";
 "Prayer" = "기도";
@@ -191,3 +191,18 @@
 "Allow Notifications" = "알림 허용";
 "Notifications allowed" = "알림이 허용됨";
 "Notifications are turned off in System Settings." = "시스템 설정에서 알림이 꺼져 있습니다.";
+"Rename timetable" = "시간표 이름 바꾸기";
+"Timetable name" = "시간표 이름";
+"Full year" = "1년 전체";
+"%d months" = "%d개월";
+"1 month — select all 12 CSVs for a full year" = "1개월 — 1년 전체는 12개 CSV를 모두 선택";
+"adhan only" = "아단만";
+
+"Custom Timetables" = "사용자 시간표";
+"iqama" = "이까마";
+"1 day" = "1일";
+"%d days" = "%d일";
+"jumua" = "주무아";
+"How to get the file?" = "파일은 어떻게 받나요?";
+"Open the timetable helper in your browser" = "브라우저에서 시간표 도우미 열기";
+"Sajda" = "Sajda";

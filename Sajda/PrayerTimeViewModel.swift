@@ -27,7 +27,7 @@ struct FlexibleDouble: Codable, Equatable, Hashable {
 }
 
 class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
-    @Published var menuTitle: NSAttributedString = NSAttributedString(string: "Sajda Pro")
+    @Published var menuTitle: NSAttributedString = NSAttributedString(string: NSLocalizedString("Sajda", comment: ""))
     @Published var todayTimes: [String: Date] = [:]
     @Published var nextPrayerName: String = ""
     @Published var countdown: String = "--:--"
@@ -470,7 +470,7 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
     /// Fetches the remote override once per launch; never blocks search.
     private func refreshGeocodeConfig() {
         var request = URLRequest(url: Self.geocodeConfigURL, timeoutInterval: 15)
-        request.setValue("Sajda Pro Prayer Times App/1.0", forHTTPHeaderField: "User-Agent")
+        request.setValue("Sajda Prayer Times App/1.0", forHTTPHeaderField: "User-Agent")
         URLSession.shared.dataTask(with: request) { data, _, _ in
             let resolved = Self.resolveGeocodeConfig(data: data)
             UserDefaults.standard.set(resolved.disabled, forKey: Self.searchDisabledKey)
@@ -515,7 +515,7 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
                 ]
                 guard let url = components.url else { return Just([]).eraseToAnyPublisher() }
                 var request = URLRequest(url: url)
-                request.setValue("Sajda Pro Prayer Times App/1.0", forHTTPHeaderField: "User-Agent")
+                request.setValue("Sajda Prayer Times App/1.0", forHTTPHeaderField: "User-Agent")
 
                 return URLSession.shared.dataTaskPublisher(for: request)
                     .map(\.data)
@@ -946,6 +946,23 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
         customTimetable = timetable
         activeTimetableId = id
         useCustomTimetable = true   // didSet → updatePrayerTimes()
+    }
+
+    /// Renames a library timetable and refreshes the cached active copy plus
+    /// the matching favorite so the panel, Settings, and favorites agree.
+    func renameTimetable(id: String, to newName: String) {
+        guard let updated = CustomTimetableStore.rename(id: id, to: newName) else { return }
+        customTimetables = CustomTimetableStore.loadAll()
+        if activeTimetableId == id {
+            customTimetable = updated
+        }
+        if let index = favoritePlaces.firstIndex(where: { $0.kind == .timetable && $0.timetableId == id }) {
+            let old = favoritePlaces[index]
+            favoritePlaces[index] = FavoritePlace(
+                id: old.id, kind: old.kind, name: updated.name, subtitle: Self.timetableFavoriteSubtitle(updated),
+                latitude: nil, longitude: nil, timetableId: id, slug: nil)
+            FavoritePlace.save(favoritePlaces)
+        }
     }
 
     /// Deletes a library timetable. Favorites pointing at it are retired; when
@@ -1790,7 +1807,9 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
     }
 
     func updateMenuTitle() {
-        guard isPrayerDataAvailable else { self.menuTitle = NSAttributedString(string: "Sajda Pro"); return }
+        // Localized brand: Arabic shows سجدة (see Localizable.strings).
+        let brandName = NSLocalizedString("Sajda", comment: "")
+        guard isPrayerDataAvailable else { self.menuTitle = NSAttributedString(string: brandName); return }
         var textToShow = ""
         let localizedPrayerName = NSLocalizedString(nextPrayerName, comment: "")
         switch menuBarTextMode {
@@ -1804,7 +1823,7 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
                 textToShow = String(format: NSLocalizedString("prayer_in_countdown", comment: ""), localizedPrayerName, countdownText)
             }
         case .exactTime, .iconExactTime:
-            guard let nextDate = nextPrayerOccurrenceDate else { textToShow = "Sajda Pro"; break }
+            guard let nextDate = nextPrayerOccurrenceDate else { textToShow = brandName; break }
             // `menuBarDateFormatter`, not `dateFormatter`: "Minimal Menu Bar" is a
             // status-item preference, and the two formatters are the only thing
             // keeping it from reaching the panel's clocks as well.

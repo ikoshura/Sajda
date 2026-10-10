@@ -1,10 +1,10 @@
 /* English */
 "Fajr" = "Fajr"; "Sunrise" = "Sunrise"; "Dhuhr" = "Dhuhr"; "Asr" = "Asr"; "Maghrib" = "Maghrib"; "Isha" = "Isha"; "Tahajud" = "Tahajud"; "Dhuha" = "Dhuha";
-"Sajda Pro" = "Sajda Pro"; "Settings" = "Settings"; "About" = "About"; "Quit" = "Quit"; "Quit Sajda Pro" = "Quit Sajda Pro"; "Done" = "Done"; "Cancel" = "Cancel";
+"Sajda Pro" = "Sajda"; "Settings" = "Settings"; "About" = "About"; "Quit" = "Quit"; "Quit Sajda Pro" = "Quit Sajda Pro"; "Done" = "Done"; "Cancel" = "Cancel";
 "prayer_in_countdown" = "%@ in %@"; "prayer_at_time" = "%@ at %@"; "Location Required" = "Location Required"; "Open System Settings" = "Open System Settings"; "Allow Location Access" = "Allow Location Access"; "Or, set location manually" = "Or, set location manually";
-"To provide accurate prayer times, Sajda Pro needs to know your location." = "To provide accurate prayer times, Sajda Pro needs to know your location."; "Location access is already enabled." = "Location access is already enabled."; "Or, Set Location Manually" = "Or, Set Location Manually"; "Please grant location access in System Settings." = "Please grant location access in System Settings."; "You are using a manual location: **%@**" = "You are using a manual location: **%@**"; "Switch to Automatic Location" = "Switch to Automatic Location"; "Change Manual Location" = "Change Manual Location"; "Show this window on launch" = "Show this window on launch"; "Welcome to Sajda Pro" = "Welcome to Sajda Pro";
+"To provide accurate prayer times, Sajda Pro needs to know your location." = "To provide accurate prayer times, Sajda needs to know your location."; "Location access is already enabled." = "Location access is already enabled."; "Or, Set Location Manually" = "Or, Set Location Manually"; "Please grant location access in System Settings." = "Please grant location access in System Settings."; "You are using a manual location: **%@**" = "You are using a manual location: **%@**"; "Switch to Automatic Location" = "Switch to Automatic Location"; "Change Manual Location" = "Change Manual Location"; "Show this window on launch" = "Show this window on launch"; "Welcome to Sajda Pro" = "Welcome to Sajda";
 "To get started, please provide your location for accurate prayer times." = "To get started, please provide your location for accurate prayer times."; "Using manual location: **%@**" = "Using manual location: **%@**"; "Location access is enabled." = "Location access is enabled."; "Please grant access in System Settings." = "Please grant access in System Settings.";
-"About Sajda Pro" = "About Sajda Pro"; "Version 3.3.1" = "Version 3.3.1"; "by Abrar Zha" = "by Abrar Zha"; "Show Welcome Guide on Launch" = "Show Welcome Guide on Launch"; "Show Welcome Window" = "Show Welcome Window";
+"About Sajda Pro" = "About Sajda"; "Version 3.3.1" = "Version 3.3.1"; "by Abrar Zha" = "by Abrar Zha"; "Show Welcome Guide on Launch" = "Show Welcome Guide on Launch"; "Show Welcome Window" = "Show Welcome Window";
 "General" = "General"; "Language" = "Language"; "Display" = "Display"; "Menu Bar Style" = "Menu Bar Style"; "Compact View" = "Compact View"; "24-Hour Time" = "24-Hour Time"; "Minimal Menu Bar" = "Minimal Menu Bar"; "Accent Color" = "Accent Color"; "Hijri Date" = "Hijri Date"; "Accent Panel" = "Accent Panel"; "Dim Mute Button" = "Dim Mute Button"; "Red Alert" = "Red Alert"; "Red Alert Off" = "Off"; "Red Alert 5 Minutes" = "5 Minutes"; "Red Alert 10 Minutes" = "10 Minutes"; "Red Alert 15 Minutes" = "15 Minutes"; "Iqama Delay" = "Iqama Delay"; "Show Iqama Delay" = "Show Iqama Delay"; "Show Sunnah Prayers" = "Show Sunnah Prayers"; "Glass Highlight" = "Glass Highlight"; "Show Seconds" = "Show Seconds"; "Show Countdown Header" = "Show Countdown Header"; "Location Row" = "Location Row"; "Top" = "Top";
 "Calculation" = "Calculation"; "Method" = "Method"; "Time Correction" = "Time Correction"; "Adjust" = "Adjust"; "Hanafi Madhhab (for Asr)" = "Hanafi Madhhab (for Asr)"; "Location" = "Location"; "Manual:" = "Manual:"; "Automatic:" = "Automatic:"; "Use Automatic" = "Use Automatic";
 "Adjust prayer times to match your local mosque. Hover over the number to reset." = "Adjust prayer times to match your local mosque. Hover over the number to reset."; "Reset All to Default" = "Reset All to Default";
@@ -144,7 +144,7 @@
 "Refresh" = "Refresh";
 "Use a custom timetable instead" = "Use a custom timetable instead";
 "Use Calculated Times" = "Use Calculated Times";
-"timetable_import_hint" = "PDF, ZIP (12 monthly CSVs), or CSV files from your mosque. Files stay on your Mac.";
+"timetable_import_hint" = "Annual PDF is easiest (one file). Or select all 12 monthly CSVs at once, or ZIP them. Files stay on your Mac.";
 "Choose" = "Choose";
 "Add timetable" = "Add timetable";
 "Delete timetable" = "Delete timetable";
@@ -192,3 +192,16 @@
 "Allow Notifications" = "Allow Notifications";
 "Notifications allowed" = "Notifications allowed";
 "Notifications are turned off in System Settings." = "Notifications are turned off in System Settings.";
+"Rename timetable" = "Rename timetable";
+"Timetable name" = "Timetable name";
+"Full year" = "Full year";
+"%d months" = "%d months";
+"1 month — select all 12 CSVs for a full year" = "1 month — select all 12 CSVs for a full year";
+"adhan only" = "adhan only";
+
+"1 day" = "1 day";
+"%d days" = "%d days";
+"jumua" = "jumua";
+"How to get the file?" = "How to get the file?";
+"Open the timetable helper in your browser" = "Open the timetable helper in your browser";
+"Sajda" = "Sajda";

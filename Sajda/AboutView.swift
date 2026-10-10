@@ -44,7 +44,7 @@ struct AboutView: View {
             Button(action: handleBackButton) {
                 HStack {
                     Image(systemName: vm.backChevron).scaledFont(.body, weight: .semibold)
-                    Text("About Sajda Pro").scaledFont(.body, weight: .semibold)
+                    Text("About Sajda").scaledFont(.body, weight: .semibold)
                     Spacer()
                 }
                 .padding(.vertical, 5).padding(.horizontal, 8)
@@ -75,7 +75,7 @@ struct AboutView: View {
                                     .resizable().scaledToFit().frame(width: 64, height: 64)
                             }
                         VStack(spacing: 2) {
-                            Text("Sajda Pro").scaledFont(.title2, weight: .semibold)
+                            Text(NSLocalizedString("Sajda", comment: "")).scaledFont(.title2, weight: .semibold)
                             Text(verbatim: appVersionText).scaledFont(.caption).foregroundColor(Color("SecondaryTextColor"))
                             Text("by Abrar Zha").scaledFont(.caption).foregroundColor(Color("SecondaryTextColor"))
                         }

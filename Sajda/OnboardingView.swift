@@ -92,7 +92,7 @@ struct OnboardingView: View {
                     .resizable().scaledToFit().frame(width: 80, height: 80)
                     .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                 
-                Text("Welcome to Sajda Pro")
+                Text("Welcome to Sajda")
                     .font(.system(size: 24, weight: .bold))
                     .padding(.top, 15)
                 

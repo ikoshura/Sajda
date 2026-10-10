@@ -369,7 +369,7 @@ struct MainView: View {
                 // bahwa mode aksesibilitas "Bold Text" menaikkan satu tingkat:
                 // di situ `.semibold` menjadi `.bold` — masih terbaca sebagai
                 // judul, sementara `.bold` akan menjadi `.heavy`.
-                Text("Sajda").scaledFont(.body, weight: .semibold)
+                Text(NSLocalizedString("Sajda", comment: "")).scaledFont(.body, weight: .semibold)
                 Spacer()
                 if vm.isPrayerDataAvailable && vm.menuBarTextMode == .hidden {
                     Text(vm.headerCountdownText).scaledFont(.body).lineLimit(1).minimumScaleFactor(0.7).foregroundColor(vm.isPrayerImminent ? .red : Color("SecondaryTextColor")).transition(.opacity.animation(.easeInOut))
@@ -1431,7 +1431,7 @@ struct PermissionRequestView: View {
         VStack(spacing: 12) {
             Image(systemName: "location.slash.circle.fill").font(.system(size: 28)).foregroundColor(.secondary)
             Text("Location Required").scaledFont(.headline)
-            Text("To provide accurate prayer times, Sajda Pro needs to know your location.").scaledFont(.caption).multilineTextAlignment(.center).foregroundColor(Color("SecondaryTextColor")).padding(.horizontal)
+            Text("To provide accurate prayer times, Sajda needs to know your location.").scaledFont(.caption).multilineTextAlignment(.center).foregroundColor(Color("SecondaryTextColor")).padding(.horizontal)
             VStack(spacing: 8) {
                 if vm.isRequestingLocation {
                     ProgressView().padding(.vertical, 4)

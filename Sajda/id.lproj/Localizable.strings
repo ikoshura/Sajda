@@ -1,6 +1,6 @@
 /* Indonesian */
 "Fajr" = "Subuh"; "Sunrise" = "Terbit"; "Dhuhr" = "Zuhur"; "Asr" = "Asar"; "Maghrib" = "Magrib"; "Isha" = "Isya"; "Tahajud" = "Tahajud"; "Dhuha" = "Dhuha";
-"Sajda Pro" = "Sajda Pro"; "Settings" = "Pengaturan"; "About" = "Tentang"; "Quit" = "Keluar"; "Quit Sajda Pro" = "Keluar dari Sajda Pro"; "Done" = "Selesai"; "Cancel" = "Batal";
+"Sajda Pro" = "Sajda"; "Settings" = "Pengaturan"; "About" = "Tentang"; "Quit" = "Keluar"; "Quit Sajda Pro" = "Keluar dari Sajda Pro"; "Done" = "Selesai"; "Cancel" = "Batal";
 "prayer_in_countdown" = "%@ dalam %@"; "prayer_at_time" = "%@ pada %@"; "Location Required" = "Lokasi Dibutuhkan"; "Open System Settings" = "Buka Pengaturan Sistem"; "Allow Location Access" = "Izinkan Akses Lokasi"; "Or, set location manually" = "Atau, atur lokasi manual";
 "To provide accurate prayer times, Sajda Pro needs to know your location." = "Untuk memberikan waktu shalat yang akurat, Sajda Pro perlu mengetahui lokasi Anda."; "Location access is already enabled." = "Akses lokasi sudah diaktifkan."; "Or, Set Location Manually" = "Atau, Atur Lokasi Manual"; "Please grant location access in System Settings." = "Mohon berikan akses lokasi di Pengaturan Sistem."; "You are using a manual location: **%@**" = "Anda menggunakan lokasi manual: **%@**"; "Switch to Automatic Location" = "Beralih ke Lokasi Otomatis"; "Change Manual Location" = "Ubah Lokasi Manual"; "Show this window on launch" = "Tampilkan jendela ini saat mulai"; "Welcome to Sajda Pro" = "Selamat Datang di Sajda Pro";
 "To get started, please provide your location for accurate prayer times." = "Untuk memulai, mohon berikan lokasi Anda untuk waktu shalat yang akurat."; "Using manual location: **%@**" = "Menggunakan lokasi manual: **%@**"; "Location access is enabled." = "Akses lokasi telah diaktifkan."; "Please grant access in System Settings." = "Mohon berikan akses di Pengaturan Sistem.";
@@ -139,16 +139,16 @@
 "color_graphite" = "Abu-abu";
 
 /* Custom timetable (local CSV import) */
-"Custom Timetable" = "Custom Timetable";
+"Custom Timetable" = "Jadwal Khusus";
 "Refresh" = "Muat ulang";
 "Use Calculated Times Instead" = "Gunakan waktu perhitungan";
 "Use a custom timetable instead" = "Gunakan jadwal masjid saja";
 "Use Calculated Times" = "Gunakan Waktu Hitung";
-"timetable_import_hint" = "PDF, ZIP (12 monthly CSVs), or CSV files from your mosque. Files stay on your Mac.";
-"Choose" = "Choose";
-"Add timetable" = "Add timetable";
-"Delete timetable" = "Delete timetable";
-"Import timetable" = "Import timetable";
+"timetable_import_hint" = "PDF tahunan paling mudah (satu berkas). Atau pilih ke-12 CSV bulanan sekaligus, atau jadikan ZIP. Berkas tetap di Mac Anda.";
+"Choose" = "Pilih";
+"Add timetable" = "Tambah jadwal";
+"Delete timetable" = "Hapus jadwal";
+"Import timetable" = "Impor jadwal";
 "Appearance" = "Tampilan";
 "Visual" = "Visual";
 "Prayer" = "Shalat";
@@ -191,3 +191,18 @@
 "Allow Notifications" = "Izinkan Notifikasi";
 "Notifications allowed" = "Notifikasi diizinkan";
 "Notifications are turned off in System Settings." = "Notifikasi dimatikan di Pengaturan Sistem.";
+"Rename timetable" = "Ganti nama jadwal";
+"Timetable name" = "Nama jadwal";
+"Full year" = "Setahun penuh";
+"%d months" = "%d bulan";
+"1 month — select all 12 CSVs for a full year" = "1 bulan — pilih ke-12 CSV untuk setahun penuh";
+"adhan only" = "adzan saja";
+
+"Custom Timetables" = "Jadwal Khusus";
+"iqama" = "iqama";
+"1 day" = "1 hari";
+"%d days" = "%d hari";
+"jumua" = "Jumat";
+"How to get the file?" = "Bagaimana cara mendapatkan berkasnya?";
+"Open the timetable helper in your browser" = "Buka asisten jadwal di peramban";
+"Sajda" = "Sajda";

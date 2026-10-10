@@ -1,6 +1,6 @@
 /* Arabic */
 "Fajr" = "الفجر"; "Sunrise" = "الشروق"; "Dhuhr" = "الظهر"; "Asr" = "العصر"; "Maghrib" = "المغرب"; "Isha" = "العشاء"; "Tahajud" = "التهجد"; "Dhuha" = "الضحى";
-"Sajda Pro" = "سجدة برو"; "Settings" = "الإعدادات"; "About" = "عن التطبيق"; "Quit" = "خروج"; "Quit Sajda Pro" = "الخروج من سجدة برو"; "Done" = "تم"; "Cancel" = "إلغاء";
+"Sajda Pro" = "سجدة"; "Settings" = "الإعدادات"; "About" = "عن التطبيق"; "Quit" = "خروج"; "Quit Sajda Pro" = "الخروج من سجدة برو"; "Done" = "تم"; "Cancel" = "إلغاء";
 "prayer_in_countdown" = "%@ بعد %@"; "prayer_at_time" = "%@ في %@"; "Location Required" = "الموقع مطلوب"; "Open System Settings" = "فتح إعدادات النظام"; "Allow Location Access" = "السماح بالوصول للموقع"; "Or, set location manually" = "أو, حدد الموقع يدويًا";
 "To provide accurate prayer times, Sajda Pro needs to know your location." = "لتوفير أوقات صلاة دقيقة، يحتاج سجدة برو إلى معرفة موقعك."; "Location access is already enabled." = "تم تفعيل الوصول إلى الموقع."; "Or, Set Location Manually" = "أو، حدد الموقع يدويًا"; "Please grant location access in System Settings." = "يرجى منح صلاحية الوصول للموقع من إعدادات النظام."; "You are using a manual location: **%@**" = "أنت تستخدم موقعًا يدويًا: **%@**"; "Switch to Automatic Location" = "التبديل إلى الموقع التلقائي"; "Change Manual Location" = "تغيير الموقع اليدوي"; "Show this window on launch" = "إظهار هذه النافذة عند التشغيل"; "Welcome to Sajda Pro" = "أهلاً بك في سجدة برو";
 "To get started, please provide your location for accurate prayer times." = "للبدء، يرجى تقديم موقعك للحصول على أوقات صلاة دقيقة."; "Using manual location: **%@**" = "تستخدم موقعًا يدويًا: **%@**"; "Location access is enabled." = "تم تفعيل الوصول إلى الموقع."; "Please grant access in System Settings." = "يرجى منح الوصول في إعدادات النظام.";
@@ -139,16 +139,16 @@
 "color_graphite" = "رمادي";
 
 /* Custom timetable (local CSV import) */
-"Custom Timetable" = "Custom Timetable";
+"Custom Timetable" = "توقيت مخصص";
 "Refresh" = "تحديث";
 "Use Calculated Times Instead" = "استخدم الأوقات المحسوبة بدلاً من ذلك";
 "Use a custom timetable instead" = "استخدام مواقيت المسجد بدلاً من ذلك";
 "Use Calculated Times" = "استخدام الأوقات المحسوبة";
-"timetable_import_hint" = "PDF, ZIP (12 monthly CSVs), or CSV files from your mosque. Files stay on your Mac.";
-"Choose" = "Choose";
-"Add timetable" = "Add timetable";
-"Delete timetable" = "Delete timetable";
-"Import timetable" = "Import timetable";
+"timetable_import_hint" = "ملف PDF السنوي هو الأسهل (ملف واحد). أو حدد ملفات CSV الشهرية الـ12 دفعة واحدة، أو ضعها في ملف ZIP. تبقى الملفات على جهازك.";
+"Choose" = "اختيار";
+"Add timetable" = "إضافة توقيت";
+"Delete timetable" = "حذف التوقيت";
+"Import timetable" = "استيراد توقيت";
 "Appearance" = "المظهر";
 "Visual" = "المظهر البصري";
 "Prayer" = "الصلاة";
@@ -191,3 +191,18 @@
 "Allow Notifications" = "السماح بالإشعارات";
 "Notifications allowed" = "تم السماح بالإشعارات";
 "Notifications are turned off in System Settings." = "تم إيقاف الإشعارات في إعدادات النظام.";
+"Rename timetable" = "إعادة تسمية التوقيت";
+"Timetable name" = "اسم التوقيت";
+"Full year" = "سنة كاملة";
+"%d months" = "%d شهرًا";
+"1 month — select all 12 CSVs for a full year" = "شهر واحد — حدد ملفات CSV الـ12 لسنة كاملة";
+"adhan only" = "أذان فقط";
+
+"Custom Timetables" = "المواقيت المخصصة";
+"iqama" = "إقامة";
+"1 day" = "يوم واحد";
+"%d days" = "%d يومًا";
+"jumua" = "جمعة";
+"How to get the file?" = "كيف أحصل على الملف؟";
+"Open the timetable helper in your browser" = "افتح مساعد المواقيت في المتصفح";
+"Sajda" = "سجدة";

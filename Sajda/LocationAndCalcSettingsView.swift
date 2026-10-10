@@ -180,7 +180,7 @@ struct LocationAndCalcSettingsView: View {
                         }
                         Rectangle().fill(Color("DividerColor")).frame(height: 0.5)
                         Group {
-                            Text("Custom Timetables").scaledFont(.caption).foregroundColor(Color("SecondaryTextColor"))
+                            Text(NSLocalizedString("Custom Timetables", comment: "")).scaledFont(.caption).foregroundColor(Color("SecondaryTextColor"))
                             CustomTimetableView().environmentObject(vm)
                         }
                     }

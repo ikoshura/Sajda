@@ -135,7 +135,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
         window.styleMask.remove(.resizable)
         window.center()
         
-        window.title = "Sajda Pro Welcome"
+        window.title = "Sajda Welcome"
         window.isOpaque = false
         window.backgroundColor = .clear
         window.titlebarAppearsTransparent = true

@@ -35,9 +35,16 @@ struct SajdaMenuBarApp: App {
                     }
                 }
         } label: {
-            SajdaMenuBarLabel()
-                .environmentObject(appDelegate.vm)
-                .environmentObject(appDelegate.languageManager)
+            // `MenuBarExtra` snapshots its label at scene creation and does not
+            // re-evaluate it on `ObservableObject` changes the way the panel
+            // does — so a language switch (or the RTL icon swap) never appeared
+            // until relaunch. This wrapper observes both objects and pins the
+            // inner label's identity to everything that changes it, forcing a
+            // fresh label whenever any of it flips.
+            SajdaMenuBarLabelHost(
+                vm: appDelegate.vm,
+                languageManager: appDelegate.languageManager
+            )
         }
         .menuBarExtraAccess(isPresented: $isMenuPresented) { statusItem in
             // `MenuBarExtraAccess` hands over the real `NSStatusItem` once it
@@ -56,6 +63,26 @@ struct SajdaMenuBarApp: App {
     }
 }
 
+/// Observing host for the `MenuBarExtra` label (see the scene above).
+///
+/// `MenuBarExtra` builds its label once and caches it — `@EnvironmentObject`
+/// changes inside the label do not invalidate it the way they do in the
+/// panel. Holding both objects as `@ObservedObject` here subscribes this
+/// host to their `objectWillChange`, and the `.id(...)` on the inner label
+/// turns every relevant change (language, text mode, alert state) into a new
+/// label identity, which is what finally makes the status item redraw.
+struct SajdaMenuBarLabelHost: View {
+    @ObservedObject var vm: PrayerTimeViewModel
+    @ObservedObject var languageManager: LanguageManager
+
+    var body: some View {
+        SajdaMenuBarLabel()
+            .environmentObject(vm)
+            .environmentObject(languageManager)
+            .id("\(languageManager.language)-\(vm.menuBarTextMode)-\(vm.menuBarShowSeconds)-\(vm.useMinimalMenuBarText)-\(vm.menuBarLargerText)-\(vm.accessibilityBoldText)-\(vm.isPrayerImminent)-\(vm.menuTitle.string)")
+    }
+}
+
 /// Menu bar label (status item button content) driven by the prayer view model.
 ///
 /// `menuTitle` is an `NSAttributedString` (red while prayer is imminent,
@@ -67,7 +94,20 @@ struct SajdaMenuBarLabel: View {
     @EnvironmentObject var vm: PrayerTimeViewModel
     @EnvironmentObject var languageManager: LanguageManager
 
+    /// True in Arabic: icon trails the text instead of leading it, and the
+    /// baked images draw in the same mirrored order.
+    ///
+    /// Reads the language directly — NOT `@Environment(\.layoutDirection)`:
+    /// the `MenuBarExtra` label is constructed outside `LanguageManagerView`,
+    /// so the RTL environment override never reaches it and always reads LTR.
+    private var isRTL: Bool { languageManager.language == "ar" }
+
     var body: some View {
+        // Fixed LTR direction: the child ORDER below already encodes the
+        // mirroring (`if !isRTL` / `if isRTL`), so the container must not
+        // flip it again. Without this, an RTL system/app direction renders
+        // the HStack right-to-left and the explicit swap cancels out —
+        // icon stays left in Arabic.
         HStack(spacing: 4) {
             // While a tint is on — the red alert, or the yellow-orange iqama
             // window — icon + text are drawn into a single non-template image.
@@ -88,12 +128,13 @@ struct SajdaMenuBarLabel: View {
                         title: vm.menuTitle,
                         larger: vm.menuBarLargerText,
                         bold: vm.accessibilityBoldText,
-                        iconSize: iconPointSize
+                        iconSize: iconPointSize,
+                        rtl: isRTL
                     ) {
                         Image(nsImage: img)
                     }
                 } else {
-                    if showsIcon {
+                    if !isRTL, showsIcon {
                         Image(nsImage: menuBarIcon)
                     }
                     if showsText, !vm.menuTitle.string.isEmpty {
@@ -105,9 +146,12 @@ struct SajdaMenuBarLabel: View {
                             Image(nsImage: img)
                         }
                     }
+                    if isRTL, showsIcon {
+                        Image(nsImage: menuBarIcon)
+                    }
                 }
             } else {
-                if showsIcon {
+                if !isRTL, showsIcon {
                     Image(nsImage: menuBarIcon)
                 }
                 if showsText, !vm.menuTitle.string.isEmpty {
@@ -121,8 +165,12 @@ struct SajdaMenuBarLabel: View {
                         Text(AttributedString(vm.menuTitle))
                     }
                 }
+                if isRTL, showsIcon {
+                    Image(nsImage: menuBarIcon)
+                }
             }
         }
+        .environment(\.layoutDirection, .leftToRight)
     }
 
     /// Composite icon + red title for the imminent (red alert) state, or `nil`
@@ -150,7 +198,8 @@ struct SajdaMenuBarLabel: View {
         return SajdaMenuBarLabel.tintedLabelImage(
             title: vm.menuTitle,
             iconSize: showsIcon ? iconPointSize : 0,
-            color: tint
+            color: tint,
+            rtl: isRTL
         )
     }
 
@@ -215,7 +264,7 @@ struct SajdaMenuBarLabel: View {
     /// Icon + text baked into ONE template image for the accessibility
     /// path. `MenuBarExtra` does not measure a second `Image` in the label,
     /// so keeping icon and text as separate views drops the text entirely.
-    private static func combinedLabelImage(title: NSAttributedString, larger: Bool, bold: Bool, iconSize: CGFloat) -> NSImage? {
+    private static func combinedLabelImage(title: NSAttributedString, larger: Bool, bold: Bool, iconSize: CGFloat, rtl: Bool = false) -> NSImage? {
         let attributed = NSMutableAttributedString(attributedString: title)
         let range = NSRange(location: 0, length: attributed.length)
         guard range.length > 0 else { return nil }
@@ -235,8 +284,11 @@ struct SajdaMenuBarLabel: View {
         NSGraphicsContext.saveGraphicsState()
         NSGraphicsContext.current?.cgContext.scaleBy(x: 1 / scale, y: 1 / scale)
         let iconY = (heightPx - iconPx) / 2
-        icon.draw(in: NSRect(x: 0, y: iconY, width: iconPx, height: iconPx), from: NSRect(origin: .zero, size: icon.size), operation: .sourceOver, fraction: 1.0)
-        attributed.draw(at: NSPoint(x: iconPx + spacingPx, y: (heightPx - textSize.height) / 2))
+        // LTR: icon left, text right. RTL: mirrored — text left, icon right.
+        let iconX: CGFloat = rtl ? widthPx - iconPx : 0
+        let textX: CGFloat = rtl ? 0 : iconPx + spacingPx
+        icon.draw(in: NSRect(x: iconX, y: iconY, width: iconPx, height: iconPx), from: NSRect(origin: .zero, size: icon.size), operation: .sourceOver, fraction: 1.0)
+        attributed.draw(at: NSPoint(x: textX, y: (heightPx - textSize.height) / 2))
         NSGraphicsContext.restoreGraphicsState()
         image.unlockFocus()
         image.isTemplate = true
@@ -247,7 +299,7 @@ struct SajdaMenuBarLabel: View {
     /// accessibility image so both paths render the same asset.
     private static func baseIconImage() -> NSImage? {
         if let image = NSImage(named: "MenuBarMosque") { return image }
-        return NSImage(systemSymbolName: "moon.zzz.fill", accessibilityDescription: "Sajda Pro")
+        return NSImage(systemSymbolName: "moon.zzz.fill", accessibilityDescription: "Sajda")
     }
 
     private var menuBarIcon: NSImage {
@@ -260,7 +312,7 @@ struct SajdaMenuBarLabel: View {
             image.isTemplate = true
             return image
         }
-        let fallback = NSImage(systemSymbolName: "moon.zzz.fill", accessibilityDescription: "Sajda Pro")
+        let fallback = NSImage(systemSymbolName: "moon.zzz.fill", accessibilityDescription: "Sajda")
             ?? NSImage()
         fallback.size = NSSize(width: size, height: size)
         fallback.isTemplate = true
@@ -282,7 +334,8 @@ struct SajdaMenuBarLabel: View {
     /// - Parameter iconSize: glyph size in points, or `0` for text-only modes.
     /// - Parameter color: the tint to bake in — `systemRed` while the prayer
     ///   is imminent.
-    private static func tintedLabelImage(title: NSAttributedString, iconSize: CGFloat, color: NSColor) -> NSImage? {
+    /// - Parameter rtl: draw text first, icon trailing (Arabic).
+    private static func tintedLabelImage(title: NSAttributedString, iconSize: CGFloat, color: NSColor, rtl: Bool = false) -> NSImage? {
         let attributed = NSMutableAttributedString(attributedString: title)
         let range = NSRange(location: 0, length: attributed.length)
         guard range.length > 0 else { return nil }
@@ -309,15 +362,18 @@ struct SajdaMenuBarLabel: View {
 
         let image = NSImage(size: size)
         image.lockFocus()
+        // LTR: icon left, text right. RTL: mirrored — text left, icon right.
+        let iconX: CGFloat = rtl ? size.width - iconSize : 0
+        let textX: CGFloat = rtl ? 0 : iconSize + spacing
         if let icon {
             icon.draw(
-                in: NSRect(x: 0, y: (size.height - iconSize) / 2, width: iconSize, height: iconSize),
+                in: NSRect(x: iconX, y: (size.height - iconSize) / 2, width: iconSize, height: iconSize),
                 from: NSRect(origin: .zero, size: icon.size),
                 operation: .sourceOver,
                 fraction: 1.0
             )
         }
-        attributed.draw(at: NSPoint(x: iconSize + spacing, y: (size.height - textSize.height) / 2))
+        attributed.draw(at: NSPoint(x: textX, y: (size.height - textSize.height) / 2))
         image.unlockFocus()
         image.isTemplate = false
         return image
@@ -328,7 +384,7 @@ struct SajdaMenuBarLabel: View {
         if let mosque = NSImage(named: "MenuBarMosque") {
             base = mosque
         } else {
-            base = NSImage(systemSymbolName: "moon.zzz.fill", accessibilityDescription: "Sajda Pro")
+            base = NSImage(systemSymbolName: "moon.zzz.fill", accessibilityDescription: "Sajda")
         }
         guard let base else { return nil }
         let size = NSSize(width: size, height: size)
@@ -340,6 +396,18 @@ struct SajdaMenuBarLabel: View {
         tinted.unlockFocus()
         tinted.isTemplate = false
         return tinted
+    }
+}
+
+// MARK: - Test hooks (menu bar RTL)
+
+extension SajdaMenuBarLabel {
+    static func combinedLabelImageForTest(title: NSAttributedString, larger: Bool, bold: Bool, iconSize: CGFloat, rtl: Bool) -> NSImage? {
+        combinedLabelImage(title: title, larger: larger, bold: bold, iconSize: iconSize, rtl: rtl)
+    }
+
+    static func tintedLabelImageForTest(title: NSAttributedString, iconSize: CGFloat, color: NSColor, rtl: Bool) -> NSImage? {
+        tintedLabelImage(title: title, iconSize: iconSize, color: color, rtl: rtl)
     }
 }
 
