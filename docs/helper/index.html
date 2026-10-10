@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#ffffff" />
+
+    <title>Mosque timetable helper - Sajda</title>
+    <meta
+      name="description"
+      content="Find your mosque on mawaqit.net and get its calendar download link for Sajda. 100 percent in your browser - no API, no scraping."
+    />
+    <meta
+      property="og:title"
+      content="Sajda: A minimalist prayer times app for the macOS menu bar"
+    />
+    <meta
+      property="og:description"
+      content="A minimalist prayer times app for the macOS menu bar. Adhan countdown, red alert, mosque timetables — offline, no tracking."
+    />
+    <meta property="og:type" content="website" />
+    
+    <meta property="og:image" content="https://ikoshura.github.io/Sajda/images/screenshot-og.jpg" />
+    
+
+    <link
+      rel="icon"
+      type="image/png"
+      href="https://ikoshura.github.io/Sajda/images/app-icon.png"
+    />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,slnt,wdth,wght,GRAD,XOPQ,XTRA,YOPQ,YTAS,YTDE,YTFI,YTLC,YTUC@8..144,-10..0,25..151,100..1000,-200..150,27..175,323..603,25..135,649..854,-305..-98,560..788,416..570,528..760&display=swap"
+      rel="stylesheet"
+    />
+
+    <link
+      rel="stylesheet"
+      href="https://ikoshura.github.io/Sajda/main.css?h=dbf22af28825d297f0da"
+    />
+  </head>
+  <body>
+    <header class="site-header">
+  <div class="site-header__inner">
+    <a class="site-header__brand" href="https://ikoshura.github.io/Sajda/">Sajda</a>
+    <nav class="site-header__nav" aria-label="Main">
+      <a href="https://ikoshura.github.io/Sajda/#download">Downloads</a>
+      <a href="https://ikoshura.github.io/Sajda/helper/">Timetable helper</a>
+      <a href="https://github.com/ikoshura/Sajda">GitHub</a>
+      <a href="https://ko-fi.com/ikoshura">Donate</a>
+      <a href="https://github.com/ikoshura/Sajda/releases">Releases</a>
+      <a href="https://github.com/sponsors/ikoshura">Sponsors</a>
+    </nav>
+  </div>
+</header>
+
+
+    <main>
+<section class="section helper">
+  <h2>Mosque timetable helper</h2>
+  <p class="helper__lede">Sajda cannot search mosques for you (that would break the timetable provider terms). This page helps you do it yourself in 2 minutes - everything runs in <strong>your browser</strong>. No API calls, no scraping, no data leaves your Mac. You visit the provider site, you download your file, you import it into Sajda.</p>
+  <ol class="helper__steps">
+    <li><strong>Find</strong> your mosque page (tool 1).</li>
+    <li><strong>Paste</strong> its address below - the page reads the mosque ID for you (tool 2).</li>
+    <li><strong>Open</strong> the calendar download link it builds (tool 3), download the <strong>annual PDF</strong> (easiest - one file) or the ZIP/CSVs.</li>
+    <li>In Sajda: <span class="mono">Settings &gt; Mosque Timetable &gt; Import timetable</span>, pick the file, then rename it with the pencil button.</li>
+  </ol>
+  <div class="helper__card" id="tool1">
+    <h3>1 - Find your mosque</h3>
+    <p>Type your mosque or city, then open the search. It goes to DuckDuckGo public results (limited to mawaqit.net) in a new tab - pick your mosque there and copy its address.</p>
+    <div class="helper__row">
+      <input id="mosque-search" class="helper__input" type="search" placeholder="e.g. Grande Mosquee de Paris" autocomplete="off" />
+      <button id="mosque-search-btn" class="button helper__btn" type="button">Search mawaqit.net</button>
+    </div>
+    <p class="helper__note">Opens: <span class="mono" id="search-preview">html.duckduckgo.com/html/?q=site:mawaqit.net+...</span></p>
+  </div>
+  <div class="helper__card" id="tool2">
+    <h3>2 - Paste the mosque address, get its ID</h3>
+    <p>Paste any mawaqit.net mosque page address. The ID is read <strong>on this page only</strong> (plain text matching, nothing is fetched).</p>
+    <div class="helper__row">
+      <input id="mosque-url" class="helper__input mono" type="url" placeholder="https://mawaqit.net/nl/grande-mosquee-de-paris" autocomplete="off" spellcheck="false" />
+      <button id="mosque-parse-btn" class="button helper__btn" type="button">Get ID</button>
+    </div>
+    <div id="parse-result" class="helper__result" hidden></div>
+  </div>
+  <div class="helper__card" id="tool3">
+    <h3>3 - Open the calendar download page</h3>
+    <p>The calendar lives at <span class="mono">mawaqit.net/.../calendar/<strong>ID</strong>/choice</span>. Enter the ID (or use the one found above) and open it - then download the file yourself.</p>
+    <div class="helper__row">
+      <input id="mosque-id" class="helper__input mono" type="text" inputmode="numeric" placeholder="e.g. 256" autocomplete="off" />
+      <button id="mosque-open-btn" class="button helper__btn" type="button">Open download page</button>
+      <button id="mosque-copy-btn" class="button helper__btn helper__btn--ghost" type="button">Copy link</button>
+    </div>
+    <p class="helper__links" id="calendar-links" hidden>
+      <a id="cal-nl" href="#" target="_blank" rel="noopener">Nederlands</a> -
+      <a id="cal-fr" href="#" target="_blank" rel="noopener">Francais</a> -
+      <a id="cal-en" href="#" target="_blank" rel="noopener">English</a>
+    </p>
+    <p class="helper__note">Custom <span class="mono">mawaqit.net/.../m/...</span> addresses have no numeric ID - on those pages just use the site own download button instead of this trick.</p>
+  </div>
+  <div class="helper__card helper__card--quiet">
+    <h3>Why this way?</h3>
+    <p>Looking timetables up from inside the app would use the provider service against their terms, so Sajda reads only files you hand it (<span class="mono">Settings &gt; Mosque Timetable</span>, stored locally, fully offline). This helper is the middle ground: it never contacts the provider - <em>you</em> do, in your own browser, exactly as if you bookmarked the page.</p>
+  </div>
+</section>
+<script src="https://ikoshura.github.io/Sajda/helper.js"></script>
+</main>
+
+    <footer class="site-footer">
+  <div class="site-footer__inner">
+    <p class="site-footer__links"><a href="https://ikoshura.github.io/Sajda/#download">Downloads</a> // <a href="https://github.com/ikoshura/Sajda">GitHub</a> // <a href="https://ko-fi.com/ikoshura">Donate</a> // <a href="https://github.com/ikoshura/Sajda/releases">Releases</a> // <a href="https://github.com/sponsors/ikoshura">Sponsors</a></p>
+  </div>
+</footer>
+
+
+    <script>
+      (function () {
+        "use strict";
+        document.querySelectorAll("[data-copy]").forEach(function (btn) {
+          btn.addEventListener("click", function () {
+            var text = btn.getAttribute("data-copy");
+            var done = function () {
+              btn.setAttribute("data-copied", "");
+              setTimeout(function () {
+                btn.removeAttribute("data-copied");
+              }, 1800);
+            };
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              navigator.clipboard.writeText(text).then(done);
+            } else {
+              var ta = document.createElement("textarea");
+              ta.value = text;
+              ta.style.position = "absolute";
+              ta.style.left = "-9999px";
+              document.body.appendChild(ta);
+              ta.select();
+              try {
+                document.execCommand("copy");
+              } catch (e) {}
+              ta.remove();
+              done();
+            }
+          });
+        });
+      })();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,107 @@
+// Mosque timetable helper: 100% client-side. No API, no fetch, no scraping.
+// Tool 1 builds a public DuckDuckGo hyperlink; tool 2 regexes a pasted URL;
+// tool 3 concatenates the /calendar/ID/choice link the user clicks themselves.
+(function () {
+  "use strict";
+  function $(id) { return document.getElementById(id); }
+  function copyText(text, btn) {
+    var done = function () {
+      var old = btn.textContent;
+      btn.textContent = "Copied \u2713";
+      setTimeout(function () { btn.textContent = old; }, 1600);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done, done);
+    } else {
+      var ta = document.createElement("textarea");
+      ta.value = text; ta.style.position = "absolute"; ta.style.left = "-9999px";
+      document.body.appendChild(ta); ta.select();
+      try { document.execCommand("copy"); } catch (e) {}
+      ta.remove(); done();
+    }
+  }
+  var searchInput = $("mosque-search"), searchBtn = $("mosque-search-btn"), searchPreview = $("search-preview");
+  function searchURL() {
+    var q = (searchInput.value || "").trim() || "mosquee";
+    return "https://html.duckduckgo.com/html/?q=" + encodeURIComponent("site:mawaqit.net " + q);
+  }
+  if (searchInput && searchBtn) {
+    searchInput.addEventListener("input", function () { searchPreview.textContent = searchURL(); });
+    var doSearch = function () { window.open(searchURL(), "_blank", "noopener"); };
+    searchBtn.addEventListener("click", doSearch);
+    searchInput.addEventListener("keydown", function (e) { if (e.key === "Enter") doSearch(); });
+  }
+  var urlInput = $("mosque-url"), parseBtn = $("mosque-parse-btn"),
+      result = $("parse-result"), idInput = $("mosque-id");
+  function extractId(raw) {
+    var s = (raw || "").trim();
+    if (!s) return { ok: false, reason: "empty" };
+    if (!/mawaqit\.net/i.test(s)) return { ok: false, reason: "not-mawaqit" };
+    var m;
+    m = s.match(/\/calendar\/(\d{1,7})/i);
+    if (m) return { ok: true, id: m[1], how: "calendar/ID in the address" };
+    m = s.match(/[?&](?:mosque|mosquee|moskee|id)=(\d{1,7})/i);
+    if (m) return { ok: true, id: m[1], how: "?mosque=ID in the address" };
+    m = s.match(/\/m\/([A-Za-z0-9_-]+)/);
+    if (m && !/\d{2,}/.test(m[1])) return { ok: false, reason: "custom-m" };
+    m = s.match(/[-\/](\d{2,7})(?:[-\/]|$|[?#])/);
+    if (m) return { ok: true, id: m[1], how: "number in the page address" };
+    return { ok: false, reason: "no-id" };
+  }
+  function updateCalendarLinks() {
+    var links = $("calendar-links");
+    var id = (idInput.value || "").trim().replace(/\D+/g, "");
+    if (!id || !links) { if (links) links.hidden = true; return; }
+    links.hidden = false;
+    $("cal-nl").href = "https://mawaqit.net/nl/calendar/" + id + "/choice";
+    $("cal-fr").href = "https://mawaqit.net/fr/calendar/" + id + "/choice";
+    $("cal-en").href = "https://mawaqit.net/en/calendar/" + id + "/choice";
+  }
+  if (parseBtn) {
+    parseBtn.addEventListener("click", function () {
+      var r = extractId(urlInput.value);
+      result.hidden = false;
+      if (r.ok) {
+        idInput.value = r.id;
+        updateCalendarLinks();
+        result.innerHTML = "";
+        var b = document.createElement("p");
+        var strong = document.createElement("strong");
+        strong.className = "mono helper__id"; strong.textContent = r.id;
+        b.textContent = "Mosque ID: ";
+        b.appendChild(strong);
+        var note = document.createElement("span");
+        note.className = "helper__note"; note.textContent = " (" + r.how + ")";
+        b.appendChild(note);
+        var c = document.createElement("button");
+        c.className = "button helper__btn helper__btn--small"; c.type = "button"; c.textContent = "Copy ID";
+        c.addEventListener("click", function () { copyText(r.id, c); });
+        result.appendChild(b); result.appendChild(c);
+        document.getElementById("tool3").scrollIntoView({ behavior: "smooth", block: "nearest" });
+      } else if (r.reason === "custom-m") {
+        result.innerHTML = "<p><strong>No numeric ID here</strong> — this mosque uses a custom /m/ address. Skip step 3: open the page you pasted and use its own download button, then import the file into Sajda.</p>";
+      } else if (r.reason === "not-mawaqit") {
+        result.innerHTML = "<p>That does not look like a mawaqit.net address. Search in step 1, open your mosque, and paste its address here.</p>";
+      } else if (r.reason === "empty") {
+        result.innerHTML = "<p>Paste your mosque\'s mawaqit.net address above first.</p>";
+      } else {
+        result.innerHTML = "<p><strong>No ID found</strong> in that address — it may be a custom link. Look at the page\'s bottom-left corner for its number and type it in step 3, or use the page\'s own download button.</p>";
+      }
+    });
+  }
+  var openBtn = $("mosque-open-btn"), copyBtn = $("mosque-copy-btn");
+  function calURL() {
+    var id = (idInput.value || "").trim().replace(/\D+/g, "") || "256";
+    return "https://mawaqit.net/nl/calendar/" + id + "/choice";
+  }
+  if (idInput) idInput.addEventListener("input", updateCalendarLinks);
+  if (openBtn) openBtn.addEventListener("click", function () {
+    if (!(idInput.value || "").trim().replace(/\D+/g, "")) { idInput.focus(); return; }
+    updateCalendarLinks();
+    window.open(calURL(), "_blank", "noopener");
+  });
+  if (copyBtn) copyBtn.addEventListener("click", function () {
+    if (!(idInput.value || "").trim().replace(/\D+/g, "")) { idInput.focus(); return; }
+    copyText(calURL(), copyBtn);
+  });
+})();

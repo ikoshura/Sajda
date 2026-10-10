@@ -56,6 +56,25 @@ body { margin: 0; background: var(--bg); color: var(--ink); font-family: -apple-
 .download p + p { margin-top: 12px; color: var(--muted); }
 /* footer: dotted rule plus link row */
 .site-footer { border-top: 1px dotted #ccc; margin-top: 48px; }
+/* timetable helper */
+.helper__lede { color: var(--muted); max-width: 44rem; }
+.helper__steps { color: var(--muted); max-width: 44rem; }
+.helper__steps strong { color: var(--ink); }
+.helper__card { border: 1px solid #eee; border-radius: 12px; padding: 20px 22px; margin: 20px 0; max-width: 44rem; }
+.helper__card h3 { margin: 0 0 8px; font-size: 1.1rem; }
+.helper__card p { color: var(--muted); margin: 8px 0; }
+.helper__card--quiet { background: #fafafa; }
+.helper__row { display: flex; gap: 10px; flex-wrap: wrap; margin: 12px 0; }
+.helper__input { flex: 1 1 260px; font-size: 1rem; padding: 10px 14px; border: 1px solid #ddd; border-radius: 8px; }
+.helper__btn { font-size: .95rem; padding: 10px 20px; }
+.helper__btn--ghost { background: #fff; color: var(--ink); border: 1px solid #ddd; }
+.helper__btn--ghost:hover { background: #f5f5f5; color: var(--ink); }
+.helper__btn--small { font-size: .85rem; padding: 6px 14px; }
+.helper__note { font-size: .85rem; }
+.helper__result { background: #f6f8f6; border-radius: 8px; padding: 10px 14px; margin-top: 10px; }
+.helper__result p { margin: 6px 0; }
+.helper__id { font-size: 1.4rem; }
+.helper__links a { color: var(--accent); }
 .site-footer__inner { max-width: 1120px; margin: 0 auto; padding: 24px 28px 48px; }
 .site-footer__links { margin: 0; text-align: center; font-size: .9rem; color: var(--muted); }
 .site-footer__links a { color: var(--muted); text-decoration: none; }
