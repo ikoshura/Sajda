@@ -30,6 +30,10 @@
       <button id="mosque-visit-btn" class="button helper__btn helper__btn--ghost" type="button">Open page</button>
     </div>
     <div id="parse-result" class="helper__result" hidden></div>
+    <figure class="helper__guide">
+      <img src="{{ get_url(path='images/mosque-id-guide.jpg') }}" alt="Mosque page with the numeric ID circled at the bottom-left corner" loading="lazy" />
+      <figcaption>Where to find the ID: open your mosque page and look at the <strong>bottom-left corner</strong> for the small <span class="mono">#number</span> (circled above). That is the ID to type in step 3 below.</figcaption>
+    </figure>
   </div>
   <div class="helper__card" id="tool3">
     <h3>3 - Open the calendar download page</h3>
@@ -45,10 +49,6 @@
       <a id="cal-en" href="#" target="_blank" rel="noopener">English</a>
     </p>
     <p class="helper__note">Custom <span class="mono">.../m/...</span> addresses have no numeric ID - on those pages just use the site own download button instead of this trick.</p>
-    <figure class="helper__guide">
-      <img src="{{ get_url(path='images/mosque-id-guide.jpg') }}" alt="Mosque page with the numeric ID circled at the bottom-left corner" loading="lazy" />
-      <figcaption>Where to find the ID: open your mosque page and look at the <strong>bottom-left corner</strong> for the small <span class="mono">#number</span> (circled above). That is the ID to type in step 3.</figcaption>
-    </figure>
     <p class="helper__note">Tip: drag this button to your bookmarks bar, then click it while viewing any mosque page - it reads the ID from the page itself: <a id="bookmarklet-btn" class="button helper__btn helper__btn--small" href="#">Get mosque ID</a></p>
   </div>
   <div class="helper__card helper__card--quiet">
