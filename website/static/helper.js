@@ -28,7 +28,7 @@
     return "https://html.duckduckgo.com/html/?q=" + encodeURIComponent("site:mawaqit.net " + q);
   }
   if (searchInput && searchBtn) {
-    searchInput.addEventListener("input", function () { searchPreview.textContent = searchURL(); });
+    if (searchPreview) { searchInput.addEventListener("input", function () { searchPreview.textContent = searchURL(); }); }
     var doSearch = function () { window.open(searchURL(), "_blank", "noopener"); };
     searchBtn.addEventListener("click", doSearch);
     searchInput.addEventListener("keydown", function (e) { if (e.key === "Enter") doSearch(); });
@@ -107,9 +107,9 @@
         result.appendChild(p);
         showBookmarkletTip(result);
       } else if (r.reason === "not-mawaqit") {
-        result.innerHTML = "<p>That does not look like a mawaqit.net address. Search in step 1, open your mosque, and paste its address here.</p>";
+        result.innerHTML = "<p>That does not look like a timetable-provider address. Search in step 1, open your mosque, and paste its address here.</p>";
       } else if (r.reason === "empty") {
-        result.innerHTML = "<p>Paste your mosque\'s mawaqit.net address above first.</p>";
+        result.innerHTML = "<p>Paste your mosque's timetable-provider address above first.</p>";
       }
     });
   }

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block title %}Mosque timetable helper - Sajda{% endblock title %}
-{% block description %}Find your mosque on mawaqit.net and get its calendar download link for Sajda. 100 percent in your browser - no API, no scraping.{% endblock description %}
+{% block description %}Find your mosque on its timetable-provider website and get its calendar download link for Sajda. 100 percent in your browser - no API, no scraping.{% endblock description %}
 
 {% block content %}
 <section class="section helper">
@@ -14,25 +14,25 @@
   </ol>
   <div class="helper__card" id="tool1">
     <h3>1 - Find your mosque</h3>
-    <p>Type your mosque or city, then open the search. It goes to DuckDuckGo public results (limited to mawaqit.net) in a new tab - pick your mosque there and copy its address.</p>
+    <p>Type your mosque or city, then open the search. It goes to DuckDuckGo public results (limited to the provider site) in a new tab - pick your mosque there and copy its address.</p>
     <div class="helper__row">
       <input id="mosque-search" class="helper__input" type="search" placeholder="e.g. Grande Mosquee de Paris" autocomplete="off" />
-      <button id="mosque-search-btn" class="button helper__btn" type="button">Search mawaqit.net</button>
+      <button id="mosque-search-btn" class="button helper__btn" type="button">Search timetables</button>
     </div>
-    <p class="helper__note">Opens: <span class="mono" id="search-preview">html.duckduckgo.com/html/?q=site:mawaqit.net+...</span></p>
+    <p class="helper__note">Opens DuckDuckGo results in a new tab.</p>
   </div>
   <div class="helper__card" id="tool2">
     <h3>2 - Paste the mosque address, get its ID</h3>
-    <p>Paste any mawaqit.net mosque page address. The ID is read <strong>on this page only</strong> (plain text matching, nothing is fetched).</p>
+    <p>Paste any timetable-provider mosque page address. The ID is read <strong>on this page only</strong> (plain text matching, nothing is fetched).</p>
     <div class="helper__row">
-      <input id="mosque-url" class="helper__input mono" type="url" placeholder="https://mawaqit.net/nl/grande-mosquee-de-paris" autocomplete="off" spellcheck="false" />
+      <input id="mosque-url" class="helper__input mono" type="url" placeholder="https://provider-site/nl/grande-mosquee-de-paris" autocomplete="off" spellcheck="false" />
       <button id="mosque-parse-btn" class="button helper__btn" type="button">Get ID</button>
     </div>
     <div id="parse-result" class="helper__result" hidden></div>
   </div>
   <div class="helper__card" id="tool3">
     <h3>3 - Open the calendar download page</h3>
-    <p>The calendar lives at <span class="mono">mawaqit.net/.../calendar/<strong>ID</strong>/choice</span>. Enter the ID (or use the one found above) and open it - then download the file yourself.</p>
+    <p>The calendar lives at <span class="mono">.../calendar/<strong>ID</strong>/choice</span>. Enter the ID (or use the one found above) and open it - then download the file yourself.</p>
     <div class="helper__row">
       <input id="mosque-id" class="helper__input mono" type="text" inputmode="numeric" placeholder="e.g. 256" autocomplete="off" />
       <button id="mosque-open-btn" class="button helper__btn" type="button">Open download page</button>
@@ -43,7 +43,7 @@
       <a id="cal-fr" href="#" target="_blank" rel="noopener">Francais</a> -
       <a id="cal-en" href="#" target="_blank" rel="noopener">English</a>
     </p>
-    <p class="helper__note">Custom <span class="mono">mawaqit.net/.../m/...</span> addresses have no numeric ID - on those pages just use the site own download button instead of this trick.</p>
+    <p class="helper__note">Custom <span class="mono">.../m/...</span> addresses have no numeric ID - on those pages just use the site own download button instead of this trick.</p>
     <p class="helper__note">Tip: drag this button to your bookmarks bar, then click it while viewing any mosque page - it reads the ID from the page itself: <a id="bookmarklet-btn" class="button helper__btn helper__btn--small" href="#">Get mosque ID</a></p>
   </div>
   <div class="helper__card helper__card--quiet">
