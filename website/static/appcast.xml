@@ -3,21 +3,12 @@
     <channel>
         <title>Sajda</title>
         <item>
-            <title>4.5.3</title>
-            <pubDate>Tue, 06 Oct 2026 12:43:29 +0700</pubDate>
-            <sparkle:version>43</sparkle:version>
-            <sparkle:shortVersionString>4.5.3</sparkle:shortVersionString>
+            <title>4.6.0</title>
+            <pubDate>Sun, 11 Oct 2026 02:19:09 +0700</pubDate>
+            <sparkle:version>44</sparkle:version>
+            <sparkle:shortVersionString>4.6.0</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <description sparkle:format="markdown"><![CDATA[# Sajda 4.5.3
-
-### Patch release
-- **Adhan while it sounds:** the prayer row no longer swaps its mute toggle for a stop button — a quiet **Dismiss** link appears beside the prayer name (underlined on hover) and stops the adhan. **Stop Adhan** also moved into the footer row, left of About.
-- **Time correction now re-arms the adhan:** changing a prayer's time (or any recalculation that moves it) counts as a new occurrence, so the corrected prayer sounds again instead of being swallowed by the played-once dedup for the rest of the session.
-- **Sound check plays the full adhan:** Settings → Adhan Sound preview no longer cuts off after a few seconds — and restarting it can no longer be killed by a previous sample's leftover auto-stop. The stop glyph reverts when the sample ends on its own, and now follows the red alert colour while a prayer is imminent.
-- **Settings:** Time Correction moved above the collapsed Calculation accordion — one click instead of two.
-- Website: refreshed minimal design (white, black buttons, app-icon favicon).
-]]></description>
-            <enclosure url="https://github.com/ikoshura/Sajda/releases/download/v4.5.3/Sajda-4.5.3.dmg" length="15866536" type="application/octet-stream" sparkle:edSignature="XiEJK81Zj0cvgZx3kUNiS9W54qlo2PWezklcs+xeMBXngPtFKII2oUe5w2hr5P5kLCIsksX3H1JqjzX+LVeFAw=="/>
+            <enclosure url="https://github.com/ikoshura/Sajda/releases/download/v4.6.0/Sajda-4.6.0.dmg" length="15896684" type="application/octet-stream" sparkle:edSignature="tf/RuJnm9Jtl0bdHReAveJ73esZW7vrsUtuUune3IcilALN87NHC5DUHsSGH9mHCWJIL1LWmR460nzPJ3kLHCw=="/>
         </item>
     </channel>
 </rss>
