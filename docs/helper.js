@@ -34,7 +34,24 @@
     searchInput.addEventListener("keydown", function (e) { if (e.key === "Enter") doSearch(); });
   }
   var urlInput = $("mosque-url"), parseBtn = $("mosque-parse-btn"),
+      visitBtn = $("mosque-visit-btn"),
       result = $("parse-result"), idInput = $("mosque-id");
+  function normalizeURL(raw) {
+    var s = (raw || "").trim();
+    if (!s) return "";
+    if (!/^[a-z][a-z0-9+.-]*:\/\//i.test(s)) return "https://" + s;
+    return s;
+  }
+  function openURLInput() {
+    var href = normalizeURL(urlInput.value);
+    if (!href) { urlInput.focus(); return; }
+    try { new URL(href); } catch (e) { urlInput.focus(); return; }
+    window.open(href, "_blank", "noopener");
+  }
+  if (visitBtn) {
+    visitBtn.addEventListener("click", openURLInput);
+    urlInput.addEventListener("keydown", function (e) { if (e.key === "Enter" && e.metaKey) openURLInput(); });
+  }
   var BOOKMARKLET = "javascript:(function(){var d=document,h=d.documentElement.outerHTML,m=h.match(/manifest\\/(\\d{1,7})/)||h.match(/\\/id\\/(\\d{1,7})\\//)||h.match(/#(\\d{2,7})</)||h.match(/mosqueId\\s*=\\s*(\\d{1,7})/);var id=m?m[1]:'';if(id){prompt('Mosque ID (copy it, then paste in step 3):',id);}else{alert('No ID found on this page. Look at the bottom-left corner for its number.');}})();";
   function extractId(raw) {
     var s = (raw || "").trim();
@@ -58,7 +75,7 @@
     tip.appendChild(p);
     var ol = document.createElement("ol");
     var li1 = document.createElement("li");
-    li1.textContent = "Look at the mosque page bottom-left corner for its number (e.g. #256) and type it in step 3.";
+    li1.textContent = "Open the page (Open page button above), find its number at the bottom-left corner (e.g. #256), and type it in step 3 — or use the page's own download button.";
     var li2 = document.createElement("li");
     li2.textContent = "Or drag this button to your bookmarks bar, open the mosque page, click it — it reads the ID from the page you are viewing: ";
     var bm = document.createElement("a");
