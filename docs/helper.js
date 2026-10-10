@@ -1,8 +1,7 @@
 // Mosque timetable helper: 100% client-side. No API, no fetch, no scraping.
-// Tool 1 builds a public DuckDuckGo hyperlink; tool 2 is a visual guide plus
-// a bookmarklet the USER runs on the mosque page (reads the ID from that
-// page's own HTML); tool 3 concatenates the /calendar/ID/choice link the
-// user clicks themselves.
+// Tool 1 builds a public DuckDuckGo hyperlink; tool 2 is a visual guide
+// (ID printed on the mosque page, bottom-left corner); tool 3 concatenates
+// the /calendar/ID/choice link the user clicks themselves.
 (function () {
   "use strict";
   function $(id) { return document.getElementById(id); }
@@ -34,7 +33,6 @@
     searchInput.addEventListener("keydown", function (e) { if (e.key === "Enter") doSearch(); });
   }
   var idInput = $("mosque-id");
-  var BOOKMARKLET = "javascript:(function(){var d=document,h=d.documentElement.outerHTML,m=h.match(/manifest\\/(\\d{1,7})/)||h.match(/\\/id\\/(\\d{1,7})\\//)||h.match(/#(\\d{2,7})</)||h.match(/mosqueId\\s*=\\s*(\\d{1,7})/);var id=m?m[1]:'';if(id){prompt('Mosque ID (copy it, then paste in step 3):',id);}else{alert('No ID found on this page. Look at the bottom-left corner for its number.');}})();";
   function updateCalendarLinks() {
     var links = $("calendar-links");
     var id = (idInput.value || "").trim().replace(/\D+/g, "");
@@ -59,6 +57,4 @@
     if (!(idInput.value || "").trim().replace(/\D+/g, "")) { idInput.focus(); return; }
     copyText(calURL(), copyBtn);
   });
-  var bmBtn = $("bookmarklet-btn");
-  if (bmBtn) bmBtn.href = BOOKMARKLET;
 })();
