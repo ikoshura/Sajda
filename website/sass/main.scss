@@ -75,6 +75,10 @@ body { margin: 0; background: var(--bg); color: var(--ink); font-family: -apple-
 .helper__result p { margin: 6px 0; }
 .helper__id { font-size: 1.4rem; }
 .helper__links a { color: var(--accent); }
+.helper__guide { margin: 14px 0 4px; border: 1px solid #eee; border-radius: 12px; overflow: hidden; background: #fff; }
+.helper__guide img { display: block; width: 100%; height: auto; }
+.helper__guide figcaption { padding: 10px 14px; font-size: .88rem; color: var(--muted); }
+.helper__guide figcaption strong { color: var(--ink); }
 .helper__bookmark { background: #fff8e6; border: 1px solid #f0dfa8; border-radius: 8px; padding: 10px 14px; margin-top: 10px; }
 .helper__bookmark ol { margin: 6px 0; padding-left: 1.4em; color: var(--muted); }
 .helper__bookmark li + li { margin-top: 8px; }
