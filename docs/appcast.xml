@@ -3,12 +3,12 @@
     <channel>
         <title>Sajda</title>
         <item>
-            <title>4.6.1</title>
-            <pubDate>Sun, 11 Oct 2026 08:47:06 +0700</pubDate>
-            <sparkle:version>45</sparkle:version>
-            <sparkle:shortVersionString>4.6.1</sparkle:shortVersionString>
+            <title>4.6.2</title>
+            <pubDate>Sun, 11 Oct 2026 18:20:39 +0700</pubDate>
+            <sparkle:version>46</sparkle:version>
+            <sparkle:shortVersionString>4.6.2</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <enclosure url="https://github.com/ikoshura/Sajda/releases/download/v4.6.1/Sajda-4.6.1.dmg" length="15898152" type="application/octet-stream" sparkle:edSignature="3NjXna8BBBArWgIhm/bCRuqojJm0U1LMxI3PYG0DWrAEVoWCpr79PgMF7TSyfA0dlhZ74nXb1bcreplDk+YWDw=="/>
+            <enclosure url="https://github.com/ikoshura/Sajda/releases/download/v4.6.2/Sajda-4.6.2.dmg" length="15900273" type="application/octet-stream" sparkle:edSignature="fivN9uRB7wbtOD+bKMIhfxlqdVepuLyZsanD0UEOOVTPoMunXBDW7NKArmAOHYxZVchkdS1RvmDC4ax3e7NfBw=="/>
         </item>
     </channel>
 </rss>
