@@ -238,6 +238,21 @@ struct CustomTimetableView: View {
     /// Best display name for an import. A single PDF/ZIP keeps its filename.
     /// A multi-CSV pick uses the common parent folder (Mawaqit downloads land
     /// in a mosque-named folder) so the timetable isn't named "01" or "08".
+    /// Splits a multi-pick into self-contained imports: each PDF stands
+    /// alone, each ZIP stands alone, and all CSVs merge into one.
+    static func groupImportURLs(_ urls: [URL]) -> (pdfs: [URL], zips: [URL], csvs: [URL]) {
+        var pdfs: [URL] = []
+        var zips: [URL] = []
+        var csvs: [URL] = []
+        for url in urls.sorted(by: { $0.lastPathComponent < $1.lastPathComponent }) {
+            switch url.pathExtension.lowercased() {
+            case "pdf": pdfs.append(url)
+            case "zip": zips.append(url)
+            default: csvs.append(url)
+            }
+        }
+        return (pdfs, zips, csvs)
+    }
     /// Falls back to the first file stem, skipping bare month numbers.
     private static func importName(for urls: [URL]) -> String {
         if urls.count == 1 {
@@ -261,30 +276,37 @@ struct CustomTimetableView: View {
     private func importFile() {
         errorText = nil
         let panel = NSOpenPanel()
-        // One picker for every timetable format: a PDF is a self-contained
-        // import, the ZIP is the monthly CSVs glued together, and CSV
-        // still lets a hand-picked monthly set through.
+        // One picker for every timetable format: each PDF is a self-contained
+        // import, the ZIP is the monthly CSVs glued together, and CSV still
+        // lets a hand-picked monthly set through.
         panel.allowedContentTypes = [.pdf, .zip, .commaSeparatedText, .plainText, .text]
         panel.allowsMultipleSelection = true
         panel.canChooseDirectories = false
         panel.prompt = NSLocalizedString("Choose", comment: "")
         guard panel.runModal() == .OK, !panel.urls.isEmpty else { return }
         do {
-            let picked = panel.urls
-            let imported: CustomTimetable
-            if picked.count == 1, picked[0].pathExtension.lowercased() == "pdf" {
-                imported = try CustomTimetableStore.parsePDF(url: picked[0])
-            } else if picked.count == 1, picked[0].pathExtension.lowercased() == "zip" {
-                let calendar = try CustomTimetableStore.parseAdhanZip(url: picked[0])
-                imported = CustomTimetable(
-                    name: picked[0].deletingPathExtension().lastPathComponent,
-                    calendar: calendar)
-            } else {
-                let calendar = try CustomTimetableStore.parseAdhanFiles(picked)
-                let name = Self.importName(for: picked)
-                imported = CustomTimetable(name: name, calendar: calendar)
+            let groups = Self.groupImportURLs(panel.urls)
+            var imported: [CustomTimetable] = []
+            for pdf in groups.pdfs {
+                imported.append(try CustomTimetableStore.parsePDF(url: pdf))
             }
-            let stored = try CustomTimetableStore.add(imported)
+            for zip in groups.zips {
+                let calendar = try CustomTimetableStore.parseAdhanZip(url: zip)
+                imported.append(CustomTimetable(
+                    name: zip.deletingPathExtension().lastPathComponent,
+                    calendar: calendar))
+            }
+            if !groups.csvs.isEmpty {
+                let calendar = try CustomTimetableStore.parseAdhanFiles(groups.csvs)
+                let name = Self.importName(for: groups.csvs)
+                imported.append(CustomTimetable(name: name, calendar: calendar))
+            }
+            guard let last = imported.last else { return }
+            for timetable in imported.dropLast() {
+                let stored = try CustomTimetableStore.add(timetable)
+                vm.toggleTimetableFavorite(stored)
+            }
+            let stored = try CustomTimetableStore.add(last)
             vm.customTimetables = CustomTimetableStore.loadAll()
             vm.toggleTimetableFavorite(stored)
             vm.switchToTimetable(id: stored.id)

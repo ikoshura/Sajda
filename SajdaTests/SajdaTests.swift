@@ -339,6 +339,22 @@ final class SajdaTests: XCTestCase {
         XCTAssertNil(CustomTimetableStore.monthFromFilename(URL(fileURLWithPath: "/x/notes.csv")))
     }
 
+    /// A multi-year PDF pick splits into one import per PDF (previously every
+    /// multi-pick fell into the CSV path and failed with no usable rows).
+    func testGroupImportURLsSplitsPDFsCSVsAndZIPs() {
+        let urls = [
+            URL(fileURLWithPath: "/x/2027.pdf"),
+            URL(fileURLWithPath: "/x/01.csv"),
+            URL(fileURLWithPath: "/x/2026.pdf"),
+            URL(fileURLWithPath: "/x/monthly.zip"),
+            URL(fileURLWithPath: "/x/02.csv"),
+        ]
+        let groups = CustomTimetableView.groupImportURLs(urls)
+        XCTAssertEqual(groups.pdfs.map { $0.lastPathComponent }, ["2026.pdf", "2027.pdf"])
+        XCTAssertEqual(groups.zips.map { $0.lastPathComponent }, ["monthly.zip"])
+        XCTAssertEqual(groups.csvs.map { $0.lastPathComponent }, ["01.csv", "02.csv"])
+    }
+
     /// A February 29th row survives the single-file parse (it might be a
     /// leap-year Feb 29); `dropFebruarySpillover` then compares it against
     /// March's day 1 and removes it when the two match — which is what a
