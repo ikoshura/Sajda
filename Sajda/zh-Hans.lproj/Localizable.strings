@@ -145,7 +145,7 @@
 "Use Calculated Times Instead" = "使用计算时间";
 "Use a custom timetable instead" = "使用清真寺时间表";
 "Use Calculated Times" = "使用计算时间";
-"timetable_import_hint" = "年度 PDF 最简单（单个文件）。或一次选择全部 12 个月度 CSV，或将其打包为 ZIP。文件保留在您的 Mac 上。";
+"timetable_import_hint" = "年度 PDF 最简单（单个文件）。或一次选择全部 12 个月度 CSV，或将其打包为 ZIP。文件保留在您的 Mac 上。 年度 PDF 包含宣礼、成拜和主麻；CSV/ZIP 仅含宣礼时间（源文件不含成拜与主麻）。";
 "Choose" = "选取";
 "Add timetable" = "添加时刻表";
 "Delete timetable" = "删除时刻表";

@@ -145,7 +145,7 @@
 "Use Calculated Times Instead" = "計算された時刻を使用";
 "Use a custom timetable instead" = "モスクの時刻表を使う";
 "Use Calculated Times" = "計算時刻を使う";
-"timetable_import_hint" = "年間PDFが一番簡単です（1ファイル）。または12か月分のCSVをまとめて選択するか、ZIPにしてください。ファイルはMac内に保存されます。";
+"timetable_import_hint" = "年間PDFが一番簡単です（1ファイル）。または12か月分のCSVをまとめて選択するか、ZIPにしてください。ファイルはMac内に保存されます。 年間PDFにはアザーン、イカーマ、ジュムアが含まれます。CSV/ZIPはアザーン時刻のみです（元のファイルにイカーマもジュムアも含まれていません）。";
 "Choose" = "選択";
 "Add timetable" = "時刻表を追加";
 "Delete timetable" = "時刻表を削除";

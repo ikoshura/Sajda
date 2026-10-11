@@ -145,7 +145,7 @@
 "Use Calculated Times Instead" = "Usar horarios calculados";
 "Use a custom timetable instead" = "Usar el horario de una mezquita";
 "Use Calculated Times" = "Usar horas calculadas";
-"timetable_import_hint" = "El PDF anual es lo más fácil (un solo archivo). O selecciona los 12 CSV mensuales de una vez, o comprímelos en ZIP. Los archivos quedan en tu Mac.";
+"timetable_import_hint" = "El PDF anual es lo más fácil (un solo archivo). O selecciona los 12 CSV mensuales de una vez, o comprímelos en ZIP. Los archivos quedan en tu Mac. El PDF anual incluye adhan, iqama y Yumuah; los CSV/ZIP solo traen horas de adhan (los archivos de origen no contienen iqama ni Yumuah).";
 "Choose" = "Elegir";
 "Add timetable" = "Añadir horario";
 "Delete timetable" = "Eliminar horario";

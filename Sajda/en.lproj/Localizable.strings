@@ -144,7 +144,7 @@
 "Refresh" = "Refresh";
 "Use a custom timetable instead" = "Use a custom timetable instead";
 "Use Calculated Times" = "Use Calculated Times";
-"timetable_import_hint" = "Annual PDF is easiest (one file). Or select all 12 monthly CSVs at once, or ZIP them. Files stay on your Mac.";
+"timetable_import_hint" = "Annual PDF is easiest (one file). Or select all 12 monthly CSVs at once, or ZIP them. Files stay on your Mac. Annual PDF includes adhan, iqama and Jumuah; CSV/ZIP carry adhan times only (the source files contain no iqama or Jumuah).";
 "Choose" = "Choose";
 "Add timetable" = "Add timetable";
 "Delete timetable" = "Delete timetable";

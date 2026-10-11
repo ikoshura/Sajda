@@ -145,7 +145,7 @@
 "Use Calculated Times Instead" = "Berechnete Zeiten verwenden";
 "Use a custom timetable instead" = "Moschee-Zeiten verwenden";
 "Use Calculated Times" = "Berechnete Zeiten verwenden";
-"timetable_import_hint" = "Das Jahres-PDF ist am einfachsten (eine Datei). Oder alle 12 Monats-CSVs auf einmal auswählen oder als ZIP. Dateien bleiben auf deinem Mac.";
+"timetable_import_hint" = "Das Jahres-PDF ist am einfachsten (eine Datei). Oder alle 12 Monats-CSVs auf einmal auswählen oder als ZIP. Dateien bleiben auf deinem Mac. Das Jahres-PDF enthält Adhan, Iqama und Jumuah; CSV/ZIP enthalten nur Adhan-Zeiten (die Quelldateien enthalten keine Iqama und keine Jumuah).";
 "Choose" = "Auswählen";
 "Add timetable" = "Plan hinzufügen";
 "Delete timetable" = "Plan löschen";

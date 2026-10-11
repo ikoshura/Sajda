@@ -144,7 +144,7 @@
 "Use Calculated Times Instead" = "Gunakan waktu perhitungan";
 "Use a custom timetable instead" = "Gunakan jadwal masjid saja";
 "Use Calculated Times" = "Gunakan Waktu Hitung";
-"timetable_import_hint" = "PDF tahunan paling mudah (satu berkas). Atau pilih ke-12 CSV bulanan sekaligus, atau jadikan ZIP. Berkas tetap di Mac Anda.";
+"timetable_import_hint" = "PDF tahunan paling mudah (satu berkas). Atau pilih ke-12 CSV bulanan sekaligus, atau jadikan ZIP. Berkas tetap di Mac Anda. PDF tahunan mencakup adhan, iqama, dan Jumat; CSV/ZIP hanya memuat waktu adhan (berkas sumber tidak memuat iqama maupun Jumat).";
 "Choose" = "Pilih";
 "Add timetable" = "Tambah jadwal";
 "Delete timetable" = "Hapus jadwal";

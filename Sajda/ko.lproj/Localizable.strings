@@ -145,7 +145,7 @@
 "Use Calculated Times Instead" = "계산된 시간 사용";
 "Use a custom timetable instead" = "모스크 시간표 사용";
 "Use Calculated Times" = "계산된 시간 사용";
-"timetable_import_hint" = "연간 PDF가 가장 쉽습니다 (파일 1개). 또는 12개월 CSV를 한 번에 선택하거나 ZIP으로 압축하세요. 파일은 Mac에 보관됩니다.";
+"timetable_import_hint" = "연간 PDF가 가장 쉽습니다 (파일 1개). 또는 12개월 CSV를 한 번에 선택하거나 ZIP으로 압축하세요. 파일은 Mac에 보관됩니다. 연간 PDF에는 아잔, 이카마, 주무아가 포함됩니다. CSV/ZIP은 아잔 시간만 담고 있습니다(원본 파일에 이카마·주무아가 없습니다).";
 "Choose" = "선택";
 "Add timetable" = "시간표 추가";
 "Delete timetable" = "시간표 삭제";
