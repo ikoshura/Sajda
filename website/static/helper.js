@@ -45,7 +45,11 @@
   var openBtn = $("mosque-open-btn"), copyBtn = $("mosque-copy-btn");
   function calURL() {
     var id = (idInput.value || "").trim().replace(/\D+/g, "") || "256";
-    return "https://mawaqit.net/nl/calendar/" + id + "/choice";
+    // English is the default: its /calendar/ download reliably produces a
+    // text-based PDF (selectable, importable). Some other locales recently
+    // served a visually-correct but text-empty export that no app can read.
+    // The nl/fr/en links below remain as manual fallbacks.
+    return "https://mawaqit.net/en/calendar/" + id + "/choice";
   }
   if (idInput) idInput.addEventListener("input", updateCalendarLinks);
   if (openBtn) openBtn.addEventListener("click", function () {
