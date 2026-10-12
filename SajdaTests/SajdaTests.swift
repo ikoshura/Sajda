@@ -355,6 +355,16 @@ final class SajdaTests: XCTestCase {
         XCTAssertEqual(groups.csvs.map { $0.lastPathComponent }, ["01.csv", "02.csv"])
     }
 
+    /// Same-stem PDFs ("calendar.pdf" in per-year folders) must not replace
+    /// each other: the second import gets a "(2)" suffix.
+    func testUniqueNameSuffixesDuplicates() {
+        XCTAssertEqual(CustomTimetableView.uniqueName("calendar", among: []), "calendar")
+        XCTAssertEqual(CustomTimetableView.uniqueName("calendar", among: ["calendar"]), "calendar (2)")
+        XCTAssertEqual(
+            CustomTimetableView.uniqueName("calendar", among: ["calendar", "calendar (2)"]),
+            "calendar (3)")
+    }
+
     /// A February 29th row survives the single-file parse (it might be a
     /// leap-year Feb 29); `dropFebruarySpillover` then compares it against
     /// March's day 1 and removes it when the two match — which is what a

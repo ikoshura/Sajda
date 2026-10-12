@@ -273,6 +273,17 @@ struct CustomTimetableView: View {
         return urls.first?.deletingPathExtension().lastPathComponent ?? "CSV"
     }
 
+    /// Unique display name within one import batch. Two annual PDFs usually
+    /// share a stem ("calendar.pdf" in per-year folders), and `add` replaces
+    /// same-named timetables — without this the second import silently
+    /// replaces the first and the user sees only one.
+    static func uniqueName(_ name: String, among existing: [String]) -> String {
+        guard existing.contains(name) else { return name }
+        var counter = 2
+        while existing.contains("\(name) (\(counter))") { counter += 1 }
+        return "\(name) (\(counter))"
+    }
+
     private func importFile() {
         errorText = nil
         let panel = NSOpenPanel()
@@ -284,24 +295,51 @@ struct CustomTimetableView: View {
         panel.canChooseDirectories = false
         panel.prompt = NSLocalizedString("Choose", comment: "")
         guard panel.runModal() == .OK, !panel.urls.isEmpty else { return }
-        do {
-            let groups = Self.groupImportURLs(panel.urls)
-            var imported: [CustomTimetable] = []
-            for pdf in groups.pdfs {
-                imported.append(try CustomTimetableStore.parsePDF(url: pdf))
+        // Each file parses on its own: one unreadable file used to abort the
+        // whole batch with nothing imported. Good files still import; the
+        // failures are reported together at the end.
+        let groups = Self.groupImportURLs(panel.urls)
+        var imported: [CustomTimetable] = []
+        var failures: [String] = []
+        for pdf in groups.pdfs {
+            do {
+                var timetable = try CustomTimetableStore.parsePDF(url: pdf)
+                timetable.name = Self.uniqueName(
+                    timetable.name, among: imported.map { $0.name })
+                imported.append(timetable)
+            } catch {
+                failures.append(describeFailure(file: pdf, error: error))
             }
-            for zip in groups.zips {
+        }
+        for zip in groups.zips {
+            do {
                 let calendar = try CustomTimetableStore.parseAdhanZip(url: zip)
-                imported.append(CustomTimetable(
-                    name: zip.deletingPathExtension().lastPathComponent,
-                    calendar: calendar))
-            }
-            if !groups.csvs.isEmpty {
-                let calendar = try CustomTimetableStore.parseAdhanFiles(groups.csvs)
-                let name = Self.importName(for: groups.csvs)
+                let name = Self.uniqueName(
+                    zip.deletingPathExtension().lastPathComponent,
+                    among: imported.map { $0.name })
                 imported.append(CustomTimetable(name: name, calendar: calendar))
+            } catch {
+                failures.append(describeFailure(file: zip, error: error))
             }
-            guard let last = imported.last else { return }
+        }
+        if !groups.csvs.isEmpty {
+            do {
+                let calendar = try CustomTimetableStore.parseAdhanFiles(groups.csvs)
+                let name = Self.uniqueName(
+                    Self.importName(for: groups.csvs),
+                    among: imported.map { $0.name })
+                imported.append(CustomTimetable(name: name, calendar: calendar))
+            } catch {
+                for csv in groups.csvs {
+                    failures.append(describeFailure(file: csv, error: error))
+                }
+            }
+        }
+        guard let last = imported.last else {
+            errorText = failures.first
+            return
+        }
+        do {
             for timetable in imported.dropLast() {
                 let stored = try CustomTimetableStore.add(timetable)
                 vm.toggleTimetableFavorite(stored)
@@ -311,8 +349,17 @@ struct CustomTimetableView: View {
             vm.toggleTimetableFavorite(stored)
             vm.switchToTimetable(id: stored.id)
         } catch {
-            errorText = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+            failures.insert(describeFailure(file: nil, error: error), at: 0)
         }
+        errorText = failures.first
+    }
+
+    /// "calendar.pdf: No usable day rows found." — colon-joined so no new
+    /// localized string is needed for the batch-failure line.
+    private func describeFailure(file: URL?, error: Error) -> String {
+        let reason = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+        guard let file else { return reason }
+        return "\(file.lastPathComponent): \(reason)"
     }
 
     // MARK: - Empty state
