@@ -33,28 +33,16 @@
     searchInput.addEventListener("keydown", function (e) { if (e.key === "Enter") doSearch(); });
   }
   var idInput = $("mosque-id");
-  function updateCalendarLinks() {
-    var links = $("calendar-links");
-    var id = (idInput.value || "").trim().replace(/\D+/g, "");
-    if (!id || !links) { if (links) links.hidden = true; return; }
-    links.hidden = false;
-    $("cal-nl").href = "https://mawaqit.net/nl/calendar/" + id + "/choice";
-    $("cal-fr").href = "https://mawaqit.net/fr/calendar/" + id + "/choice";
-    $("cal-en").href = "https://mawaqit.net/en/calendar/" + id + "/choice";
-  }
   var openBtn = $("mosque-open-btn"), copyBtn = $("mosque-copy-btn");
   function calURL() {
     var id = (idInput.value || "").trim().replace(/\D+/g, "") || "256";
     // English is the default: its /calendar/ download reliably produces a
     // text-based PDF (selectable, importable). Some other locales recently
     // served a visually-correct but text-empty export that no app can read.
-    // The nl/fr/en links below remain as manual fallbacks.
     return "https://mawaqit.net/en/calendar/" + id + "/choice";
   }
-  if (idInput) idInput.addEventListener("input", updateCalendarLinks);
   if (openBtn) openBtn.addEventListener("click", function () {
     if (!(idInput.value || "").trim().replace(/\D+/g, "")) { idInput.focus(); return; }
-    updateCalendarLinks();
     window.open(calURL(), "_blank", "noopener");
   });
   if (copyBtn) copyBtn.addEventListener("click", function () {
