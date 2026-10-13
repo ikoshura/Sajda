@@ -68,6 +68,9 @@ step "Checking prerequisites"
 grep -q "MARKETING_VERSION = ${VERSION};" Sajda.xcodeproj/project.pbxproj \
   || { echo "error: MARKETING_VERSION is not ${VERSION} in Sajda.xcodeproj"; exit 1; }
 
+grep -q "^version = \"${VERSION}\"$" website/zola.toml \
+  || { echo "error: version is not ${VERSION} in website/zola.toml (site download button would go stale)"; exit 1; }
+
 security find-identity -v -p codesigning | grep -q "${SIGN_IDENTITY}: " \
   || { echo "error: no '${SIGN_IDENTITY}' certificate in the keychain"; exit 1; }
 
