@@ -758,6 +758,42 @@ final class SajdaTests: XCTestCase {
             "alert accents (tab pill, tint, search ring) should be the alert colour"
         )
     }
+    /// Plain mode (accent fill off, no Accent Panel theme) paints no coloured
+    /// surface, so interactive glyphs have no accent to match: the active
+    /// location checkmark, mute rings and pager chevrons render `.primary`
+    /// instead of floating a lone system-blue glyph on a neutral panel.
+    /// While the red alert is up they still follow it — the panel *is*
+    /// painting red then, so there is something to match.
+    func testPlainModeGlyphAccentIsNeutralUntilTheAlert() {
+        let vm = PrayerTimeViewModel()
+        defer {
+            vm.isPrayerImminent = false
+            vm.useAccentColor = true
+            vm.accentPanelTheme = false
+            vm.customHighlightColorHex = ""
+        }
+        vm.useAccentColor = false
+        vm.accentPanelTheme = false
+        vm.customHighlightColorHex = ""
+
+        vm.isPrayerImminent = false
+        XCTAssertEqual(
+            vm.legibleInteractiveAccent,
+            .primary,
+            "calm plain-mode glyphs should be neutral, not system blue"
+        )
+
+        // While imminent the row text turns red but the panel itself stays
+        // neutral (no accent fill anywhere), so the glyphs stay neutral too —
+        // there is still no coloured surface for them to match.
+        vm.isPrayerImminent = true
+        XCTAssertEqual(
+            vm.legibleInteractiveAccent,
+            .primary,
+            "plain-mode glyphs stay neutral during the alert; only accent mode follows it"
+        )
+    }
+
 
     /// The switches, the time-preview arrow and the About page hold their own
     /// `@AppStorage` and never see a view model, so they resolve through

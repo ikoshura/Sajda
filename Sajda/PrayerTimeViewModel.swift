@@ -1567,11 +1567,29 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
     /// would be swapped out for blue too. So when the hex in play is the alert's
     /// rather than the user's, it is drawn as-is: it is the colour the panel
     /// chose for that state, not a pick that needs protecting.
+    ///
+    /// Plain mode (no accent fill, no Accent Panel theme) paints no coloured
+    /// surface at all — the next-prayer row is a neutral wash — so there is
+    /// no accent for a glyph to match. `.primary` keeps the checkmark
+    /// consistent with the unselected `.secondary` icons beside it instead of
+    /// floating a lone blue glyph on a neutral panel. This holds while the red
+    /// alert is up too: without an accent surface there is no alert hex to
+    /// follow, so the glyphs stay neutral — only accent mode follows the alert.
     var legibleInteractiveAccent: Color {
         let hex = effectiveHighlightHex
+        // Alert in play: the panel is painting red, so the glyphs follow it
+        // rather than keeping a calm colour. (Only reachable in accent mode:
+        // `effectiveAccentHex` returns nil without an accent surface, so in
+        // plain mode the hex below always equals the user's pick.)
         if hex != customHighlightColorHex {
             return selectedHighlightColor
         }
+        // Plain mode paints no coloured surface at all — the next-prayer row
+        // is a neutral wash — so there is no accent for a glyph to match.
+        // `.primary` keeps the checkmark consistent with the unselected
+        // `.secondary` icons beside it instead of floating a lone blue glyph
+        // on a neutral panel.
+        guard useAccentColor || accentPanelTheme else { return .primary }
         guard Self.controlTint(fromHighlightHex: hex) != nil else {
             return Self.systemControlAccent
         }
