@@ -791,7 +791,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 4.6.3;
+				MARKETING_VERSION = 4.6.4;
 				PRODUCT_BUNDLE_IDENTIFIER = com.ikoshura.Sajda;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "";
@@ -826,7 +826,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 4.6.3;
+				MARKETING_VERSION = 4.6.4;
 				PRODUCT_BUNDLE_IDENTIFIER = com.ikoshura.Sajda;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "";
