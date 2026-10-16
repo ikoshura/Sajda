@@ -71,6 +71,18 @@ grep -q "MARKETING_VERSION = ${VERSION};" Sajda.xcodeproj/project.pbxproj \
 grep -q "^version = \"${VERSION}\"$" website/zola.toml \
   || { echo "error: version is not ${VERSION} in website/zola.toml (site download button would go stale)"; exit 1; }
 
+# Sparkle compares CFBundleVersion (the build number), not the marketing
+# version — a rebuild with an unchanged CURRENT_PROJECT_VERSION produces a
+# feed item clients already "have" (4.6.4 shipped build 47 twice, so no
+# installed copy ever saw the update). Fail unless the build advanced past
+# the previous release tag's build.
+PREV_BUILD=$(git show "$(git describe --tags --abbrev=0 2>/dev/null)"':Sajda.xcodeproj/project.pbxproj' 2>/dev/null \
+  | grep -m1 -o 'CURRENT_PROJECT_VERSION = [0-9]*' | grep -o '[0-9]*')
+CUR_BUILD=$(grep -m1 -o 'CURRENT_PROJECT_VERSION = [0-9]*' Sajda.xcodeproj/project.pbxproj | grep -o '[0-9]*')
+if [ -n "$PREV_BUILD" ] && [ "$CUR_BUILD" -le "$PREV_BUILD" ] 2>/dev/null; then
+  echo "error: CURRENT_PROJECT_VERSION (${CUR_BUILD}) must exceed previous release build (${PREV_BUILD}) or Sparkle will not see the update"; exit 1
+fi
+
 security find-identity -v -p codesigning | grep -q "${SIGN_IDENTITY}: " \
   || { echo "error: no '${SIGN_IDENTITY}' certificate in the keychain"; exit 1; }
 
