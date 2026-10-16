@@ -7,8 +7,6 @@ class AdhanAudioPlayer: NSObject, AVAudioPlayerDelegate, NSSoundDelegate {
     private var player: AVAudioPlayer?
     private var sound: NSSound?
     private var playedPrayers: Set<String> = []
-    private var activityToken: NSObjectProtocol?
-
     private(set) var currentPrayerName: String?
     /// True while a Settings sound-check sample owns the output. Set by
     /// `preview()`, cleared by any `stop()` (the row's stop glyph, a real
@@ -23,17 +21,40 @@ class AdhanAudioPlayer: NSObject, AVAudioPlayerDelegate, NSSoundDelegate {
 
     private override init() {
         super.init()
-        disableAppNap()
     }
 
-    private func disableAppNap() {
-        activityToken = ProcessInfo.processInfo.beginActivity(
-            options: [.userInitiated, .idleSystemSleepDisabled],
-            reason: "Playing adhan and monitoring prayer times"
+    /// Activity held only while adhan audio is actually playing (taken in
+    /// `playURL`/`playSystemBeep`, ended on finish/`stop`/failure). The old
+    /// code held `.idleSystemSleepDisabled` from launch forever, blocking idle
+    /// sleep 24/7 (Activity Monitor "Preventing Sleep: Yes"). The prayer
+    /// alarms don't need it: notifications are delivered by the system and the
+    /// trigger timers use wall-clock fire dates that wake the process.
+    /// `.userInitiated` alone still keeps App Nap from pausing mid-adhan.
+    private var playbackActivity: NSObjectProtocol?
+
+    /// Takes the playback activity if none is held. Separate from the audio
+    /// itself so every exit path (finish, error, interrupt, stop) can share
+    /// `endPlaybackActivity()`.
+    private func beginPlaybackActivity() {
+        guard playbackActivity == nil else { return }
+        playbackActivity = ProcessInfo.processInfo.beginActivity(
+            options: [.userInitiated],
+            reason: "Playing adhan"
         )
     }
 
+    /// Ends the playback activity if one is held. Called from every exit path:
+    /// `stop()` (explicit stop/unwind/interrupt), both finish delegates, and
+    /// the all-playback-failed branch of `playURL`.
+    private func endPlaybackActivity() {
+        if let token = playbackActivity {
+            ProcessInfo.processInfo.endActivity(token)
+            playbackActivity = nil
+        }
+    }
+
     private func playSystemBeep() {
+        beginPlaybackActivity()
         let systemSoundURL = URL(fileURLWithPath: "/System/Library/Sounds/Submarine.aiff")
         if let snd = NSSound(contentsOf: systemSoundURL, byReference: true) {
             self.sound = snd
@@ -96,6 +117,9 @@ class AdhanAudioPlayer: NSObject, AVAudioPlayerDelegate, NSSoundDelegate {
         player = nil
         sound?.stop()
         sound = nil
+        // Every road out of playback ends the activity: an explicit stop,
+        // a finished file, an error, an interruption.
+        endPlaybackActivity()
         if wasPlaying {
             let stoppedPrayer = currentPrayerName
             currentPrayerName = nil
@@ -159,6 +183,9 @@ class AdhanAudioPlayer: NSObject, AVAudioPlayerDelegate, NSSoundDelegate {
     }
 
     private func playURL(_ url: URL) {
+        // The activity keeps App Nap from pausing the process mid-adhan; the
+        // delegates and `stop()` end it on every exit path.
+        beginPlaybackActivity()
         // Use NSSound as primary player — more reliable for long-form audio on macOS.
         // byReference: false loads the entire file into memory, preventing mid-playback
         // buffering issues that can occur with AVAudioPlayer for files longer than ~15s.
@@ -188,6 +215,7 @@ class AdhanAudioPlayer: NSObject, AVAudioPlayerDelegate, NSSoundDelegate {
         }
 
         print("AdhanAudioPlayer: all playback methods failed for \(url.lastPathComponent)")
+        endPlaybackActivity()
     }
 
     // MARK: - NSSoundDelegate
@@ -198,6 +226,7 @@ class AdhanAudioPlayer: NSObject, AVAudioPlayerDelegate, NSSoundDelegate {
         }
         if sound === self.sound {
             self.sound = nil
+            endPlaybackActivity()
             let finishedPrayer = currentPrayerName
             currentPrayerName = nil
             if let prayer = finishedPrayer {
@@ -217,6 +246,7 @@ class AdhanAudioPlayer: NSObject, AVAudioPlayerDelegate, NSSoundDelegate {
         if !flag {
             print("Audio playback finished unsuccessfully")
         }
+        endPlaybackActivity()
         let finishedPrayer = currentPrayerName
         currentPrayerName = nil
         if let prayer = finishedPrayer {

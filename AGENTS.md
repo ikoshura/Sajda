@@ -149,7 +149,7 @@ xcodebuild \
    - The 1-second countdown poll (`updateCountdown`) — plays when the countdown reaches "Now" (safety net).
    - `userNotificationCenter(_:willPresent:)` in AppDelegate — foreground-only (Apple: "arrived while the app was running in the foreground"), i.e. effectively only while the menu is open.
    - `userNotificationCenter(_:didReceive:)` — plays when the user clicks the banner.
-3. `AdhanAudioPlayer.shared` is touched at launch so its App Nap / idle-sleep assertion is held from startup — otherwise the countdown timer can be throttled while the menu is closed.
+3. `AdhanAudioPlayer` holds a `.userInitiated` activity only while audio is actually playing (taken in `playURL`/`playSystemBeep`, ended on finish/stop/failure). Deliberately *not* `.idleSystemSleepDisabled`, and deliberately *not* held from launch: the old always-on assertion blocked idle sleep 24/7 (Activity Monitor "Preventing Sleep: Yes"). The alarms don't need it — notifications are delivered by the system, and the trigger timers use wall-clock fire dates that fire on wake. Worst case under App Nap is the 1s-poll safety net running late; the primary triggers still fire.
 4. User can stop via the "Stop Adhan" menu command or the inline "Dismiss" link beside the sounding prayer's name in the prayer list.
 5. Notification authorization is surfaced in onboarding and Settings → Adhan Sound (Allow prompt / Open System Settings shortcut); `PrayerTimeViewModel.notificationAuthorizationStatus` mirrors the system state.
 

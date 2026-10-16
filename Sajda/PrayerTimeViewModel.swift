@@ -1281,6 +1281,24 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
         nextPrayerName == "Fajr" ? displayedFajrTime : todayTimes[nextPrayerName]
     }
 
+    // MARK: - Countdown formatting (hoisted out of the 1s tick)
+
+    /// One formatter per thread: the tick fires every second forever, so
+    /// allocating two NumberFormatters per tick is pure waste — but
+    /// NumberFormatter is not thread-safe and the locale can change at
+    /// runtime (language switch), so neither a shared static nor a fully
+    /// frozen instance is correct.
+    private static var countdownDigits: NumberFormatter {
+        let key = "sajda.countdownDigits"
+        let threadDict = Thread.current.threadDictionary
+        if let cached = threadDict[key] as? NumberFormatter { return cached }
+        let digits = NumberFormatter()
+        digits.minimumIntegerDigits = 2
+        digits.maximumIntegerDigits = 2
+        threadDict[key] = digits
+        return digits
+    }
+
     private func updateCountdown() {
         guard let nextDate = nextPrayerOccurrenceDate else {
             countdown = "--:--"; detailedCountdown = "--:--:--"; updateMenuTitle(); return
@@ -1291,15 +1309,21 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
         // before the prayer; 0 never triggers it. The UserDefaults mirror
         // lets the window-root Accent Panel tint follow the alert colour too
         // (it owns no view model, so it can't read the @Published flag).
-        isPrayerImminent = (redAlertMinutes > 0 && diff <= redAlertMinutes * 60 && diff > 0)
-        UserDefaults.standard.set(isPrayerImminent, forKey: "prayerImminentForTint")
+        // Written only on change: this fires every second, and a write on
+        // every tick dirties the defaults store for no reason.
+        let imminent = (redAlertMinutes > 0 && diff <= redAlertMinutes * 60 && diff > 0)
+        if imminent != isPrayerImminent {
+            isPrayerImminent = imminent
+            UserDefaults.standard.set(isPrayerImminent, forKey: "prayerImminentForTint")
+        }
 
         // hh:mm:ss for the panel's countdown header (same locale digits as
-        // the menu-bar countdown).
-        let digits = NumberFormatter()
+        // the menu-bar countdown). Shared formatters with the locale set per
+        // tick: allocating two NumberFormatters every second is pure waste,
+        // and the locale can change at runtime (language switch), so a fully
+        // static instance would go stale.
+        let digits = Self.countdownDigits
         digits.locale = displayLocale
-        digits.minimumIntegerDigits = 2
-        digits.maximumIntegerDigits = 2
         let comp = { (v: Int) in digits.string(from: NSNumber(value: v)) ?? String(format: "%02d", v) }
         detailedCountdown = diff > 0
             ? "\(comp(diff / 3600)):\(comp((diff % 3600) / 60)):\(comp(diff % 60))"
@@ -1308,11 +1332,10 @@ class PrayerTimeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
         if diff > 0 {
             let h = diff / 3600
             let m = (diff % 3600) / 60
-            let numberFormatter = NumberFormatter()
-            numberFormatter.locale = displayLocale
-            let formattedM = numberFormatter.string(from: NSNumber(value: m + 1)) ?? "\(m + 1)"
+            digits.locale = displayLocale
+            let formattedM = digits.string(from: NSNumber(value: m + 1)) ?? "\(m + 1)"
             if h > 0 {
-                let formattedH = numberFormatter.string(from: NSNumber(value: h)) ?? "\(h)"
+                let formattedH = digits.string(from: NSNumber(value: h)) ?? "\(h)"
                 countdown = String(format: NSLocalizedString("countdown_hm", comment: ""), formattedH, formattedM)
             } else {
                 countdown = String(format: NSLocalizedString("countdown_m", comment: ""), formattedM)
